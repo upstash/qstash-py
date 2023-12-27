@@ -31,7 +31,6 @@ class HttpClient:
 
         headers = {**init_headers, **req.get("headers")}
 
-        # TODO: Does this need to be async?
         res = requests.post(
             url=f"{self.base_url}/{'/'.join(req.get('path'))}",
             headers=headers,

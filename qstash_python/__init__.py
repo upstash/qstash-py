@@ -8,11 +8,14 @@ def main():
             "body": json.dumps({"message": "Hello World!"}),
             "url": "https://seanqstash.requestcatcher.com",
             "delay": 10,
+            "headers": {"test-header": "test-value"},
         }
     )
 
 
-client = Client(token="<YOUR_TOKEN>")
+client = Client(
+    token="<M_TOKEN>",
+)
 
 if __name__ == "__main__":
     main()
