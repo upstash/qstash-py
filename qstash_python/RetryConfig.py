@@ -1,5 +1,6 @@
 import math
 
+# TODO: Maybe convert to a TypedDict
 def default_backoff(retry_count: int) -> int:
   """
   Default backoff function.

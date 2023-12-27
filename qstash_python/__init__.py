@@ -1,14 +1,18 @@
-# This may have to be qstash_python.client ? That's how it is in the other repos
-# from client import Client
+from client import Client
+import json
 
-# client = Client(3)
+def main():
+  client.publish({
+    "body": json.dumps({
+      "message": "Hello World!"
+    }),
+    "url": "https://seanqstash.requestcatcher.com",
+    "delay": 10,
+  })
+ 
 
-# print(client.get_x())
 
-from qstash_types import PublishRequest
-publish_request = PublishRequest(body="Hello", delay=10, url="https://example.com")
+client = Client(token="<MY_TOKEN>")
 
-print(publish_request.url)
-print(publish_request.attr_exists("url"), "should be True")
-print(publish_request.attr_exists("body"), "should be True")
-print(publish_request.attr_exists("doesnt exist"), "should be False")
+if __name__ == "__main__":
+  main()
