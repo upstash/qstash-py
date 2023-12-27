@@ -12,9 +12,7 @@ def main():
     )
 
 
-client = Client(
-    token="eyJVc2VySUQiOiJjNGVjMmFjYi0yM2Q1LTRkZGYtYmM1ZC1kZjIxZWEzYTMxMjUiLCJQYXNzd29yZCI6IjhmYjQ2MjE2YWY3ZjRlMTg5MGE2ZjdlM2U0MmMwZmVjIn0="
-)
+client = Client(token="<YOUR_TOKEN>")
 
 if __name__ == "__main__":
     main()
