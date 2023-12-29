@@ -55,3 +55,11 @@ UpstashRequest = TypedDict(
         "parse_response_as_json": Optional[bool],
     },
 )
+
+RetryConfig = TypedDict(
+    "RetryConfig",
+    {
+        "attempts": int,
+        "backoff": callable,
+    },
+)

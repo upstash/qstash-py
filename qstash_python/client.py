@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import Optional, Union
 from upstash_http import HttpClient
-from RetryConfig import RetryConfig
-from qstash_types import PublishRequest, UpstashHeaders
+from qstash_types import PublishRequest, UpstashHeaders, RetryConfig
 from utils import prefix_headers
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
@@ -11,7 +10,7 @@ class Client:
     def __init__(
         self,
         token: str,
-        retry: Optional[RetryConfig] = RetryConfig(),
+        retry: Optional[Union[bool, RetryConfig]] = None,
         base_url: Optional[str] = DEFAULT_BASE_URL,
     ):
         self.http = HttpClient(token, retry, base_url)

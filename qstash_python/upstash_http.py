@@ -1,7 +1,14 @@
 import requests
-from RetryConfig import RetryConfig
+import math
 from typing import Union
-from qstash_types import UpstashRequest
+from qstash_types import UpstashRequest, RetryConfig
+
+NO_RETRY: RetryConfig = {"attempts": 1, "backoff": lambda _: 0}
+
+DEFAULT_RETRY_CONFIG: RetryConfig = {
+    "attempts": 6,  # 5 retries
+    "backoff": lambda retry_count: math.exp(retry_count) * 50,
+}
 
 
 class HttpClient:
@@ -15,7 +22,12 @@ class HttpClient:
         """
         self.base_url = base_url.rstrip("/")
         self.token = f"Bearer {token}"
-        self.retry = RetryConfig(0, lambda _: 0) if retry == False else retry
+        if retry is False:
+            self.retry = NO_RETRY
+        elif isinstance(retry, dict):
+            self.retry = {**DEFAULT_RETRY_CONFIG, **retry}
+        else:
+            self.retry = DEFAULT_RETRY_CONFIG
 
     def request(self, req: UpstashRequest) -> dict:
         """
