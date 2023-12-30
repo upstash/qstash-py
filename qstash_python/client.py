@@ -1,3 +1,4 @@
+import json
 from typing import Optional, Union
 from upstash_http import HttpClient
 from qstash_types import PublishRequest, UpstashHeaders, RetryConfig
@@ -64,3 +65,19 @@ class Client:
         )
 
         return res
+
+    def publish_json(self, req: PublishRequest):
+        """
+        Publish a message to QStash, automatically serializing the body as JSON.
+
+        :param req: An instance of PublishRequest containing the request details.
+        :return: An instance of PublishResponse containing the response details.
+        """
+        headers: UpstashHeaders = req.get("headers", {})
+        prefix_headers(headers)
+        headers["Content-Type"] = "application/json"
+
+        if "body" in req:
+            req["body"] = json.dumps(req["body"])
+
+        return self.publish(req)

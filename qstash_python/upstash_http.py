@@ -1,7 +1,9 @@
 import requests
 import math
+import time
 from typing import Union
 from qstash_types import UpstashRequest, RetryConfig
+from urllib.parse import urlencode
 
 NO_RETRY: RetryConfig = {"attempts": 1, "backoff": lambda _: 0}
 
@@ -36,17 +38,44 @@ class HttpClient:
         :param req: The request object.
         :return: The response object.
         """
-        init_headers = {
-            "Authorization": self.token,
-            "Content-Type": "application/json",  # TODO: Make this configurable, but set for publishJSON
-        }
+        # Handle URL and query params
+        url_parts = [self.base_url] + req.get("path", [])
+        url = "/".join(s.strip("/") for s in url_parts)
 
-        headers = {**init_headers, **req.get("headers")}
+        query_params = req.get("query", {})
+        if query_params:
+            url += "?" + urlencode(
+                {k: v for k, v in query_params.items() if v is not None}
+            )
 
-        res = requests.post(
-            url=f"{self.base_url}/{'/'.join(req.get('path'))}",
-            headers=headers,
-            json=req.get("body"),
-        )
+        init_headers = {"Authorization": self.token}
 
-        print(res)
+        headers = {**init_headers, **req.get("headers", {})}
+
+        error = None
+        for i in range(self.retry["attempts"]):
+            try:
+                res = requests.request(
+                    method=req.get("method", "GET"),
+                    url=url,
+                    headers=headers,
+                    json=req.get("body"),
+                    stream=req.get("keepalive", False),
+                )
+
+                if res.status_code == 429:
+                    raise Exception("Qstash rate limit exceeded")
+                if res.status_code < 200 or res.status_code >= 300:
+                    raise Exception(
+                        f"Qstash request failed with status {res.status_code}"
+                    )
+
+                if req.get("parse_response_as_json", True):
+                    return res.json()
+                else:
+                    return res.text
+            except Exception as e:
+                error = e
+                time.sleep(self.retry["backoff"](i))
+
+        raise error or Exception("Exhausted all retries without a successful response")

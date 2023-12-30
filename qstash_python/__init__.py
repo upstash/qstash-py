@@ -4,26 +4,31 @@ import json
 
 """
 TODO: 
-1. Retry Logic
-2. Create publish_json along with publish methods
-3. Misc method (topics, dlq, etc) 
-4. Receiver
-5. Tests
+1. PublishResponse
+2. Misc method (topics, dlq, etc) 
+3. Receiver
+4. Tests
 """
 
 
 def main():
-    client.publish(
+    res = client.publish_json(
         {
-            "body": json.dumps({"message": "Hello World!"}),
+            "body": {"ex_key": "ex_value"},
             "url": "https://seanqstash.requestcatcher.com",
-            "delay": 10,
-            "headers": {"test-header": "test-value"},
+            "delay": 5,
+            "headers": {
+                "test-header": "test-value",
+            },
         }
     )
 
+    print(res)
 
-client = Client(token="<MY_TOKEN>")
+
+client = Client(
+    token="<MY_KEY>"
+)
 
 if __name__ == "__main__":
     main()
