@@ -1,7 +1,14 @@
 import json
 from typing import Optional, Union
 from upstash_http import HttpClient
-from qstash_types import PublishRequest, UpstashHeaders, RetryConfig
+from qstash_types import (
+    PublishRequest,
+    UpstashHeaders,
+    RetryConfig,
+    PublishToUrlResponse,
+    PublishToTopicResponse,
+)
+from error import QstashException
 from utils import prefix_headers
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
@@ -16,18 +23,33 @@ class Client:
     ):
         self.http = HttpClient(token, retry, base_url)
 
-    def publish(self, req: PublishRequest):
+    def publish(
+        self, req: PublishRequest
+    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
         """
         Publish a message to QStash.
 
+        If publishing to a URL (req contains 'url'), this method returns a PublishToUrlResponse:
+        - PublishToUrlResponse: Contains 'messageId' indicating the unique ID of the message and
+        an optional 'deduplicated' boolean indicating if the message is a duplicate.
+
+        If publishing to a topic (req contains 'topic'), it returns a PublishToTopicResponse:
+        - PublishToTopicResponse: Contains a list of PublishToTopicSingleResponse objects, each of which
+        contains 'messageId' indicating the unique ID of the message, 'url' indicating the URL to which
+        the message was published, and an optional 'deduplicated' boolean indicating if the message is a duplicate.
+
         :param req: An instance of PublishRequest containing the request details.
-        :return: An instance of PublishResponse containing the response details.
+        :return: Response details including the message_id, url (if publishing to a topic),
+                and possibly a deduplicated boolean. The exact return type depends on the publish target.
+        :raises ValueError: If neither 'url' nor 'topic' is provided, or both are provided.
         """
         # Request should have either url or topic, but not both
         if (req.get("url") is None and req.get("topic") is None) or (
             req.get("url") is not None and req.get("topic") is not None
         ):
-            raise ValueError("Either 'url' or 'topic' must be provided, but not both.")
+            raise QstashException(
+                "Either 'url' or 'topic' must be provided, but not both."
+            )
 
         headers: UpstashHeaders = req.get("headers") or {}
         prefix_headers(headers)
@@ -66,7 +88,9 @@ class Client:
 
         return res
 
-    def publish_json(self, req: PublishRequest):
+    def publish_json(
+        self, req: PublishRequest
+    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
         """
         Publish a message to QStash, automatically serializing the body as JSON.
 

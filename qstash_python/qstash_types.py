@@ -64,12 +64,14 @@ RetryConfig = TypedDict(
     },
 )
 
-PublishResponse = TypedDict(
+PublishToUrlResponse = TypedDict(
     "PublishResponse",
-    {
-        "messageId": str,
-        # TODO: URL?
-    },
+    {"messageId": str, "deduplicated": Optional[bool]},
 )
 
-PublishToTopicResponse = List[PublishResponse]
+PublishToTopicSingleResponse = TypedDict(
+    "PublishToTopicSingleResponse",
+    {"messageId": str, "url": str, "deduplicated": Optional[bool]},
+)
+
+PublishToTopicResponse = List[PublishToTopicSingleResponse]
