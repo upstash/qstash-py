@@ -63,3 +63,13 @@ RetryConfig = TypedDict(
         "backoff": callable,
     },
 )
+
+PublishResponse = TypedDict(
+    "PublishResponse",
+    {
+        "messageId": str,
+        # TODO: URL?
+    },
+)
+
+PublishToTopicResponse = List[PublishResponse]

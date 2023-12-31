@@ -1,13 +1,12 @@
 from client import Client
-import json
-
 
 """
 TODO: 
 1. PublishResponse
-2. Misc method (topics, dlq, etc) 
-3. Receiver
-4. Tests
+2. Better QstashRateLimitError
+3. Misc method (topics, dlq, etc) 
+4. Receiver
+5. Tests
 """
 
 
@@ -15,8 +14,9 @@ def main():
     res = client.publish_json(
         {
             "body": {"ex_key": "ex_value"},
-            "url": "https://seanqstash.requestcatcher.com",
-            "delay": 5,
+            # "url": "https://seanqstash.requestcatcher.com",
+            "topic": "another1",
+            # "delay": 5,
             "headers": {
                 "test-header": "test-value",
             },

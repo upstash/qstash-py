@@ -2,7 +2,7 @@ import requests
 import math
 import time
 from typing import Union
-from qstash_types import UpstashRequest, RetryConfig
+from qstash_types import UpstashRequest, RetryConfig, PublishResponse
 from urllib.parse import urlencode
 
 NO_RETRY: RetryConfig = {"attempts": 1, "backoff": lambda _: 0}
@@ -31,7 +31,7 @@ class HttpClient:
         else:
             self.retry = DEFAULT_RETRY_CONFIG
 
-    def request(self, req: UpstashRequest) -> dict:
+    def request(self, req: UpstashRequest) -> PublishResponse:
         """
         Sends an HTTP request.
 
@@ -67,7 +67,7 @@ class HttpClient:
                     raise Exception("Qstash rate limit exceeded")
                 if res.status_code < 200 or res.status_code >= 300:
                     raise Exception(
-                        f"Qstash request failed with status {res.status_code}"
+                        f"Qstash request failed with status {res.status_code}: {res.text}"
                     )
 
                 if req.get("parse_response_as_json", True):
@@ -76,6 +76,6 @@ class HttpClient:
                     return res.text
             except Exception as e:
                 error = e
-                time.sleep(self.retry["backoff"](i))
+                time.sleep(self.retry["backoff"](i) / 1000)
 
         raise error or Exception("Exhausted all retries without a successful response")
