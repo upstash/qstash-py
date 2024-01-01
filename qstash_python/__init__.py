@@ -22,10 +22,10 @@ def main():
         }
     )
 
-    message_id = res["messageId"]
-    print(message_id)
-    messages = client.messages()
-    print(messages.get(message_id))
+    # message_id = res["messageId"]
+    # print(message_id)
+    # messages = client.messages()
+    # print(messages.get(message_id))
 
     # topics = client.topics()
     # print("Topics", topics.list())
@@ -39,6 +39,8 @@ def main():
 
     # dlq = client.dlq()
     # print(dlq.list_messages())
+
+    # print(len(client.events().get("events", [])))
 
 
 client = Client("MY_KEY")

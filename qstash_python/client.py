@@ -13,6 +13,7 @@ from utils import prefix_headers
 from messages import Messages
 from topics import Topics
 from dlq import DLQ
+from events import Events, EventsRequest, GetEventsResponse
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -132,3 +133,26 @@ class Client:
         Read or remove messages from the DLQ.s
         """
         return DLQ(self.http)
+
+    def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
+        """
+        Retrieve your logs.
+
+        The logs endpoint is paginated and returns only 100 logs at a time.
+        If you want to receive more logs, you can use the cursor to paginate.
+        The cursor is a unix timestamp with millisecond precision
+
+        :param req: An instance of EventsRequest containing the cursor
+        :return: The events response object.
+
+        Example:
+        --------
+        Initialize the cursor to the current timestamp in milliseconds:
+        >>> cursor = int(time.time() * 1000)
+        >>> logs = []
+        >>> while cursor > 0:
+        >>>     res = get({"cursor"=cursor})
+        >>>     logs.extend(res['logs'])
+        >>>     cursor = res.get('cursor', 0)
+        """
+        return Events(self.http).get(req)
