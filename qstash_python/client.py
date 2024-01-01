@@ -12,6 +12,7 @@ from error import QstashException
 from utils import prefix_headers
 from messages import Messages
 from topics import Topics
+from dlq import DLQ
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -123,3 +124,11 @@ class Client:
         Create, read, update, or delete topics.
         """
         return Topics(self.http)
+
+    def dlq(self):
+        """
+        Access the dlq API.
+
+        Read or remove messages from the DLQ.s
+        """
+        return DLQ(self.http)

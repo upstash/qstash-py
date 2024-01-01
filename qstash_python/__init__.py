@@ -2,11 +2,10 @@ from client import Client
 
 """
 TODO: 
-1. HTTP return type
-2. Misc methods (dlq, schedules, events) 
-3. Convert methods to async
-4. Receiver
-5. Tests
+1. Misc methods (schedules, events) 
+2. Convert methods to async
+3. Receiver
+4. Tests
 """
 
 
@@ -28,8 +27,8 @@ def main():
     messages = client.messages()
     print(messages.get(message_id))
 
-    topics = client.topics()
-    print("Topics", topics.list())
+    # topics = client.topics()
+    # print("Topics", topics.list())
     # topics.add_endpoints({
     #   "name": "another3",
     #   "endpoints": [{
@@ -37,6 +36,9 @@ def main():
     #     "url": "https://seanqstash.requestcatcher.com",
     #   }]
     # })
+
+    # dlq = client.dlq()
+    # print(dlq.list_messages())
 
 
 client = Client("MY_KEY")
