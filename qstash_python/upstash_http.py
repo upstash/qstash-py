@@ -65,8 +65,8 @@ class HttpClient:
                     method=req.get("method", "GET"),
                     url=url,
                     headers=headers,
-                    json=req.get("body"),
                     stream=req.get("keepalive", False),
+                    data=req.get("body"),
                 )
 
                 if res.status_code == 429:

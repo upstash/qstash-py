@@ -11,6 +11,7 @@ from qstash_types import (
 from error import QstashException
 from utils import prefix_headers
 from messages import Messages
+from topics import Topics
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -114,3 +115,11 @@ class Client:
         Read or cancel messages.
         """
         return Messages(self.http)
+
+    def topics(self):
+        """
+        Access the topics API.
+
+        Create, read, update, or delete topics.
+        """
+        return Topics(self.http)
