@@ -37,9 +37,7 @@ class HttpClient:
         else:
             self.retry = DEFAULT_RETRY_CONFIG
 
-    def request(
-        self, req: UpstashRequest
-    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
+    def request(self, req: UpstashRequest):
         """
         Sends an HTTP request.
 

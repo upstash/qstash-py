@@ -10,6 +10,7 @@ from qstash_types import (
 )
 from error import QstashException
 from utils import prefix_headers
+from messages import Messages
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -105,3 +106,11 @@ class Client:
             req["body"] = json.dumps(req["body"])
 
         return self.publish(req)
+
+    def messages(self):
+        """
+        Access the messages API.
+
+        Read or cancel messages.
+        """
+        return Messages(self.http)

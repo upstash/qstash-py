@@ -2,9 +2,10 @@ from client import Client
 
 """
 TODO: 
-1. Misc method (topics, dlq, etc) 
-2. Receiver
-3. Tests
+1. HTTP return type
+2. Misc methods (topics, dlq, schedules, events) 
+3. Receiver
+4. Tests
 """
 
 
@@ -13,7 +14,7 @@ def main():
         {
             "body": {"ex_key": "ex_value"},
             "url": "https://seanqstash.requestcatcher.com",
-            # "topic": "another1",
+            # "topic": "another",
             # "delay": 5,
             "headers": {
                 "test-header": "test-value",
@@ -21,7 +22,10 @@ def main():
         }
     )
 
-    print(res)
+    message_id = res["messageId"]
+    print(message_id)
+    messages = client.messages()
+    print(messages.get(message_id))
 
 
 client = Client(token="<MY_KEY")
