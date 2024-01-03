@@ -1,19 +1,17 @@
-import json
 from typing import Optional, Union
 from upstash_http import HttpClient
-from qstash_types import (
+from qstash_types import RetryConfig
+from publish import (
+    Publish,
     PublishRequest,
-    UpstashHeaders,
-    RetryConfig,
     PublishToUrlResponse,
     PublishToTopicResponse,
 )
-from error import QstashException
-from utils import prefix_headers
 from messages import Messages
 from topics import Topics
 from dlq import DLQ
 from events import Events, EventsRequest, GetEventsResponse
+from schedules import Schedules
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -47,50 +45,7 @@ class Client:
                 and possibly a deduplicated boolean. The exact return type depends on the publish target.
         :raises ValueError: If neither 'url' nor 'topic' is provided, or both are provided.
         """
-        # Request should have either url or topic, but not both
-        if (req.get("url") is None and req.get("topic") is None) or (
-            req.get("url") is not None and req.get("topic") is not None
-        ):
-            raise QstashException(
-                "Either 'url' or 'topic' must be provided, but not both."
-            )
-
-        headers: UpstashHeaders = req.get("headers") or {}
-        prefix_headers(headers)
-
-        headers["Upstash-Method"] = req.get("method") or "POST"
-
-        if req.get("delay") is not None:
-            headers["Upstash-Delay"] = f"{req.get('delay')}s"
-
-        if req.get("not_before") is not None:
-            headers["Upstash-Not-Before"] = str(req.get("not_before"))
-
-        if req.get("deduplication_id") is not None:
-            headers["Upstash-Deduplication-Id"] = req.get("deduplication_id")
-
-        if req.get("content_based_deduplication") is not None:
-            headers["Upstash-Content-Based-Deduplication"] = "true"
-
-        if req.get("retries") is not None:
-            headers["Upstash-Retries"] = str(req.get("retries"))
-
-        if req.get("callback") is not None:
-            headers["Upstash-Callback"] = req.get("callback")
-
-        if req.get("failure_callback") is not None:
-            headers["Upstash-Failure-Callback"] = req.get("failure_callback")
-
-        res = self.http.request(
-            {
-                "path": ["v2", "publish", req.get("url") or req.get("topic")],
-                "body": req.get("body"),
-                "headers": headers,
-                "method": "POST",
-            }
-        )
-
-        return res
+        return Publish.publish(self.http, req)
 
     def publish_json(
         self, req: PublishRequest
@@ -101,14 +56,7 @@ class Client:
         :param req: An instance of PublishRequest containing the request details.
         :return: An instance of PublishResponse containing the response details.
         """
-        headers: UpstashHeaders = req.get("headers", {})
-        prefix_headers(headers)
-        headers["Content-Type"] = "application/json"
-
-        if "body" in req:
-            req["body"] = json.dumps(req["body"])
-
-        return self.publish(req)
+        return Publish.publish_json(self.http, req)
 
     def messages(self):
         """
@@ -134,6 +82,14 @@ class Client:
         """
         return DLQ(self.http)
 
+    def schedules(self):
+        """
+        Access the schedules API.
+
+        Create, read, update, or delete schedules.
+        """
+        return Schedules(self.http)
+
     def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """
         Retrieve your logs.
@@ -155,4 +111,4 @@ class Client:
         >>>     logs.extend(res['logs'])
         >>>     cursor = res.get('cursor', 0)
         """
-        return Events(self.http).get(req)
+        return Events.get(self.http, req)

@@ -21,25 +21,8 @@ UpstashHeaders = TypedDict(
         "Upstash-Retries": Optional[str],
         "Upstash-Callback": Optional[str],
         "Upstash-Failure-Callback": Optional[str],
+        "Upstash-Cron": Optional[str],
         # Other headers are prefixed with Upstash-Forward-
-    },
-)
-
-PublishRequest = TypedDict(
-    "PublishRequest",
-    {
-        "url": str,
-        "body": Any,
-        "headers": Optional[Dict[Any, Any]],
-        "delay": Optional[int],
-        "not_before": Optional[int],
-        "deduplication_id": Optional[str],
-        "content_based_deduplication": Optional[bool],
-        "retries": Optional[int],
-        "callback": Optional[str],
-        "failure_callback": Optional[str],
-        "method": Optional[Method],
-        "topic": Optional[str],
     },
 )
 
@@ -63,15 +46,3 @@ RetryConfig = TypedDict(
         "backoff": callable,
     },
 )
-
-PublishToUrlResponse = TypedDict(
-    "PublishResponse",
-    {"messageId": str, "deduplicated": Optional[bool]},
-)
-
-PublishToTopicSingleResponse = TypedDict(
-    "PublishToTopicSingleResponse",
-    {"messageId": str, "url": str, "deduplicated": Optional[bool]},
-)
-
-PublishToTopicResponse = List[PublishToTopicSingleResponse]

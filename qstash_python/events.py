@@ -43,10 +43,8 @@ GetEventsResponse = TypedDict(
 
 
 class Events:
-    def __init__(self, http: HttpClient):
-        self.http = http
-
-    def get(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
+    @staticmethod
+    def get(http: HttpClient, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """
         Retrieve logs.
         """
@@ -54,7 +52,7 @@ class Events:
         if req is not None and req.get("cursor") is not None and req["cursor"] > 0:
             query["cursor"] = req["cursor"]
 
-        res = self.http.request(
+        res = http.request(
             {
                 "path": ["v2", "events"],
                 "method": "GET",

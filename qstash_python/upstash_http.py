@@ -2,12 +2,7 @@ import requests
 import math
 import time
 from typing import Union
-from qstash_types import (
-    UpstashRequest,
-    RetryConfig,
-    PublishToTopicResponse,
-    PublishToUrlResponse,
-)
+from qstash_types import UpstashRequest, RetryConfig
 from error import QstashException, QstashRateLimitException
 from urllib.parse import urlencode
 
