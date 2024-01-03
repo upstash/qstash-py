@@ -1,6 +1,6 @@
 from typing import Optional, TypedDict, List, Dict
-from qstash_types import Method
-from upstash_http import HttpClient
+from upstash_qstash.qstash_types import Method
+from upstash_qstash.upstash_http import HttpClient
 
 DlqMessage = TypedDict(
     "DlqMessage",

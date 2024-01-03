@@ -1,8 +1,8 @@
 from typing import Optional, List, Dict, Any, TypedDict
-from qstash_types import Method, UpstashHeaders
-from upstash_http import HttpClient
-from utils import prefix_headers
-from error import QstashException
+from upstash_qstash.qstash_types import Method, UpstashHeaders
+from upstash_qstash.upstash_http import HttpClient
+from upstash_qstash.error import QstashException
+from upstash_qstash.utils import prefix_headers
 import json
 
 PublishRequest = TypedDict(

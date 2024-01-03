@@ -1,4 +1,4 @@
-from qstash_types import UpstashHeaders
+from upstash_qstash.qstash_types import UpstashHeaders
 
 
 def prefix_headers(headers: UpstashHeaders):

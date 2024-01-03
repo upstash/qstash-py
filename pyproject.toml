@@ -2,7 +2,7 @@
 name = "qstash-python"
 version = "0.1.0"
 description = ""
-authors = ["Meshan Khosla <meshan@upstash.com>"]
+authors = ["Upstash <support@upstash.com>", "Meshan Khosla <meshan@upstash.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

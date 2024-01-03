@@ -2,9 +2,9 @@ import requests
 import math
 import time
 from typing import Union
-from qstash_types import UpstashRequest, RetryConfig
-from error import QstashException, QstashRateLimitException
 from urllib.parse import urlencode
+from upstash_qstash.qstash_types import UpstashRequest, RetryConfig
+from upstash_qstash.error import QstashException, QstashRateLimitException
 
 NO_RETRY: RetryConfig = {"attempts": 1, "backoff": lambda _: 0}
 

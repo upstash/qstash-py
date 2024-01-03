@@ -1,17 +1,17 @@
 from typing import Optional, Union
-from upstash_http import HttpClient
-from qstash_types import RetryConfig
-from publish import (
+from upstash_qstash.upstash_http import HttpClient
+from upstash_qstash.qstash_types import RetryConfig
+from upstash_qstash.publish import (
     Publish,
     PublishRequest,
     PublishToUrlResponse,
     PublishToTopicResponse,
 )
-from messages import Messages
-from topics import Topics
-from dlq import DLQ
-from events import Events, EventsRequest, GetEventsResponse
-from schedules import Schedules
+from upstash_qstash.messages import Messages
+from upstash_qstash.topics import Topics
+from upstash_qstash.dlq import DLQ
+from upstash_qstash.events import Events, EventsRequest, GetEventsResponse
+from upstash_qstash.schedules import Schedules
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 

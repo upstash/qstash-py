@@ -1,7 +1,7 @@
 from typing import TypedDict, List, Dict, Optional
-from qstash_types import Method, UpstashHeaders
-from upstash_http import HttpClient
-from utils import prefix_headers
+from upstash_qstash.qstash_types import Method, UpstashHeaders
+from upstash_qstash.upstash_http import HttpClient
+from upstash_qstash.utils import prefix_headers
 import json
 
 Schedule = TypedDict(

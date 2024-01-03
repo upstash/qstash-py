@@ -1,6 +1,6 @@
 from typing import TypedDict, Optional, List, Dict
 from enum import Enum
-from upstash_http import HttpClient
+from upstash_qstash.upstash_http import HttpClient
 
 
 class State(Enum):
