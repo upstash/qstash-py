@@ -1,4 +1,4 @@
-from typing import Optional, List, Dict, Any, TypedDict
+from typing import Optional, Dict, Any, TypedDict, List
 from upstash_qstash.qstash_types import Method, UpstashHeaders
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.error import QstashException
@@ -38,11 +38,10 @@ PublishToTopicResponse = List[PublishToTopicSingleResponse]
 
 class Publish:
     @staticmethod
-    def publish(http: HttpClient, req: PublishRequest):
+    def _validate_request(req: PublishRequest):
         """
-        Internal implementation of publishiong a message to QStash.
+        Validate the publish request to ensure it has either url or topic.
         """
-        # Request should have either url or topic, but not both
         if (req.get("url") is None and req.get("topic") is None) or (
             req.get("url") is not None and req.get("topic") is not None
         ):
@@ -50,6 +49,11 @@ class Publish:
                 "Either 'url' or 'topic' must be provided, but not both."
             )
 
+    @staticmethod
+    def _prepare_headers(req: PublishRequest) -> UpstashHeaders:
+        """
+        Prepare and return headers for the publish request.
+        """
         headers: UpstashHeaders = req.get("headers") or {}
         prefix_headers(headers)
 
@@ -76,6 +80,16 @@ class Publish:
         if req.get("failure_callback") is not None:
             headers["Upstash-Failure-Callback"] = req.get("failure_callback")
 
+        return headers
+
+    @staticmethod
+    def publish(http: HttpClient, req: PublishRequest):
+        """
+        Internal implementation of publishing a message to QStash.
+        """
+        Publish._validate_request(req)
+        headers = Publish._prepare_headers(req)
+
         res = http.request(
             {
                 "path": ["v2", "publish", req.get("url") or req.get("topic")],
@@ -92,11 +106,40 @@ class Publish:
         """
         Publish a message to QStash, automatically serializing the body as JSON.
         """
-        headers: UpstashHeaders = req.get("headers", {})
-        prefix_headers(headers)
-        headers["Content-Type"] = "application/json"
-
         if "body" in req:
             req["body"] = json.dumps(req["body"])
 
+        req.setdefault("headers", {}).update({"Content-Type": "application/json"})
+
         return Publish.publish(http, req)
+
+    @staticmethod
+    async def async_publish(http: HttpClient, req: PublishRequest):
+        """
+        Asynchronously publish a message to QStash.
+        """
+        Publish._validate_request(req)
+        headers = Publish._prepare_headers(req)
+
+        res = await http.async_request(
+            {
+                "path": ["v2", "publish", req.get("url") or req.get("topic")],
+                "body": req.get("body"),
+                "headers": headers,
+                "method": "POST",
+            }
+        )
+
+        return res
+
+    @staticmethod
+    async def async_publish_json(http: HttpClient, req: PublishRequest):
+        """
+        Asynchronously publish a message to QStash, automatically serializing the body as JSON.
+        """
+        if "body" in req:
+            req["body"] = json.dumps(req["body"])
+
+        req.setdefault("headers", {}).update({"Content-Type": "application/json"})
+
+        return await Publish.async_publish(http, req)
