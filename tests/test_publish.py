@@ -1,7 +1,9 @@
 import pytest
-from qstash_token import QSTASH_TOKEN  # TODO: Replace with env var
+import dotenv
 from upstash_qstash import Client
 from upstash_qstash.error import QstashException
+
+QSTASH_TOKEN = dotenv.dotenv_values()["QSTASH_TOKEN"]
 
 
 @pytest.fixture

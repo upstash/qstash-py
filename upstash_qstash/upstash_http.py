@@ -57,7 +57,7 @@ class HttpClient:
         for i in range(self.retry["attempts"]):
             try:
                 res = requests.request(
-                    method=req.get("method", "GET"),
+                    method=req.get("method"),
                     url=url,
                     headers=headers,
                     stream=req.get("keepalive", False),

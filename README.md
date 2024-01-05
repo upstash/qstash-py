@@ -118,10 +118,11 @@ client = Client("QSTASH_TOKEN")
   })
 ```
 
-Additional methods are available for managing topics, schedules, and messages. See the examples folder for more. (TODO)
+Additional methods are available for managing topics, schedules, and messages. See the examples folder for more.
 
 ### Development
 1. Clone the repository
 2. Install [Poetry](https://python-poetry.org/docs/#installation)
 3. Install dependencies with `poetry install`
-4. Run tests with `poetry run pytest`
+4. Create a .env file with `cp .env.example .env` and fill in the `QSTASH_TOKEN`
+5. Run tests with `poetry run pytest` and examples with `python3 examples/<example>.py`
