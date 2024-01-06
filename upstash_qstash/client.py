@@ -1,12 +1,7 @@
 from typing import Optional, Union
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.qstash_types import RetryConfig
-from upstash_qstash.publish import (
-    Publish,
-    PublishRequest,
-    PublishToUrlResponse,
-    PublishToTopicResponse,
-)
+from upstash_qstash.publish import Publish, PublishRequest
 from upstash_qstash.messages import Messages
 from upstash_qstash.topics import Topics
 from upstash_qstash.dlq import DLQ
@@ -25,9 +20,7 @@ class Client:
     ):
         self.http = HttpClient(token, retry, base_url)
 
-    def publish(
-        self, req: PublishRequest
-    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
+    def publish(self, req: PublishRequest):
         """
         Publish a message to QStash.
 
@@ -47,9 +40,7 @@ class Client:
         """
         return Publish.publish(self.http, req)
 
-    def publish_json(
-        self, req: PublishRequest
-    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
+    def publish_json(self, req: PublishRequest):
         """
         Publish a message to QStash, automatically serializing the body as JSON.
 

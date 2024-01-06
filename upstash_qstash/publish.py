@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, TypedDict, List
+from typing import Optional, Dict, Any, TypedDict, List, Union
 from upstash_qstash.qstash_types import Method, UpstashHeaders
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.error import QstashException
@@ -83,7 +83,9 @@ class Publish:
         return headers
 
     @staticmethod
-    def publish(http: HttpClient, req: PublishRequest):
+    def publish(
+        http: HttpClient, req: PublishRequest
+    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
         """
         Internal implementation of publishing a message to QStash.
         """
@@ -114,7 +116,7 @@ class Publish:
         return Publish.publish(http, req)
 
     @staticmethod
-    async def async_publish(http: HttpClient, req: PublishRequest):
+    async def publish_async(http: HttpClient, req: PublishRequest):
         """
         Asynchronously publish a message to QStash.
         """
@@ -133,7 +135,7 @@ class Publish:
         return res
 
     @staticmethod
-    async def async_publish_json(http: HttpClient, req: PublishRequest):
+    async def publish_json_async(http: HttpClient, req: PublishRequest):
         """
         Asynchronously publish a message to QStash, automatically serializing the body as JSON.
         """
@@ -142,4 +144,4 @@ class Publish:
 
         req.setdefault("headers", {}).update({"Content-Type": "application/json"})
 
-        return await Publish.async_publish(http, req)
+        return await Publish.publish_async(http, req)
