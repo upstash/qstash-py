@@ -1,6 +1,11 @@
 from typing import List
 from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.topics import AddEndpointsRequest, RemoveEndpointsRequest, Topic
+from upstash_qstash.topics import (
+    AddEndpointsRequest,
+    RemoveEndpointsRequest,
+    Topic,
+    Topics as SyncTopics,
+)
 from upstash_qstash.error import QstashException
 import json
 
@@ -15,7 +20,7 @@ class Topics:
 
         :param req: An instance of AddEndpointsRequest containing the name and endpoints
         """
-        self._validate_topic_request(req)
+        SyncTopics._validate_topic_request(req)
         await self.http.request_async(
             {
                 "path": ["v2", "topics", req["name"], "endpoints"],
@@ -83,15 +88,3 @@ class Topics:
                 "parse_response_as_json": False,
             }
         )
-
-    def _validate_topic_request(self, req: dict):
-        """
-        Ensure that the request contains a valid topic name and valid endpoints
-        """
-        if req.get("name") is None:
-            raise QstashException("Topic name is required")
-        if req.get("endpoints") is None:
-            raise QstashException("Endpoints are required")
-        for endpoint in req["endpoints"]:
-            if endpoint.get("url") is None:
-                raise QstashException("Endpoint url is required")
