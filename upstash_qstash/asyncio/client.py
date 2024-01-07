@@ -19,15 +19,13 @@ class Client:
         base_url: Optional[str] = DEFAULT_BASE_URL,
     ):
         """
-        Synchronous QStash client.
+        Asynchronous QStash client.
         To use the blocking version, use the upstash_qstash client instead.
         """
         self.http = HttpClient(token, retry, base_url)
 
-    def publish(self, req: PublishRequest):
+    async def publish(self, req: PublishRequest):
         """
-        Publish a message to QStash.
-
         If publishing to a URL (req contains 'url'), this method returns a PublishToUrlResponse:
         - PublishToUrlResponse: Contains 'messageId' indicating the unique ID of the message and
         an optional 'deduplicated' boolean indicating if the message is a duplicate.
@@ -42,50 +40,46 @@ class Client:
                 and possibly a deduplicated boolean. The exact return type depends on the publish target.
         :raises ValueError: If neither 'url' nor 'topic' is provided, or both are provided.
         """
-        return Publish.publish(self.http, req)
+        return await Publish.publish_async(self.http, req)
 
-    def publish_json(self, req: PublishRequest):
+    async def publish_json(self, req: PublishRequest):
         """
         Publish a message to QStash, automatically serializing the body as JSON.
 
         :param req: An instance of PublishRequest containing the request details.
         :return: An instance of PublishResponse containing the response details.
         """
-        return Publish.publish_json(self.http, req)
+        return await Publish.publish_json_async(self.http, req)
 
-    def messages(self):
+    async def messages(self):
         """
         Access the messages API.
 
         Read or cancel messages.
         """
-        return Messages(self.http)
 
-    def topics(self):
+    async def topics(self):
         """
         Access the topics API.
 
         Create, read, update, or delete topics.
         """
-        return Topics(self.http)
 
-    def dlq(self):
+    async def dlq(self):
         """
         Access the dlq API.
 
         Read or remove messages from the DLQ.s
         """
-        return DLQ(self.http)
 
-    def schedules(self):
+    async def schedules(self):
         """
         Access the schedules API.
 
         Create, read, update, or delete schedules.
         """
-        return Schedules(self.http)
 
-    def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
+    async def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """
         Retrieve your logs.
 
@@ -105,5 +99,6 @@ class Client:
         >>>     res = get({"cursor"=cursor})
         >>>     logs.extend(res['logs'])
         >>>     cursor = res.get('cursor', 0)
+
+        TODO: FIX EXAMPLE
         """
-        return Events.get(self.http, req)

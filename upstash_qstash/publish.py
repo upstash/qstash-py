@@ -116,14 +116,16 @@ class Publish:
         return Publish.publish(http, req)
 
     @staticmethod
-    async def publish_async(http: HttpClient, req: PublishRequest):
+    async def publish_async(
+        http: HttpClient, req: PublishRequest
+    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
         """
         Asynchronously publish a message to QStash.
         """
         Publish._validate_request(req)
         headers = Publish._prepare_headers(req)
 
-        res = await http.async_request(
+        res = await http.request_async(
             {
                 "path": ["v2", "publish", req.get("url") or req.get("topic")],
                 "body": req.get("body"),
