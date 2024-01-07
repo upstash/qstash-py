@@ -92,7 +92,7 @@ class Publish:
         Publish._validate_request(req)
         headers = Publish._prepare_headers(req)
 
-        res = http.request(
+        return http.request(
             {
                 "path": ["v2", "publish", req.get("url") or req.get("topic")],
                 "body": req.get("body"),
@@ -100,8 +100,6 @@ class Publish:
                 "method": "POST",
             }
         )
-
-        return res
 
     @staticmethod
     def publish_json(http: HttpClient, req: PublishRequest):
@@ -114,36 +112,3 @@ class Publish:
         req.setdefault("headers", {}).update({"Content-Type": "application/json"})
 
         return Publish.publish(http, req)
-
-    @staticmethod
-    async def publish_async(
-        http: HttpClient, req: PublishRequest
-    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
-        """
-        Asynchronously publish a message to QStash.
-        """
-        Publish._validate_request(req)
-        headers = Publish._prepare_headers(req)
-
-        res = await http.request_async(
-            {
-                "path": ["v2", "publish", req.get("url") or req.get("topic")],
-                "body": req.get("body"),
-                "headers": headers,
-                "method": "POST",
-            }
-        )
-
-        return res
-
-    @staticmethod
-    async def publish_json_async(http: HttpClient, req: PublishRequest):
-        """
-        Asynchronously publish a message to QStash, automatically serializing the body as JSON.
-        """
-        if "body" in req:
-            req["body"] = json.dumps(req["body"])
-
-        req.setdefault("headers", {}).update({"Content-Type": "application/json"})
-
-        return await Publish.publish_async(http, req)
