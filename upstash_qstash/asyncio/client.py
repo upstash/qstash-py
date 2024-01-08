@@ -6,6 +6,7 @@ from upstash_qstash.asyncio.messages import Messages
 from upstash_qstash.asyncio.topics import Topics
 from upstash_qstash.asyncio.dlq import DLQ
 from upstash_qstash.asyncio.schedules import Schedules
+from upstash_qstash.asyncio.events import Events, EventsRequest, GetEventsResponse
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -99,9 +100,8 @@ class Client:
         >>> cursor = int(time.time() * 1000)
         >>> logs = []
         >>> while cursor > 0:
-        >>>     res = get({"cursor"=cursor})
-        >>>     logs.extend(res['logs'])
+        >>>     res = await client.events({"cursor": cursor})
+        >>>     logs.extend(res['events'])
         >>>     cursor = res.get('cursor', 0)
-
-        TODO: FIX EXAMPLE
         """
+        return await Events.get(self.http, req)

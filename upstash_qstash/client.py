@@ -102,8 +102,8 @@ class Client:
         >>> cursor = int(time.time() * 1000)
         >>> logs = []
         >>> while cursor > 0:
-        >>>     res = get({"cursor"=cursor})
-        >>>     logs.extend(res['logs'])
+        >>>     res = client.events({"cursor": cursor})
+        >>>     logs.extend(res['events'])
         >>>     cursor = res.get('cursor', 0)
         """
         return Events.get(self.http, req)
