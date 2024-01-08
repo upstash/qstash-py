@@ -52,11 +52,10 @@ class Events:
         if req is not None and req.get("cursor") is not None and req["cursor"] > 0:
             query["cursor"] = req["cursor"]
 
-        res = http.request(
+        return http.request(
             {
                 "path": ["v2", "events"],
                 "method": "GET",
                 "query": query,
             }
         )
-        return res

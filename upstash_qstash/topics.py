@@ -48,7 +48,7 @@ class Topics:
 
         :param req: An instance of AddEndpointsRequest containing the name and endpoints
         """
-        self._validate_topic_request(req)
+        Topics._validate_topic_request(req)
         self.http.request(
             {
                 "path": ["v2", "topics", req["name"], "endpoints"],
@@ -117,6 +117,7 @@ class Topics:
             }
         )
 
+    @staticmethod
     def _validate_topic_request(self, req: dict):
         """
         Ensure that the request contains a valid topic name and valid endpoints

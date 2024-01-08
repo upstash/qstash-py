@@ -1,12 +1,12 @@
 from typing import Optional, Union
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.qstash_types import RetryConfig
-from upstash_qstash.publish import Publish, PublishRequest
-from upstash_qstash.messages import Messages
-from upstash_qstash.topics import Topics
-from upstash_qstash.dlq import DLQ
-from upstash_qstash.events import Events, EventsRequest, GetEventsResponse
-from upstash_qstash.schedules import Schedules
+from upstash_qstash.asyncio.publish import Publish, PublishRequest
+from upstash_qstash.asyncio.messages import Messages
+from upstash_qstash.asyncio.topics import Topics
+from upstash_qstash.asyncio.dlq import DLQ
+from upstash_qstash.asyncio.schedules import Schedules
+from upstash_qstash.asyncio.events import Events, EventsRequest, GetEventsResponse
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -57,6 +57,7 @@ class Client:
 
         Read or cancel messages.
         """
+        return Messages(self.http)
 
     async def topics(self):
         """
@@ -64,13 +65,15 @@ class Client:
 
         Create, read, update, or delete topics.
         """
+        return Topics(self.http)
 
     async def dlq(self):
         """
         Access the dlq API.
 
-        Read or remove messages from the DLQ.s
+        Read or remove messages from the DLQ.
         """
+        return DLQ(self.http)
 
     async def schedules(self):
         """
@@ -78,6 +81,7 @@ class Client:
 
         Create, read, update, or delete schedules.
         """
+        return Schedules(self.http)
 
     async def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """
@@ -96,9 +100,8 @@ class Client:
         >>> cursor = int(time.time() * 1000)
         >>> logs = []
         >>> while cursor > 0:
-        >>>     res = get({"cursor"=cursor})
-        >>>     logs.extend(res['logs'])
+        >>>     res = await client.events({"cursor": cursor})
+        >>>     logs.extend(res['events'])
         >>>     cursor = res.get('cursor', 0)
-
-        TODO: FIX EXAMPLE
         """
+        return await Events.get(self.http, req)
