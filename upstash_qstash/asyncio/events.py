@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.events import State, Event, EventsRequest, GetEventsResponse
+from upstash_qstash.events import EventsRequest, GetEventsResponse
 
 
 class Events:
