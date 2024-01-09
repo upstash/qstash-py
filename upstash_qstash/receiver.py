@@ -80,5 +80,5 @@ class Receiver:
             return True
         except jwt.ExpiredSignatureError:
             raise SignatureException("Signature has expired")
-        except jwt.InvalidIssuerError as e:
+        except Exception as e:
             raise SignatureException(str(e))
