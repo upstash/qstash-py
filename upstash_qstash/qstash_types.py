@@ -2,14 +2,7 @@ from typing import Optional, Dict, Any, List, TypedDict, Callable, Literal, Unio
 from enum import Enum
 
 
-class Method(Enum):
-    GET = "GET"
-    POST = "POST"
-    PUT = "PUT"
-    DELETE = "DELETE"
-    PATCH = "PATCH"
-
-Method = Union[Literal["GET"], Literal["POST"], str]
+Method = Union[Literal["GET"], Literal["POST"], Literal["PUT"], Literal["DELETE"], Literal["PATCH"]]
 
 HeaderKey = Union[
     Literal["Upstash-Method"],
@@ -30,13 +23,14 @@ UpstashRequest = TypedDict(
     "UpstashRequest",
     {
         "path": List[str],
-        "body": Optional[Any],
-        "headers": Optional[UpstashHeaders],
-        "keepalive": Optional[bool],
-        "method": Optional[Method],
-        "query": Optional[Dict[str, str]],
-        "parse_response_as_json": Optional[bool],
+        "body": Any,
+        "headers": UpstashHeaders,
+        "keepalive": bool,
+        "method": Method,
+        "query": Dict[str, str],
+        "parse_response_as_json": bool
     },
+    total=False,
 )
 
 RetryConfig = TypedDict(

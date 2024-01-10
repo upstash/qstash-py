@@ -6,7 +6,6 @@ from upstash_qstash.topics import (
     Topic,
     Topics as SyncTopics,
 )
-from upstash_qstash.error import QstashException
 import json
 
 
@@ -37,7 +36,7 @@ class Topics:
 
         :param req: An instance of RemoveEndpointsRequest containing the name and endpoints
         """
-        self._validate_topic_request(req)
+        SyncTopics._validate_topic_request(req)
         await self.http.request_async(
             {
                 "path": ["v2", "topics", req["name"], "endpoints"],
