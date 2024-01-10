@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Any, List, TypedDict
+from typing import Optional, Dict, Any, List, TypedDict, Callable, Literal, Union
 from enum import Enum
 
 
@@ -9,22 +9,22 @@ class Method(Enum):
     DELETE = "DELETE"
     PATCH = "PATCH"
 
+Method = Union[Literal["GET"], Literal["POST"], str]
 
-UpstashHeaders = TypedDict(
-    "UpstashHeaders",
-    {
-        "Upstash-Method": Method,
-        "Upstash-Delay": Optional[str],
-        "Upstash-Not-Before": Optional[str],
-        "Upstash-Deduplication-Id": Optional[str],
-        "Upstash-Content-Based-Deduplication": Optional[str],
-        "Upstash-Retries": Optional[str],
-        "Upstash-Callback": Optional[str],
-        "Upstash-Failure-Callback": Optional[str],
-        "Upstash-Cron": Optional[str],
-        # Other headers are prefixed with Upstash-Forward-
-    },
-)
+HeaderKey = Union[
+    Literal["Upstash-Method"],
+    Literal["Upstash-Delay"],
+    Literal["Upstash-Not-Before"],
+    Literal["Upstash-Deduplication-Id"],
+    Literal["Upstash-Content-Based-Deduplication"],
+    Literal["Upstash-Retries"],
+    Literal["Upstash-Callback"],
+    Literal["Upstash-Failure-Callback"],
+    Literal["Upstash-Cron"],
+    str  # This allows for any other string as a key (Upstash-Forward-*)
+]
+
+UpstashHeaders = Dict[HeaderKey, Optional[Union[str, Method]]]
 
 UpstashRequest = TypedDict(
     "UpstashRequest",
@@ -43,6 +43,6 @@ RetryConfig = TypedDict(
     "RetryConfig",
     {
         "attempts": int,
-        "backoff": callable,
+        "backoff": Callable,
     },
 )
