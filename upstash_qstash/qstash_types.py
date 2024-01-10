@@ -2,7 +2,9 @@ from typing import Optional, Dict, Any, List, TypedDict, Callable, Literal, Unio
 from enum import Enum
 
 
-Method = Union[Literal["GET"], Literal["POST"], Literal["PUT"], Literal["DELETE"], Literal["PATCH"]]
+Method = Union[
+    Literal["GET"], Literal["POST"], Literal["PUT"], Literal["DELETE"], Literal["PATCH"]
+]
 
 HeaderKey = Union[
     Literal["Upstash-Method"],
@@ -14,7 +16,7 @@ HeaderKey = Union[
     Literal["Upstash-Callback"],
     Literal["Upstash-Failure-Callback"],
     Literal["Upstash-Cron"],
-    str  # This allows for any other string as a key (Upstash-Forward-*)
+    str,  # This allows for any other string as a key (Upstash-Forward-*)
 ]
 
 UpstashHeaders = Dict[HeaderKey, Optional[Union[str, Method]]]
@@ -28,7 +30,7 @@ UpstashRequest = TypedDict(
         "keepalive": bool,
         "method": Method,
         "query": Dict[str, str],
-        "parse_response_as_json": bool
+        "parse_response_as_json": bool,
     },
     total=False,
 )

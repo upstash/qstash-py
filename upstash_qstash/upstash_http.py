@@ -66,7 +66,7 @@ class HttpClient:
         for i in range(self.retry["attempts"]):
             try:
                 res = requests.request(
-                    method=req.get("method"),
+                    method=req["method"],
                     url=url,
                     headers=headers,
                     stream=req.get("keepalive", False),
@@ -113,7 +113,7 @@ class HttpClient:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.request(
-                        method=req.get("method"),
+                        method=req["method"],
                         url=url,
                         headers=headers,
                         data=req.get("body"),
