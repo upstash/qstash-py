@@ -3,9 +3,7 @@ Publishes a JSON message with a 3s delay to a URL using QStash.
 """
 
 from upstash_qstash import Client
-import dotenv
-
-QSTASH_TOKEN = dotenv.dotenv_values()["QSTASH_TOKEN"]
+from qstash_token import QSTASH_TOKEN
 
 
 def main():

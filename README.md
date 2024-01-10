@@ -126,3 +126,4 @@ Additional methods are available for managing topics, schedules, and messages. S
 3. Install dependencies with `poetry install`
 4. Create a .env file with `cp .env.example .env` and fill in the `QSTASH_TOKEN`
 5. Run tests with `poetry run pytest` and examples with `python3 examples/<example>.py`
+6. Format with `poetry run black .`

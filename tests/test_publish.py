@@ -1,12 +1,10 @@
 import pytest
-import dotenv
 import time
 import asyncio
 from upstash_qstash import Client
 from upstash_qstash.asyncio import Client as AsyncClient
 from upstash_qstash.error import QstashException
-
-QSTASH_TOKEN = dotenv.dotenv_values()["QSTASH_TOKEN"]
+from qstash_token import QSTASH_TOKEN
 
 
 @pytest.fixture

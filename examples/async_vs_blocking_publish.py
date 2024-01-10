@@ -5,11 +5,9 @@ Demonstrate the difference in behavior between blocking and async operations wit
 
 from upstash_qstash import Client as BlockingClient
 from upstash_qstash.asyncio import Client as AsyncClient
-import dotenv
 import asyncio
 import time
-
-QSTASH_TOKEN = dotenv.dotenv_values()["QSTASH_TOKEN"]
+from qstash_token import QSTASH_TOKEN
 
 # Artificial delay (in seconds)
 DELAY = 2

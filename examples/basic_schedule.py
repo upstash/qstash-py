@@ -5,10 +5,8 @@ existing schedules.
 Also an example of how to use the schedules API (list, create, delete, get).
 """
 
-import dotenv
 from upstash_qstash import Client
-
-QSTASH_TOKEN = dotenv.dotenv_values()["QSTASH_TOKEN"]
+from qstash_token import QSTASH_TOKEN
 
 
 def main():
