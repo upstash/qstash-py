@@ -118,7 +118,7 @@ class Topics:
         )
 
     @staticmethod
-    def _validate_topic_request(self, req: dict):
+    def _validate_topic_request(req: dict):
         """
         Ensure that the request contains a valid topic name and valid endpoints
         """
