@@ -22,7 +22,7 @@ class Publish:
 
         return await http.request_async(
             {
-                "path": ["v2", "publish", req.get("url") or req.get("topic")],
+                "path": ["v2", "publish", req.get("url") or req["topic"]],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",

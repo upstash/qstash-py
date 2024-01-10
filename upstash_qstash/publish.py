@@ -10,21 +10,22 @@ PublishRequest = TypedDict(
     {
         "url": str,
         "body": Any,
-        "headers": Optional[Dict[Any, Any]],
-        "delay": Optional[int],
-        "not_before": Optional[int],
-        "deduplication_id": Optional[str],
-        "content_based_deduplication": Optional[bool],
-        "retries": Optional[int],
-        "callback": Optional[str],
-        "failure_callback": Optional[str],
-        "method": Optional[Method],
-        "topic": Optional[str],
+        "headers": Dict[Any, Any],
+        "delay": int,
+        "not_before": int,
+        "deduplication_id": str,
+        "content_based_deduplication": bool,
+        "retries": int,
+        "callback": str,
+        "failure_callback": str,
+        "method": Method,
+        "topic": str,
     },
+    total=False,
 )
 
 PublishToUrlResponse = TypedDict(
-    "PublishResponse",
+    "PublishToUrlResponse",
     {"messageId": str, "deduplicated": Optional[bool]},
 )
 
@@ -94,7 +95,7 @@ class Publish:
 
         return http.request(
             {
-                "path": ["v2", "publish", req.get("url") or req.get("topic")],
+                "path": ["v2", "publish", req.get("url") or req["topic"]],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",
