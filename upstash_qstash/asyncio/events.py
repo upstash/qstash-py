@@ -11,9 +11,9 @@ class Events:
         """
         Asynchronously retrieve logs.
         """
-        query: Dict[str, int] = {}
+        query = {}
         if req is not None and req.get("cursor") is not None and req["cursor"] > 0:
-            query["cursor"] = req["cursor"]
+            query["cursor"] = str(req["cursor"])
 
         return await http.request_async(
             {
