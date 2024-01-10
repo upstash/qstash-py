@@ -22,7 +22,7 @@ class Client:
         Synchronous QStash client.
         To use the blocking version, use the upstash_qstash client instead.
         """
-        self.http = HttpClient(token, retry, base_url)
+        self.http = HttpClient(token, retry, base_url or DEFAULT_BASE_URL)
 
     def publish(self, req: PublishRequest):
         """
