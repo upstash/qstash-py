@@ -2,6 +2,7 @@
 name = "qstash-python"
 version = "0.1.0"
 description = ""
+license = "MIT"
 authors = ["Upstash <support@upstash.com>", "Meshan Khosla <meshan@upstash.com>"]
 readme = "README.md"
 

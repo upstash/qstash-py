@@ -50,7 +50,7 @@ def test_topic_lifecycle(client):
         {
             "name": "sdk_test_topic",
             "endpoints": [
-              {"url": "https://example.com/endpoint1"},
+                {"url": "https://example.com/endpoint1"},
             ],
         }
     )
@@ -64,7 +64,6 @@ def test_topic_lifecycle(client):
         endpoint["url"] == "https://example.com/endpoint1"
         for endpoint in get_res["endpoints"]
     )
-
 
     print("Deleting 'sdk_test_topic'")
     topics.delete("sdk_test_topic")
