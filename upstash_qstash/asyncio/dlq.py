@@ -1,6 +1,7 @@
 from typing import Optional
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse
+from upstash_qstash.qstash_types import UpstashRequest
 
 
 class DLQ:
@@ -13,14 +14,14 @@ class DLQ:
         """
         Asynchronously list messages in the dlq
         """
-        cursor = opts.get("cursor") if opts else None
-        return await self.http.request_async(
-            {
-                "path": ["v2", "dlq"],
-                "method": "GET",
-                "query": {"cursor": cursor},
-            }
-        )
+        req: UpstashRequest = {
+            "path": ["v2", "dlq"],
+            "method": "GET",
+        }
+        if opts is not None and opts.get("cursor") is not None:
+            req["query"] = {"cursor": opts["cursor"]}
+
+        return await self.http.request_async(req)
 
     async def delete(self, dlq_message_id: str):
         """

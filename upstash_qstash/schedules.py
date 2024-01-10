@@ -75,7 +75,7 @@ class Schedules:
 
         if req.get("callback") is not None:
             headers["Upstash-Callback"] = req.get("callback")
-            
+
         if req.get("failure_callback") is not None:
             headers["Upstash-Failure-Callback"] = req.get("failure_callback")
 

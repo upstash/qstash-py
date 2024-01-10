@@ -1,5 +1,5 @@
 from typing import Optional, TypedDict, List, Dict
-from upstash_qstash.qstash_types import Method
+from upstash_qstash.qstash_types import Method, UpstashRequest
 from upstash_qstash.upstash_http import HttpClient
 
 DlqMessage = TypedDict(
@@ -23,7 +23,7 @@ DlqMessage = TypedDict(
 ListMessagesOpts = TypedDict(
     "ListMessagesOpts",
     {
-        "cursor": Optional[str],
+        "cursor": str,
     },
 )
 
@@ -46,14 +46,14 @@ class DLQ:
         """
         List messages in the dlq
         """
-        cursor = opts.get("cursor") if opts else None
-        return self.http.request(
-            {
-                "path": ["v2", "dlq"],
-                "method": "GET",
-                "query": {"cursor": cursor},
-            }
-        )
+        req: UpstashRequest = {
+            "path": ["v2", "dlq"],
+            "method": "GET",
+        }
+        if opts is not None and opts.get("cursor") is not None:
+            req["query"] = {"cursor": opts["cursor"]}
+
+        return self.http.request(req)
 
     def delete(self, dlq_message_id: str):
         """
