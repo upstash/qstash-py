@@ -50,8 +50,8 @@ class Schedules:
 
     @staticmethod
     def _prepare_headers(req: CreateScheduleRequest) -> UpstashHeaders:
-        headers: UpstashHeaders = req.get("headers") or {}
-        prefix_headers(headers)
+        init_headers = req.get("headers") or {}
+        headers = prefix_headers(init_headers)
 
         headers["Upstash-Method"] = req.get("method") or "POST"
 

@@ -1,5 +1,4 @@
 from typing import Optional, Dict, Any, List, TypedDict, Callable, Literal, Union
-from enum import Enum
 
 
 Method = Union[

@@ -1,12 +1,13 @@
 from upstash_qstash.qstash_types import UpstashHeaders
 
 
-def prefix_headers(headers: UpstashHeaders):
+def prefix_headers(headers: dict) -> UpstashHeaders:
     """
-    Destructively prefixes certain headers with 'Upstash-Forward-'.
+    Prefixes certain headers with 'Upstash-Forward-'.
 
     :param headers: A dictionary representing the headers of the HTTP request to be delivered.
                     Headers starting with 'content-type' or 'upstash-' are ignored and not prefixed.
+    :return: A dictionary representing the prefixed headers.
     """
 
     def is_ignored_header(header):
@@ -15,10 +16,11 @@ def prefix_headers(headers: UpstashHeaders):
             "content-type"
         ) or lower_case_header.startswith("upstash-")
 
-    keys_to_be_prefixed = [key for key in headers.keys() if not is_ignored_header(key)]
+    new_headers = {}
+    for key, value in headers.items():
+        if is_ignored_header(key):
+            new_headers[key] = value
+        else:
+            new_headers[f"Upstash-Forward-{key}"] = value
 
-    for key in keys_to_be_prefixed:
-        value = headers.get(key)
-        if value is not None:
-            headers[f"Upstash-Forward-{key}"] = value
-        del headers[key]
+    return new_headers

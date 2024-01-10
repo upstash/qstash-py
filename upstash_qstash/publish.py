@@ -55,8 +55,8 @@ class Publish:
         """
         Prepare and return headers for the publish request.
         """
-        headers: UpstashHeaders = req.get("headers") or {}
-        prefix_headers(headers)
+        init_headers = req.get("headers") or {}
+        headers = prefix_headers(init_headers)
 
         headers["Upstash-Method"] = req.get("method") or "POST"
 
