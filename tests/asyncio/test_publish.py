@@ -1,7 +1,6 @@
 import pytest
-import time
-from upstash_qstash import Client
-from upstash_qstash.error import QstashException
+import asyncio
+from upstash_qstash.asyncio import Client
 from qstash_token import QSTASH_TOKEN
 
 
@@ -10,8 +9,9 @@ def client():
     return Client(QSTASH_TOKEN)
 
 
-def test_publish_to_url(client):
-    res = client.publish_json(
+@pytest.mark.asyncio
+async def test_publish_to_url_async(client):
+    res = await client.publish_json(
         {
             "body": {"ex_key": "ex_value"},
             "url": "https://example.com",
@@ -24,9 +24,9 @@ def test_publish_to_url(client):
     assert res["messageId"] is not None
 
     print("Waiting 1 second for event to be delivered")
-    time.sleep(1)
+    await asyncio.sleep(1)
 
-    events = client.events()
+    events = await client.events()
     found_event = None
     for event in events["events"]:
         if event["messageId"] == res["messageId"]:
@@ -39,13 +39,3 @@ def test_publish_to_url(client):
     assert (
         event["state"] != "ERROR"
     ), f"Event with messageId {res['messageId']} was not delivered"
-
-
-def test_disallow_url_and_topic(client):
-    with pytest.raises(QstashException):
-        client.publish_json(
-            {
-                "url": "https://example.com",
-                "topic": "test-topic",
-            }
-        )

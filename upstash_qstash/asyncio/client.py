@@ -51,7 +51,7 @@ class Client:
         """
         return await Publish.publish_json_async(self.http, req)
 
-    async def messages(self):
+    def messages(self):
         """
         Access the messages API.
 
@@ -59,7 +59,7 @@ class Client:
         """
         return Messages(self.http)
 
-    async def topics(self):
+    def topics(self):
         """
         Access the topics API.
 
@@ -67,7 +67,7 @@ class Client:
         """
         return Topics(self.http)
 
-    async def dlq(self):
+    def dlq(self):
         """
         Access the dlq API.
 
@@ -75,7 +75,7 @@ class Client:
         """
         return DLQ(self.http)
 
-    async def schedules(self):
+    def schedules(self):
         """
         Access the schedules API.
 
