@@ -36,5 +36,4 @@ jobs:
       - name: Run tests
         run: |
           export QSTASH_TOKEN="${{ secrets.QSTASH_TOKEN }}"
-          export QSTASH_TOKEN="${{ secrets.QSTASH_TOKEN }}"
           poetry run pytest
