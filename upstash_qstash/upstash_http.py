@@ -3,7 +3,7 @@ import math
 import time
 import aiohttp
 import asyncio
-from typing import Union
+from typing import Union, Optional
 from urllib.parse import urlencode
 from upstash_qstash.qstash_types import UpstashRequest, RetryConfig, UpstashHeaders
 from upstash_qstash.error import QstashException, QstashRateLimitException
@@ -16,7 +16,9 @@ DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 
 class HttpClient:
-    def __init__(self, token: str, retry: Union[RetryConfig, bool], base_url: str):
+    def __init__(
+        self, token: str, retry: Optional[Union[RetryConfig, bool]], base_url: str
+    ):
         """
         Initializes the HttpClient.
 
@@ -66,7 +68,7 @@ class HttpClient:
         for i in range(self.retry["attempts"]):
             try:
                 res = requests.request(
-                    method=req.get("method"),
+                    method=req["method"],
                     url=url,
                     headers=headers,
                     stream=req.get("keepalive", False),
@@ -113,7 +115,7 @@ class HttpClient:
             try:
                 async with aiohttp.ClientSession() as session:
                     async with session.request(
-                        method=req.get("method"),
+                        method=req["method"],
                         url=url,
                         headers=headers,
                         data=req.get("body"),

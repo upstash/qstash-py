@@ -3,6 +3,7 @@ from typing import TypedDict, List, Dict, Optional
 from upstash_qstash.qstash_types import Method, UpstashHeaders
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.utils import prefix_headers
+from upstash_qstash.error import QstashException
 
 Schedule = TypedDict(
     "Schedule",
@@ -50,8 +51,8 @@ class Schedules:
 
     @staticmethod
     def _prepare_headers(req: CreateScheduleRequest) -> UpstashHeaders:
-        headers: UpstashHeaders = req.get("headers") or {}
-        prefix_headers(headers)
+        init_headers = req.get("headers") or {}
+        headers = prefix_headers(init_headers)
 
         headers["Upstash-Method"] = req.get("method") or "POST"
 
@@ -76,9 +77,16 @@ class Schedules:
             headers["Upstash-Callback"] = req.get("callback")
 
         if req.get("failure_callback") is not None:
-            headers["Upstash-Failure-Callback"] = req.get("failureCallback")
+            headers["Upstash-Failure-Callback"] = req.get("failure_callback")
 
         return headers
+
+    @staticmethod
+    def _validate_schedule_request(req: CreateScheduleRequest) -> None:
+        if req.get("cron") is None:
+            raise QstashException("Cron is required")
+        if req.get("destination") is None:
+            raise QstashException("Destination is required")
 
     def create(self, req: CreateScheduleRequest) -> CreateScheduleResponse:
         """
@@ -87,11 +95,12 @@ class Schedules:
         :return: A dictionary containing the 'scheduleId' of the created schedule.
         :raises UpstashError: If required headers are missing.
         """
+        Schedules._validate_schedule_request(req)
         headers = Schedules._prepare_headers(req)
 
         return self.http.request(
             {
-                "path": ["v2", "schedules", req.get("destination")],
+                "path": ["v2", "schedules", req["destination"]],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",

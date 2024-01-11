@@ -19,11 +19,12 @@ class Schedules:
         :return: A dictionary containing the 'scheduleId' of the created schedule.
         :raises UpstashError: If required headers are missing.
         """
+        SyncSchedules._validate_schedule_request(req)
         headers = SyncSchedules._prepare_headers(req)
 
         return await self.http.request_async(
             {
-                "path": ["v2", "schedules", req.get("destination")],
+                "path": ["v2", "schedules", req["destination"]],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",

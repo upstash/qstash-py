@@ -29,7 +29,7 @@ Event = TypedDict(
 EventsRequest = TypedDict(
     "EventsRequest",
     {
-        "cursor": str,
+        "cursor": int,
     },
 )
 
@@ -48,9 +48,9 @@ class Events:
         """
         Retrieve logs.
         """
-        query: Dict[str, int] = {}
+        query = {}
         if req is not None and req.get("cursor") is not None and req["cursor"] > 0:
-            query["cursor"] = req["cursor"]
+            query["cursor"] = str(req["cursor"])
 
         return http.request(
             {
