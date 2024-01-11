@@ -23,8 +23,8 @@ async def test_topic_lifecycle(client):
         {
             "name": topic_name,
             "endpoints": [
-                {"url": "https://example.com/endpoint1"},
-                {"url": "https://example.com/endpoint2"},
+                {"url": "https://qstash-endpoint1.requestcatcher.com"},
+                {"url": "https://qstash-endpoint2.requestcatcher.com"},
             ],
         }
     )
@@ -36,11 +36,11 @@ async def test_topic_lifecycle(client):
     get_res = await topics.get(topic_name)
     assert get_res["name"] == topic_name
     assert any(
-        endpoint["url"] == "https://example.com/endpoint1"
+        endpoint["url"] == "https://qstash-endpoint1.requestcatcher.com"
         for endpoint in get_res["endpoints"]
     )
     assert any(
-        endpoint["url"] == "https://example.com/endpoint2"
+        endpoint["url"] == "https://qstash-endpoint2.requestcatcher.com"
         for endpoint in get_res["endpoints"]
     )
 
@@ -61,7 +61,7 @@ async def test_topic_lifecycle(client):
         {
             "name": topic_name,
             "endpoints": [
-                {"url": "https://example.com/endpoint1"},
+                {"url": "https://qstash-endpoint1.requestcatcher.com"},
             ],
         }
     )
@@ -72,7 +72,7 @@ async def test_topic_lifecycle(client):
     print(f"Checking if endpoint1 have been removed from '${topic_name}'")
     get_res = await topics.get(topic_name)
     assert not any(
-        endpoint["url"] == "https://example.com/endpoint1"
+        endpoint["url"] == "https://qstash-endpoint1.requestcatcher.com"
         for endpoint in get_res["endpoints"]
     )
 
