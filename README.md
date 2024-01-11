@@ -2,8 +2,6 @@
 
 **QStash** is an HTTP based messaging and scheduling solution for serverless and edge runtimes.
 
-_Note: This SDK is not available on PyPi yet. You can clone this repository and use it. Asyncio is not ready yet._
-
 [QStash Documentation](https://upstash.com/docs/qstash)
 
 ### Usage
