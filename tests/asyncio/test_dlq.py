@@ -1,11 +1,7 @@
 import pytest
 import asyncio
 from upstash_qstash.asyncio import Client
-<<<<<<< HEAD
 from qstash_tokens import QSTASH_TOKEN
-=======
-from qstash_token import QSTASH_TOKEN
->>>>>>> 0e2c55f1d649fc156ebe14bc7edde5f69e40fd22
 
 
 @pytest.fixture
