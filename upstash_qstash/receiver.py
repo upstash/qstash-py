@@ -58,8 +58,7 @@ class Receiver:
                 algorithms=["HS256"],
                 issuer="Upstash",
                 options={
-                    "verify_nbf": True,
-                    "verify_exp": True,
+                    "require": ["iss", "sub", "exp", "nbf"],
                     "leeway": req.get("clock_tolerance", 0),
                 },
             )

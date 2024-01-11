@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "qstash-python"
-version = "0.1.0"
-description = ""
+version = "1.0.0"
+description = "Python client for Upstash QStash"
 license = "MIT"
 authors = ["Upstash <support@upstash.com>", "Meshan Khosla <meshan@upstash.com>"]
 readme = "README.md"
