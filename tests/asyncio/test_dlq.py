@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 from upstash_qstash.asyncio import Client
-from qstash_token import QSTASH_TOKEN
+from qstash_tokens import QSTASH_TOKEN
 
 
 @pytest.fixture
@@ -26,6 +26,8 @@ async def test_dlq(client):
     all_messages = all_messages_res["messages"]
 
     msg_sent = list(filter(lambda msg: msg["messageId"] == msg_id, all_messages))
+    # If this is failing, it's likely because the message hasn't been delivered yet.
+    # Try increasing the sleep time.
     assert len(msg_sent) == 1
 
     dlq_id = msg_sent[0]["dlqId"]

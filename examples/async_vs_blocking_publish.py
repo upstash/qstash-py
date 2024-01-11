@@ -7,7 +7,7 @@ from upstash_qstash import Client as BlockingClient
 from upstash_qstash.asyncio import Client as AsyncClient
 import asyncio
 import time
-from qstash_token import QSTASH_TOKEN
+from qstash_tokens import QSTASH_TOKEN
 
 # Artificial delay (in seconds)
 DELAY = 2

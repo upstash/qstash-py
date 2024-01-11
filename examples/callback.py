@@ -6,7 +6,7 @@ and you want to send the response to your API URL without having
 to wait for the response in a serverless function.
 """
 from upstash_qstash import Client
-from qstash_token import QSTASH_TOKEN
+from qstash_tokens import QSTASH_TOKEN
 
 
 def main():
