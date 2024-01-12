@@ -1,4 +1,4 @@
-from typing import TypedDict, Optional, List, Dict
+from typing import TypedDict, Optional, List
 from enum import Enum
 from upstash_qstash.upstash_http import HttpClient
 
@@ -29,7 +29,7 @@ Event = TypedDict(
 EventsRequest = TypedDict(
     "EventsRequest",
     {
-        "cursor": int,
+        "cursor": str,
     },
 )
 
@@ -49,8 +49,8 @@ class Events:
         Retrieve logs.
         """
         query = {}
-        if req is not None and req.get("cursor") is not None and req["cursor"] > 0:
-            query["cursor"] = str(req["cursor"])
+        if req is not None and req.get("cursor") is not None:
+            query["cursor"] = req["cursor"]
 
         return http.request(
             {

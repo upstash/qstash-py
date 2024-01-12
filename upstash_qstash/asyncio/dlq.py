@@ -12,7 +12,19 @@ class DLQ:
         self, opts: Optional[ListMessagesOpts] = None
     ) -> ListMessageResponse:
         """
-        Asynchronously list messages in the dlq
+        Asynchronously list messages in the dlq.
+
+        Example:
+        --------
+        >>> dlq = client.dlq()
+        >>> all_messages = []
+        >>> cursor = None
+        >>> while True:
+        >>>     res = await dlq.list_messages({"cursor": cursor})
+        >>>     all_messages.extend(res["messages"])
+        >>>     cursor = res.get("cursor")
+        >>>     if cursor is None:
+        >>>         break
         """
         req: UpstashRequest = {
             "path": ["v2", "dlq"],
