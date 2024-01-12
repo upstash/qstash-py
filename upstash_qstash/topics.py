@@ -34,6 +34,8 @@ Topic = TypedDict(
     {
         "name": str,
         "endpoints": List[Endpoint],
+        "createdAt": int,
+        "updatedAt": int,
     },
 )
 

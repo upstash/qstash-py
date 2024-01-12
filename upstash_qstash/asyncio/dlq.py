@@ -1,6 +1,6 @@
 from typing import Optional
 from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse
+from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse, DlqMessage
 from upstash_qstash.qstash_types import UpstashRequest
 
 
@@ -34,6 +34,18 @@ class DLQ:
             req["query"] = {"cursor": opts["cursor"]}
 
         return await self.http.request_async(req)
+
+    async def get(self, dlq_message_id: str) -> DlqMessage:
+        """
+        Get a message from the dlq using its `dlqId`
+        body
+        """
+        return await self.http.request_async(
+            {
+                "path": ["v2", "dlq", dlq_message_id],
+                "method": "GET",
+            }
+        )
 
     async def delete(self, dlq_message_id: str):
         """
