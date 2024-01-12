@@ -8,21 +8,18 @@ from qstash_tokens import QSTASH_TOKEN
 
 def main():
     client = Client(QSTASH_TOKEN)
-    # res = client.publish_json(
-    #     {
-    #         "url": "https://py-qstash-testing.requestcatcher.com",
-    #         "body": {"hello": "world"},
-    #         "headers": {
-    #             "test-header": "test-value",
-    #         },
-    #         "delay": 3,
-    #     }
-    # )
+    res = client.publish_json(
+        {
+            "url": "https://py-qstash-testing.requestcatcher.com",
+            "body": {"hello": "world"},
+            "headers": {
+                "test-header": "test-value",
+            },
+            "delay": 3,
+        }
+    )
 
-    # print(res["messageId"])
-    dlq = client.dlq()
-    all_messages_res = dlq.list_messages()
-    print(all_messages_res["messages"][0]["responseStatus"])
+    print(res["messageId"])
 
     """
     Received from QStash:
