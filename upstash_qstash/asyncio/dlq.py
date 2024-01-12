@@ -16,7 +16,7 @@ class DLQ:
 
         Example:
         --------
-                                >>> dlq = client.dlq()
+        >>> dlq = client.dlq()
         >>> all_events = []
         >>> cursor = None
         >>> while True:
