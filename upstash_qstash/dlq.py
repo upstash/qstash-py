@@ -44,7 +44,19 @@ class DLQ:
         self, opts: Optional[ListMessagesOpts] = None
     ) -> ListMessageResponse:
         """
-        List messages in the dlq
+        List messages in the dlq.
+
+                                Example:
+        --------
+        >>> dlq = client.dlq()
+        >>> all_events = []
+        >>> cursor = None
+        >>> while True:
+        >>>     res = dlq.list_messages({"cursor": cursor})
+        >>>     all_events.extend(res["events"])
+        >>>     cursor = res.get("cursor")
+        >>>     if cursor is None:
+        >>>         break
         """
         req: UpstashRequest = {
             "path": ["v2", "dlq"],
