@@ -73,7 +73,7 @@ class Client:
         """
         Access the dlq API.
 
-        Read or remove messages from the DLQ.
+        Read or remove messages from the DLQ.s
         """
         return DLQ(self.http)
 
@@ -91,7 +91,7 @@ class Client:
 
         The logs endpoint is paginated and returns only 100 logs at a time.
         If you want to receive more logs, you can use the cursor to paginate.
-        The cursor is a unix timestamp with millisecond precision
+        The cursor is a stringified unix timestamp with millisecond precision
 
         :param req: An instance of EventsRequest containing the cursor
         :return: The events response object.
@@ -99,11 +99,14 @@ class Client:
         Example:
         --------
         Initialize the cursor to the current timestamp in milliseconds:
-        >>> cursor = int(time.time() * 1000)
-        >>> logs = []
-        >>> while cursor > 0:
+        >>> all_events = []
+        >>> cursor = None
+        >>> while True:
         >>>     res = client.events({"cursor": cursor})
-        >>>     logs.extend(res['events'])
-        >>>     cursor = res.get('cursor', 0)
+        >>>     print(len(res["events"]))
+        >>>     all_events.extend(res["events"])
+        >>>     cursor = res.get("cursor")
+        >>>     if cursor is None:
+        >>>         break
         """
         return Events.get(self.http, req)
