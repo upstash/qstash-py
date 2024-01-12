@@ -73,7 +73,7 @@ class Client:
         """
         Access the dlq API.
 
-        Read or remove messages from the DLQ.s
+        Read or remove messages from the DLQ.
         """
         return DLQ(self.http)
 
