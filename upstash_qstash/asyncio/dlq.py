@@ -38,7 +38,6 @@ class DLQ:
     async def get(self, dlq_message_id: str) -> DlqMessage:
         """
         Get a message from the dlq using its `dlqId`
-        body
         """
         return await self.http.request_async(
             {
