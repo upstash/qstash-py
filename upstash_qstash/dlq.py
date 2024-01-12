@@ -19,6 +19,7 @@ DlqMessage = TypedDict(
         "failureCallback": Optional[str],
         "responseStatus": Optional[int],
         "responseHeader": Optional[str],
+        "responseBody": Optional[str],
         "responseBodyBase64": Optional[str],
         "bodyBase64": Optional[str],
     },
