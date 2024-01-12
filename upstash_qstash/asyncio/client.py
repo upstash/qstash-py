@@ -7,6 +7,7 @@ from upstash_qstash.asyncio.topics import Topics
 from upstash_qstash.asyncio.dlq import DLQ
 from upstash_qstash.asyncio.schedules import Schedules
 from upstash_qstash.asyncio.events import Events, EventsRequest, GetEventsResponse
+from upstash_qstash.asyncio.keys import Keys
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -82,6 +83,14 @@ class Client:
         Create, read, update, or delete schedules.
         """
         return Schedules(self.http)
+
+    def keys(self):
+        """
+        Access the keys API.
+
+        Retrieve or rotate your signing keys.
+        """
+        return Keys(self.http)
 
     async def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """

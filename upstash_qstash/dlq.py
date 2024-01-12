@@ -17,6 +17,11 @@ DlqMessage = TypedDict(
         "createdAt": int,
         "callback": Optional[str],
         "failureCallback": Optional[str],
+        "responseStatus": Optional[int],
+        "responseHeader": Optional[str],
+        "responseBody": Optional[str],
+        "responseBodyBase64": Optional[str],
+        "bodyBase64": Optional[str],
     },
 )
 
@@ -66,6 +71,17 @@ class DLQ:
             req["query"] = {"cursor": opts["cursor"]}
 
         return self.http.request(req)
+
+    def get(self, dlq_message_id: str) -> DlqMessage:
+        """
+        Get a message from the dlq using its `dlqId`
+        """
+        return self.http.request(
+            {
+                "path": ["v2", "dlq", dlq_message_id],
+                "method": "GET",
+            }
+        )
 
     def delete(self, dlq_message_id: str):
         """

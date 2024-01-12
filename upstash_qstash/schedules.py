@@ -57,8 +57,8 @@ class Schedules:
         headers["Upstash-Method"] = req.get("method") or "POST"
 
         if "Content-Type" not in headers:
-            headers["Content-Type"] = "application/json"
             if req.get("body") is not None:
+                headers["Content-Type"] = "application/json"
                 req["body"] = json.dumps(req.get("body"))
 
         if req.get("cron") is not None:

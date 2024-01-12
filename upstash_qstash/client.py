@@ -7,6 +7,7 @@ from upstash_qstash.topics import Topics
 from upstash_qstash.dlq import DLQ
 from upstash_qstash.events import Events, EventsRequest, GetEventsResponse
 from upstash_qstash.schedules import Schedules
+from upstash_qstash.keys import Keys
 
 DEFAULT_BASE_URL = "https://qstash.upstash.io"
 
@@ -84,6 +85,14 @@ class Client:
         Create, read, update, or delete schedules.
         """
         return Schedules(self.http)
+
+    def keys(self):
+        """
+        Access the keys API.
+
+        Retrieve or rotate your signing keys.
+        """
+        return Keys(self.http)
 
     def events(self, req: Optional[EventsRequest] = None) -> GetEventsResponse:
         """

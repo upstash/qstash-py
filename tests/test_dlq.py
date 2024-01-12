@@ -30,6 +30,10 @@ def test_dlq(client):
 
     dlq_id = msg_sent[0]["dlqId"]
 
+    print("Getting message from DLQ")
+    msg = dlq.get(dlq_id)
+    assert msg["responseBody"] == "404 Not Found"
+
     print("Deleting message from DLQ")
     dlq.delete(dlq_id)
 
