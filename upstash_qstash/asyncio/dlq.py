@@ -17,11 +17,11 @@ class DLQ:
         Example:
         --------
         >>> dlq = client.dlq()
-        >>> all_events = []
+        >>> all_messages = []
         >>> cursor = None
         >>> while True:
         >>>     res = await dlq.list_messages({"cursor": cursor})
-        >>>     all_events.extend(res["events"])
+        >>>     all_messages.extend(res["messages"])
         >>>     cursor = res.get("cursor")
         >>>     if cursor is None:
         >>>         break
