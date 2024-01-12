@@ -17,8 +17,8 @@ async def test_dlq(client):
     msg_id = pub_res["messageId"]
     assert msg_id is not None
 
-    print("Waiting 3 seconds for event to be delivered")
-    await asyncio.sleep(3)
+    print("Waiting 5 seconds for event to be delivered")
+    await asyncio.sleep(5)
 
     print("Checking if message is in DLQ")
     dlq = client.dlq()

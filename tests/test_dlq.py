@@ -16,14 +16,16 @@ def test_dlq(client):
     msg_id = pub_res["messageId"]
     assert msg_id is not None
 
-    print("Waiting 3 seconds for event to be delivered")
-    time.sleep(3)
+    print("Waiting 5 seconds for event to be delivered")
+    time.sleep(5)
 
     print("Checking if message is in DLQ")
     dlq = client.dlq()
     all_messages = dlq.list_messages()["messages"]
 
     msg_sent = list(filter(lambda msg: msg["messageId"] == msg_id, all_messages))
+    # If this is failing, it's likely because the message hasn't been delivered yet.
+    # Try increasing the sleep time.
     assert len(msg_sent) == 1
 
     dlq_id = msg_sent[0]["dlqId"]
