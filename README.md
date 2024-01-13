@@ -79,7 +79,7 @@ client = Client("QSTASH_TOKEN")
   
   # Create Topic
   topics = client.topics()
-  topics.add_endpoints("my-topic", [
+  topics.upsert_or_add_endpoints("my-topic", [
     {
       "name": "endpoint1",
       "url": "https://example.com"

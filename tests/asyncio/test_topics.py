@@ -19,7 +19,7 @@ async def test_topic_lifecycle(client):
     topics = client.topics()
 
     print(f"Creating topic {topic_name} and adding endpoints")
-    await topics.add_endpoints(
+    await topics.upsert_or_add_endpoints(
         {
             "name": topic_name,
             "endpoints": [

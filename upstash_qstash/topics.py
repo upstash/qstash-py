@@ -44,9 +44,9 @@ class Topics:
     def __init__(self, http: HttpClient):
         self.http = http
 
-    def add_endpoints(self, req: AddEndpointsRequest):
+    def upsert_or_add_endpoints(self, req: AddEndpointsRequest):
         """
-        Create a new topic with the given name and endpoints
+        Adds endpoints to a topic. If the topic does not exist, it will be created.
 
         :param req: An instance of AddEndpointsRequest containing the name and endpoints
         """
@@ -63,7 +63,7 @@ class Topics:
 
     def remove_endpoints(self, req: RemoveEndpointsRequest):
         """
-        Remove endpoints from a topic.
+        Remove endpoints from a topic. When all endpoints are removed, the topic will be deleted.
 
         :param req: An instance of RemoveEndpointsRequest containing the name and endpoints
         """

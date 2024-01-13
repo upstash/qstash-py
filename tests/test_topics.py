@@ -17,7 +17,7 @@ def test_topic_lifecycle(client):
     topics = client.topics()
 
     print(f"Creating topic {topic_name} and adding endpoints")
-    topics.add_endpoints(
+    topics.upsert_or_add_endpoints(
         {
             "name": topic_name,
             "endpoints": [

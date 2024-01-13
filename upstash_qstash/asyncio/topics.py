@@ -13,9 +13,9 @@ class Topics:
     def __init__(self, http: HttpClient):
         self.http = http
 
-    async def add_endpoints(self, req: AddEndpointsRequest):
+    async def upsert_or_add_endpoints(self, req: AddEndpointsRequest):
         """
-        Asynchronously create a new topic with the given name and endpoints
+        Asynchronously adds endpoints to a topic. If the topic does not exist, it will be created.
 
         :param req: An instance of AddEndpointsRequest containing the name and endpoints
         """
@@ -32,7 +32,7 @@ class Topics:
 
     async def remove_endpoints(self, req: RemoveEndpointsRequest):
         """
-        Asynchronously remove endpoints from a topic.
+        Asynchronously remove endpoints from a topic. When all endpoints are removed, the topic will be deleted.
 
         :param req: An instance of RemoveEndpointsRequest containing the name and endpoints
         """
