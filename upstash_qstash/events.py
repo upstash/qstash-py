@@ -37,7 +37,7 @@ GetEventsResponse = TypedDict(
     "GetEventsResponse",
     {
         "events": List[Event],
-        "cursor": Optional[int],
+        "cursor": Optional[str],
     },
 )
 
