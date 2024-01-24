@@ -4,7 +4,30 @@ version = "1.0.0"
 description = "Python client for Upstash QStash"
 license = "MIT"
 authors = ["Upstash <support@upstash.com>", "Meshan Khosla <meshan@upstash.com>"]
+maintainers = ["Upstash <support@upstash.com>"]
 readme = "README.md"
+repository = "https://github.com/upstash/qstash-python"
+keywords = ["QStash", "Upstash QStash", "Serverless Queue"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Database",
+    "Topic :: Database :: Front-Ends",
+    "Topic :: Software Development :: Libraries",
+]
+
+packages = [{ include = "upstash_qstash" }]
 
 [tool.poetry.dependencies]
 python = "^3.8"
