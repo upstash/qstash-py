@@ -1,6 +1,7 @@
 from typing import Optional, TypedDict, List, Dict
 from upstash_qstash.qstash_types import Method, UpstashRequest
 from upstash_qstash.upstash_http import HttpClient
+import json
 
 DlqMessage = TypedDict(
     "DlqMessage",
@@ -37,6 +38,21 @@ ListMessageResponse = TypedDict(
     {
         "messages": List[DlqMessage],
         "cursor": Optional[str],
+    },
+)
+
+
+BulkDeleteRequest = TypedDict(
+    "BulkDeleteRequest",
+    {
+        "dlq_ids": List[str],
+    },
+)
+
+BulkDeleteResponse = TypedDict(
+    "BulkDeleteResponse",
+    {
+        "deleted": int,
     },
 )
 
@@ -92,5 +108,18 @@ class DLQ:
                 "path": ["v2", "dlq", dlq_message_id],
                 "method": "DELETE",
                 "parse_response_as_json": False,
+            }
+        )
+
+    def deleteMany(self, req: BulkDeleteRequest) -> BulkDeleteResponse:
+        """
+        Remove many message from the DLQ
+        """
+        return self.http.request(
+            {
+                "path": ["v2", "dlq"],
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"dlqIds": req.get('dlq_ids')}),
+                "method": "DELETE",
             }
         )

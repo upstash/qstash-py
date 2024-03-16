@@ -1,7 +1,8 @@
 from typing import Optional
 from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse, DlqMessage
+from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse, DlqMessage, BulkDeleteRequest, BulkDeleteResponse
 from upstash_qstash.qstash_types import UpstashRequest
+import json
 
 
 class DLQ:
@@ -55,5 +56,18 @@ class DLQ:
                 "path": ["v2", "dlq", dlq_message_id],
                 "method": "DELETE",
                 "parse_response_as_json": False,
+            }
+        )
+
+    async def deleteMany(self, req: BulkDeleteRequest) -> BulkDeleteResponse:
+        """
+        Asynchronously remove many message from the DLQ
+        """
+        return await self.http.request_async(
+            {
+                "path": ["v2", "dlq"],
+                "headers": {"Content-Type": "application/json"},
+                "body": json.dumps({"dlqIds": req.get('dlq_ids')}),
+                "method": "DELETE",
             }
         )
