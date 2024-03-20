@@ -10,7 +10,7 @@ PublishRequest = TypedDict(
     {
         "url": str,
         "body": Any,
-        "headers": Dict[Any, Any],
+        "headers": Dict[str, str],
         "delay": int,
         "not_before": int,
         "deduplication_id": str,
@@ -35,6 +35,31 @@ PublishToTopicSingleResponse = TypedDict(
 )
 
 PublishToTopicResponse = List[PublishToTopicSingleResponse]
+
+# BatchHeaders = Union[TypedDict(
+#     "BatchHeaders",
+#     {
+#         "delay": int,
+#         "not_before": int,
+#         "deduplication_id": str,
+#         "content_based_deduplication": bool,
+#         "retries": int,
+#         "callback": str,
+#         "failure_callback": str,
+#     },
+#     total=False,
+# ), Dict[str, str]]
+
+# SingleBatchMessage = TypedDict(
+#     "SingleBatchMessage",
+#     {
+#       "destination": str,
+#       "headers": BatchHeaders,
+#       "body": Any,
+#     },
+# )
+
+BatchRequest = List[PublishRequest]
 
 
 class Publish:
@@ -113,3 +138,52 @@ class Publish:
         req.setdefault("headers", {}).update({"Content-Type": "application/json"})
 
         return Publish.publish(http, req)
+
+    @staticmethod
+    def batch(
+        http: HttpClient, req: BatchRequest
+    ) -> List[Union[PublishToUrlResponse, PublishToTopicResponse]]:
+        """
+        Publish a batch of messages to QStash.
+        """
+        for message in req:
+            Publish._validate_request(message)
+            message["headers"] = Publish._prepare_headers(message)
+
+        messages = []
+        for message in req:
+            messages.append(
+                {
+                    "destination": message.get("url") or message["topic"],
+                    "headers": message["headers"],
+                    "body": message.get("body"),
+                }
+            )
+
+        return http.request(
+            {
+                "path": ["v2", "batch"],
+                "body": json.dumps(messages),
+                "headers": {
+                    "Content-Type": "application/json",
+                },
+                "method": "POST",
+            }
+        )
+
+    @staticmethod
+    def batch_json(
+        http: HttpClient, req: BatchRequest
+    ) -> List[Union[PublishToUrlResponse, PublishToTopicResponse]]:
+        """
+        Publish a batch of messages to QStash, automatically serializing each body as JSON.
+        """
+        for message in req:
+            if "body" in message:
+                message["body"] = json.dumps(message["body"])
+
+            message.setdefault("headers", {}).update(
+                {"Content-Type": "application/json"}
+            )
+
+        return Publish.batch(http, req)

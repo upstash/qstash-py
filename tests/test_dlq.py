@@ -44,6 +44,7 @@ def test_dlq(client):
     )
     assert len(msg_deleted) == 0
 
+
 def test_dlq_delete_many(client):
     print("Publishing 5 messages to a failed endpoint")
     msg_ids = []
@@ -51,16 +52,16 @@ def test_dlq_delete_many(client):
         pub_res = client.publish_json({"url": "http://httpstat.us/404", "retries": 0})
         msg_ids.append(pub_res["messageId"])
     assert len(msg_ids) == 5
-  
+
     print("Waiting 5 seconds for events to be delivered")
     time.sleep(5)
-  
+
     print("Checking if messages are in DLQ")
     dlq = client.dlq()
     all_messages = dlq.list_messages()["messages"]
     msg_sent = list(filter(lambda msg: msg["messageId"] in msg_ids, all_messages))
     assert len(msg_sent) == 5
-  
+
     print("Deleting messages from DLQ")
     dlq_ids = [msg["dlqId"] for msg in msg_sent]
     dlq.deleteMany({"dlq_ids": dlq_ids})
