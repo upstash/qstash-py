@@ -119,7 +119,7 @@ class DLQ:
             {
                 "path": ["v2", "dlq"],
                 "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({"dlqIds": req.get('dlq_ids')}),
+                "body": json.dumps({"dlqIds": req.get("dlq_ids")}),
                 "method": "DELETE",
             }
         )

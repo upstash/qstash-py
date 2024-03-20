@@ -1,6 +1,12 @@
 from typing import Optional
 from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.dlq import ListMessagesOpts, ListMessageResponse, DlqMessage, BulkDeleteRequest, BulkDeleteResponse
+from upstash_qstash.dlq import (
+    ListMessagesOpts,
+    ListMessageResponse,
+    DlqMessage,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
+)
 from upstash_qstash.qstash_types import UpstashRequest
 import json
 
@@ -67,7 +73,7 @@ class DLQ:
             {
                 "path": ["v2", "dlq"],
                 "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({"dlqIds": req.get('dlq_ids')}),
+                "body": json.dumps({"dlqIds": req.get("dlq_ids")}),
                 "method": "DELETE",
             }
         )
