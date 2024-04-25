@@ -5,6 +5,7 @@ from upstash_qstash.publish import Publish, PublishRequest, BatchRequest
 from upstash_qstash.messages import Messages
 from upstash_qstash.topics import Topics
 from upstash_qstash.dlq import DLQ
+from upstash_qstash.queue import Queue, QueueOpts
 from upstash_qstash.events import Events, EventsRequest, GetEventsResponse
 from upstash_qstash.schedules import Schedules
 from upstash_qstash.keys import Keys
@@ -93,6 +94,15 @@ class Client:
         Read or remove messages from the DLQ.
         """
         return DLQ(self.http)
+
+    def queue(self, queue_opts: Optional[QueueOpts] = None):
+        """
+        Access the queue API.
+
+        Create, read, update, or delete queues. Also allows for message enqueueing.
+        You must provide a queue name to queue, unless you are only using the list method.
+        """
+        return Queue(self.http, queue_opts)
 
     def schedules(self):
         """
