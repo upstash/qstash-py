@@ -12,8 +12,8 @@ You can get your QStash token from the [Upstash Console](https://console.upstash
 ```python
 from upstash_qstash import Client
 
-client = Client("QSTASH_TOKEN")
-client.publish_json(
+client = Client("<QSTASH_TOKEN>")
+res = client.publish_json(
   {
     "url": "https://my-api...",
     "body": {
@@ -24,23 +24,29 @@ client.publish_json(
     },
   }
 )
+
+print(res["messageId"])
 ```
 
 #### [Create a scheduled message](https://upstash.com/docs/qstash/features/schedules)
 ```python
 from upstash_qstash import Client
 
-client = Client("QSTASH_TOKEN")
+client = Client("<QSTASH_TOKEN>")
 schedules = client.schedules()
-schedules.create({
-  "destination": "https://my-api...",
-  "cron": "*/5 * * * *",
-})
+res = schedules.create(
+  {
+    "destination": "https://my-api...",
+    "cron": "*/5 * * * *",
+  }
+)
+
+print(res["scheduleId"])
 ```
 
 #### [Receiving messages](https://upstash.com/docs/qstash/howto/receiving)
 ```python
-from upstash_qstash import Client
+from upstash_qstash import Receiver
 
 # Keys available from the QStash console
 receiver = Receiver(
@@ -50,10 +56,14 @@ receiver = Receiver(
   }
 )
 
-verified = receiver.verify(
+# ... in your request handler
+
+signature, body = req.headers["Upstash-Signature"], req.body
+
+is_valid = receiver.verify(
   {
-    "signature": req.headers["Upstash-Signature"],
-    "body": req.body,
+    "body": body,
+    "signature": signature,
     "url": "https://my-api...", # Optional
   }
 )
@@ -63,35 +73,34 @@ verified = receiver.verify(
 ```python
 from upstash_qstash import Client
 
-client = Client("QSTASH_TOKEN")
-  # Create a client with a custom retry configuration. This is 
-  # for sending messages to QStash, not for sending messages to
-  # your endpoints.
-  # The default configuration is:
-  # {
-  #   "attempts": 6,
-  #   "backoff": lambda retry_count: math.exp(retry_count) * 50,
-  # }
-  client = Client("QSTASH_TOKEN", {
-    "attempts": 2,
-    "backoff": lambda retry_count: (2 ** retry_count) * 20,
-  })
-  
-  # Create Topic
-  topics = client.topics()
-  topics.upsert_or_add_endpoints("my-topic", [
-    {
-      "name": "endpoint1",
-      "url": "https://example.com"
-    },
-    {
-      "name": "endpoint2",
-      "url": "https://somewhere-else.com"
-    }
-  ])
+# Create a client with a custom retry configuration. This is 
+# for sending messages to QStash, not for sending messages to
+# your endpoints.
+# The default configuration is:
+# {
+#   "attempts": 6,
+#   "backoff": lambda retry_count: math.exp(retry_count) * 50,
+# }
+client = Client("<QSTASH_TOKEN>", {
+  "attempts": 2,
+  "backoff": lambda retry_count: (2 ** retry_count) * 20,
+})
 
-  # Publish to Topic
-  client.publish_json({
+# Create Topic
+topics = client.topics()
+topics.upsert_or_add_endpoints(
+  {
+    "name": "topic_name",
+    "endpoints": [
+      {"url": "https://my-endpoint-1"},
+      {"url": "https://my-endpoint-2"}
+    ],
+  }
+)
+
+# Publish to Topic
+client.publish_json(
+  {
     "topic": "my-topic",
     "body": {
       "key": "value"
@@ -113,7 +122,8 @@ client = Client("QSTASH_TOKEN")
     # Enable content-based deduplication
     # https://upstash.com/docs/qstash/features/deduplication#content-based-deduplication
     "content_based_deduplication": True,
-  })
+  }
+)
 ```
 
 Additional methods are available for managing topics, schedules, and messages. See the examples folder for more.
