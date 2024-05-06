@@ -1,7 +1,8 @@
-from typing import Optional, TypedDict, List, Union
-from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.error import QstashException
 import json
+from typing import List, Optional, TypedDict, Union
+
+from upstash_qstash.error import QstashException
+from upstash_qstash.upstash_http import HttpClient
 
 Endpoint = TypedDict(
     "Endpoint",

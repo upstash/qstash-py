@@ -2,8 +2,8 @@
 Publishes a JSON message with a 3s delay to a URL using QStash.
 """
 
-from upstash_qstash import Client
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash import Client
 
 
 def main():

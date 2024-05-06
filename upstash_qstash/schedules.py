@@ -1,9 +1,10 @@
 import json
-from typing import TypedDict, List, Dict, Optional
+from typing import Dict, List, Optional, TypedDict
+
+from upstash_qstash.error import QstashException
 from upstash_qstash.qstash_types import Method, UpstashHeaders
 from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.utils import prefix_headers
-from upstash_qstash.error import QstashException
 
 Schedule = TypedDict(
     "Schedule",

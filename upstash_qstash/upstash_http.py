@@ -1,12 +1,14 @@
-import requests
+import asyncio
 import math
 import time
-import aiohttp
-import asyncio
-from typing import Union, Optional
+from typing import Optional, Union
 from urllib.parse import urlencode
-from upstash_qstash.qstash_types import UpstashRequest, RetryConfig, UpstashHeaders
+
+import aiohttp
+import requests
+
 from upstash_qstash.error import QstashException, QstashRateLimitException
+from upstash_qstash.qstash_types import RetryConfig, UpstashHeaders, UpstashRequest
 
 NO_RETRY: RetryConfig = {"attempts": 1, "backoff": lambda _: 0}
 DEFAULT_RETRY_CONFIG: RetryConfig = {

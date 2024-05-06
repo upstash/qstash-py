@@ -1,12 +1,9 @@
-from typing import List
-from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.topics import (
-    AddEndpointsRequest,
-    RemoveEndpointsRequest,
-    Topic,
-    Topics as SyncTopics,
-)
 import json
+from typing import List
+
+from upstash_qstash.topics import AddEndpointsRequest, RemoveEndpointsRequest, Topic
+from upstash_qstash.topics import Topics as SyncTopics
+from upstash_qstash.upstash_http import HttpClient
 
 
 class Topics:

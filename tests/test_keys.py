@@ -1,10 +1,11 @@
 import pytest
-from upstash_qstash import Client
+
 from qstash_tokens import (
-    QSTASH_TOKEN,
     QSTASH_CURRENT_SIGNING_KEY,
     QSTASH_NEXT_SIGNING_KEY,
+    QSTASH_TOKEN,
 )
+from upstash_qstash import Client
 
 
 @pytest.fixture

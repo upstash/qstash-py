@@ -3,8 +3,9 @@ Uses asyncio to asynchronously publish a JSON message with a 3s delay to a URL u
 """
 
 import asyncio
-from upstash_qstash.asyncio import Client
+
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash.asyncio import Client
 
 
 async def main():

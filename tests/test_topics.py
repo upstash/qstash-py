@@ -1,7 +1,9 @@
-import pytest
 import time
-from upstash_qstash import Client
+
+import pytest
+
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash import Client
 
 
 @pytest.fixture

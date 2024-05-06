@@ -1,11 +1,12 @@
 from typing import List
-from upstash_qstash.upstash_http import HttpClient
+
 from upstash_qstash.schedules import (
-    Schedule,
     CreateScheduleRequest,
     CreateScheduleResponse,
-    Schedules as SyncSchedules,
+    Schedule,
 )
+from upstash_qstash.schedules import Schedules as SyncSchedules
+from upstash_qstash.upstash_http import HttpClient
 
 
 class Schedules:
