@@ -9,6 +9,7 @@
 You can get your QStash token from the [Upstash Console](https://console.upstash.com/qstash).
 
 #### Publish a JSON message
+
 ```python
 from upstash_qstash import Client
 
@@ -29,6 +30,7 @@ print(res["messageId"])
 ```
 
 #### [Create a scheduled message](https://upstash.com/docs/qstash/features/schedules)
+
 ```python
 from upstash_qstash import Client
 
@@ -45,6 +47,7 @@ print(res["scheduleId"])
 ```
 
 #### [Receiving messages](https://upstash.com/docs/qstash/howto/receiving)
+
 ```python
 from upstash_qstash import Receiver
 
@@ -70,10 +73,11 @@ is_valid = receiver.verify(
 ```
 
 #### Additional configuration
+
 ```python
 from upstash_qstash import Client
 
-# Create a client with a custom retry configuration. This is 
+# Create a client with a custom retry configuration. This is
 # for sending messages to QStash, not for sending messages to
 # your endpoints.
 # The default configuration is:
@@ -109,7 +113,7 @@ client.publish_json(
     # https://upstash.com/docs/qstash/features/retry
     "retries": 3,
     # Schedule message to be sent 4 seconds from now
-    "delay": 4, 
+    "delay": 4,
     # When message is sent, send a request to this URL
     # https://upstash.com/docs/qstash/features/callbacks
     "callback": "https://my-api.com/callback",
@@ -129,9 +133,10 @@ client.publish_json(
 Additional methods are available for managing topics, schedules, and messages. See the examples folder for more.
 
 ### Development
+
 1. Clone the repository
 2. Install [Poetry](https://python-poetry.org/docs/#installation)
 3. Install dependencies with `poetry install`
 4. Create a .env file with `cp .env.example .env` and fill in the `QSTASH_TOKEN`
 5. Run tests with `poetry run pytest` and examples with `python3 examples/<example>.py`
-6. Format with `poetry run black .`
+6. Format with `poetry run black . && poetry run isort .`

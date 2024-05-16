@@ -1,13 +1,14 @@
 import json
-from typing import Union, List
-from upstash_qstash.upstash_http import HttpClient
-from upstash_qstash.publish import (
-    PublishToUrlResponse,
-    PublishToTopicResponse,
-    PublishRequest,
-    BatchRequest,
-)
+from typing import List, Union
+
+from upstash_qstash.publish import BatchRequest
 from upstash_qstash.publish import Publish as SyncPublish
+from upstash_qstash.publish import (
+    PublishRequest,
+    PublishToTopicResponse,
+    PublishToUrlResponse,
+)
+from upstash_qstash.upstash_http import HttpClient
 
 
 class Publish:

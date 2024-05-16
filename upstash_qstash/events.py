@@ -1,5 +1,6 @@
-from typing import TypedDict, Optional, List
 from enum import Enum
+from typing import List, Optional, TypedDict
+
 from upstash_qstash.upstash_http import HttpClient
 
 

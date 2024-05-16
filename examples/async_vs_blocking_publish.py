@@ -3,11 +3,12 @@ Send 3 messages to a URL using the blocking client and 3 messages to a URL using
 Demonstrate the difference in behavior between blocking and async operations with added artificial delay.
 """
 
-from upstash_qstash import Client as BlockingClient
-from upstash_qstash.asyncio import Client as AsyncClient
 import asyncio
 import time
+
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash import Client as BlockingClient
+from upstash_qstash.asyncio import Client as AsyncClient
 
 # Artificial delay (in seconds)
 DELAY = 2

@@ -5,8 +5,8 @@ This is useful if you have a time consuming API call (ie: OpenAI)
 and you want to send the response to your API URL without having
 to wait for the response in a serverless function.
 """
-from upstash_qstash import Client
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash import Client
 
 
 def main():

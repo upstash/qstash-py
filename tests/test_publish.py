@@ -1,8 +1,10 @@
-import pytest
 import time
+
+import pytest
+
+from qstash_tokens import QSTASH_TOKEN
 from upstash_qstash import Client
 from upstash_qstash.error import QstashException
-from qstash_tokens import QSTASH_TOKEN
 
 
 @pytest.fixture

@@ -1,5 +1,5 @@
-from upstash_qstash.upstash_http import HttpClient
 from upstash_qstash.keys import GetKeysResponse
+from upstash_qstash.upstash_http import HttpClient
 
 
 class Keys:

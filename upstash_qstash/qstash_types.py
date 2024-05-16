@@ -1,5 +1,4 @@
-from typing import Optional, Dict, Any, List, TypedDict, Callable, Literal, Union
-
+from typing import Any, Callable, Dict, List, Literal, Optional, TypedDict, Union
 
 Method = Union[
     Literal["GET"], Literal["POST"], Literal["PUT"], Literal["DELETE"], Literal["PATCH"]

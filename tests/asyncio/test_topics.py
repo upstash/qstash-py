@@ -1,8 +1,10 @@
-import pytest
 import asyncio
 import time
-from upstash_qstash.asyncio import Client
+
+import pytest
+
 from qstash_tokens import QSTASH_TOKEN
+from upstash_qstash.asyncio import Client
 
 
 @pytest.fixture

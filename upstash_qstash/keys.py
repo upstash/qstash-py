@@ -1,5 +1,6 @@
-from upstash_qstash.upstash_http import HttpClient
 from typing import TypedDict
+
+from upstash_qstash.upstash_http import HttpClient
 
 GetKeysResponse = TypedDict(
     "GetKeysResponse",

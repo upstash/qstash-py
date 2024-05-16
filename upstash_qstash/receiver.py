@@ -1,7 +1,9 @@
-import hashlib
-import jwt
 import base64
-from typing import TypedDict, Optional
+import hashlib
+from typing import Optional, TypedDict
+
+import jwt
+
 from upstash_qstash.error import SignatureException
 
 ReceiverConfig = TypedDict(

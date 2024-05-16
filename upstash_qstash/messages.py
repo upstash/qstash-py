@@ -1,4 +1,5 @@
-from typing import TypedDict, Optional, Dict, List
+from typing import Dict, List, Optional, TypedDict
+
 from upstash_qstash.qstash_types import Method
 from upstash_qstash.upstash_http import HttpClient
 

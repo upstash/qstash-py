@@ -1,7 +1,8 @@
-from typing import Optional, TypedDict, List, Dict
+import json
+from typing import Dict, List, Optional, TypedDict
+
 from upstash_qstash.qstash_types import Method, UpstashRequest
 from upstash_qstash.upstash_http import HttpClient
-import json
 
 DlqMessage = TypedDict(
     "DlqMessage",
