@@ -1,4 +1,4 @@
-from typing import AsyncIterable, Optional, Union
+from typing import Optional, Union
 
 from upstash_qstash.asyncio.chat import Chat
 from upstash_qstash.asyncio.dlq import DLQ
@@ -9,13 +9,6 @@ from upstash_qstash.asyncio.publish import BatchRequest, Publish, PublishRequest
 from upstash_qstash.asyncio.queue import Queue, QueueOpts
 from upstash_qstash.asyncio.schedules import Schedules
 from upstash_qstash.asyncio.topics import Topics
-from upstash_qstash.chat import Chat as SyncChat
-from upstash_qstash.chat import (
-    ChatCompletion,
-    ChatCompletionChunk,
-    ChatRequest,
-    PromptRequest,
-)
 from upstash_qstash.qstash_types import RetryConfig
 from upstash_qstash.upstash_http import HttpClient
 

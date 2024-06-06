@@ -1,5 +1,3 @@
-from typing import Iterable
-
 import pytest
 
 from qstash_tokens import QSTASH_TOKEN
