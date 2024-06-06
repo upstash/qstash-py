@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, TypedDict, Union
+from typing import Any, Dict, List, Literal, Optional, TypedDict, Union
 
 from upstash_qstash.error import QstashException
 from upstash_qstash.qstash_types import Method, UpstashHeaders
@@ -21,6 +21,7 @@ PublishRequest = TypedDict(
         "failure_callback": str,
         "method": Method,
         "topic": str,
+        "api": Literal["llm"],
     },
     total=False,
 )
@@ -42,15 +43,36 @@ BatchRequest = List[PublishRequest]
 
 class Publish:
     @staticmethod
+    def _get_destination(req: PublishRequest) -> str:
+        url = req.get("url")
+        if url is not None:
+            return url
+
+        topic = req.get("topic")
+        if topic is not None:
+            return topic
+
+        api = req.get("api")
+        return f"api/{api}"
+
+    @staticmethod
     def _validate_request(req: PublishRequest):
         """
-        Validate the publish request to ensure it has either url or topic.
+        Validate the publish request to ensure it has either url, topic or api.
         """
-        if (req.get("url") is None and req.get("topic") is None) or (
-            req.get("url") is not None and req.get("topic") is not None
-        ):
+        destination_count = 0
+        if "url" in req:
+            destination_count += 1
+
+        if "topic" in req:
+            destination_count += 1
+
+        if "api" in req:
+            destination_count += 1
+
+        if destination_count != 1:
             raise QstashException(
-                "Either 'url' or 'topic' must be provided, but not both."
+                "Only and only one of 'url', 'topic', or 'api' must be provided."
             )
 
     @staticmethod
@@ -95,10 +117,11 @@ class Publish:
         """
         Publish._validate_request(req)
         headers = Publish._prepare_headers(req)
+        destination = Publish._get_destination(req)
 
         return http.request(
             {
-                "path": ["v2", "publish", req.get("url") or req["topic"]],
+                "path": ["v2", "publish", destination],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",
@@ -130,9 +153,10 @@ class Publish:
 
         messages = []
         for message in req:
+            destination = Publish._get_destination(message)
             messages.append(
                 {
-                    "destination": message.get("url") or message["topic"],
+                    "destination": destination,
                     "headers": message["headers"],
                     "body": message.get("body"),
                 }

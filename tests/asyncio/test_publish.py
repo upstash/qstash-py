@@ -87,3 +87,50 @@ async def test_batch_json_async(client):
     assert len(res) == N
     for i in range(N):
         assert res[i]["messageId"] is not None
+
+
+@pytest.mark.asyncio
+async def test_publish_api_llm_async(client):
+    # not a proper test, because of a dummy callback.
+    res = await client.publish_json(
+        {
+            "api": "llm",
+            "body": {
+                "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": "hello",
+                    }
+                ],
+            },
+            "callback": "https://example.com",
+        }
+    )
+
+    assert res["messageId"] is not None
+
+
+@pytest.mark.asyncio
+async def test_batch_api_llm_async(client):
+    # not a proper test, because of a dummy callback.
+    res = await client.batch_json(
+        [
+            {
+                "api": "llm",
+                "body": {
+                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "hello",
+                        }
+                    ],
+                },
+                "callback": "https://example.com",
+            }
+        ]
+    )
+
+    assert len(res) == 1
+    assert res[0]["messageId"] is not None

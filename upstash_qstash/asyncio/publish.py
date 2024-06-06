@@ -21,10 +21,11 @@ class Publish:
         """
         SyncPublish._validate_request(req)
         headers = SyncPublish._prepare_headers(req)
+        destination = SyncPublish._get_destination(req)
 
         return await http.request_async(
             {
-                "path": ["v2", "publish", req.get("url") or req["topic"]],
+                "path": ["v2", "publish", destination],
                 "body": req.get("body"),
                 "headers": headers,
                 "method": "POST",
@@ -56,9 +57,10 @@ class Publish:
 
         messages = []
         for message in req:
+            destination = SyncPublish._get_destination(message)
             messages.append(
                 {
-                    "destination": message.get("url") or message["topic"],
+                    "destination": destination,
                     "headers": message["headers"],
                     "body": message.get("body"),
                 }

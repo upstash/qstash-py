@@ -91,3 +91,29 @@ def test_enqueue(client):
 
     print("Deleting queue")
     queue.delete()
+
+
+def test_enqueue_api_llm(client):
+    # not a proper test, because of a dummy callback.
+    queue = client.queue({"queue_name": "test_queue"})
+
+    try:
+        res = queue.enqueue_json(
+            {
+                "api": "llm",
+                "body": {
+                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "hello",
+                        }
+                    ],
+                },
+                "callback": "https://example.com/",
+            }
+        )
+
+        assert res["messageId"] is not None
+    finally:
+        queue.delete()

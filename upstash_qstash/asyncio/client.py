@@ -1,5 +1,6 @@
-from typing import Optional, Union
+from typing import AsyncIterable, Optional, Union
 
+from upstash_qstash.asyncio.chat import Chat
 from upstash_qstash.asyncio.dlq import DLQ
 from upstash_qstash.asyncio.events import Events, EventsRequest, GetEventsResponse
 from upstash_qstash.asyncio.keys import Keys
@@ -8,6 +9,13 @@ from upstash_qstash.asyncio.publish import BatchRequest, Publish, PublishRequest
 from upstash_qstash.asyncio.queue import Queue, QueueOpts
 from upstash_qstash.asyncio.schedules import Schedules
 from upstash_qstash.asyncio.topics import Topics
+from upstash_qstash.chat import Chat as SyncChat
+from upstash_qstash.chat import (
+    ChatCompletion,
+    ChatCompletionChunk,
+    ChatRequest,
+    PromptRequest,
+)
 from upstash_qstash.qstash_types import RetryConfig
 from upstash_qstash.upstash_http import HttpClient
 
@@ -29,7 +37,8 @@ class Client:
 
     async def publish(self, req: PublishRequest):
         """
-        If publishing to a URL (req contains 'url'), this method returns a PublishToUrlResponse:
+        If publishing to a URL (req contains 'url') or an API (req contains 'api'),
+        this method returns a PublishToUrlResponse:
         - PublishToUrlResponse: Contains 'messageId' indicating the unique ID of the message and
         an optional 'deduplicated' boolean indicating if the message is a duplicate.
 
@@ -41,7 +50,7 @@ class Client:
         :param req: An instance of PublishRequest containing the request details.
         :return: Response details including the message_id, url (if publishing to a topic),
                 and possibly a deduplicated boolean. The exact return type depends on the publish target.
-        :raises ValueError: If neither 'url' nor 'topic' is provided, or both are provided.
+        :raises ValueError: If neither 'url', 'topic', nor 'api' is provided, or more than one of them are provided.
         """
         return await Publish.publish_async(self.http, req)
 
@@ -143,3 +152,9 @@ class Client:
         >>>         break
         """
         return await Events.get(self.http, req)
+
+    def chat(self) -> Chat:
+        """
+        Access chat completion APIs.
+        """
+        return Chat(self.http)
