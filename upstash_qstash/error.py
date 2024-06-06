@@ -1,12 +1,24 @@
 import json
 from typing import TypedDict
 
-RateLimitConfig = TypedDict(
-    "RateLimitConfig",
+RateLimit = TypedDict(
+    "RateLimit",
     {
         "limit": int,
         "remaining": int,
         "reset": int,
+    },
+)
+
+ChatRateLimit = TypedDict(
+    "ChatRateLimit",
+    {
+        "limit-requests": int,
+        "limit-tokens": int,
+        "remaining-requests": int,
+        "remaining-tokens": int,
+        "reset-requests": str,
+        "reset-tokens": str,
     },
 )
 
@@ -18,7 +30,12 @@ class QstashException(Exception):
 
 
 class QstashRateLimitException(QstashException):
-    def __init__(self, args: RateLimitConfig):
+    def __init__(self, args: RateLimit):
+        super().__init__(f"You have been rate limited. {json.dumps(args)}")
+
+
+class QstashChatRateLimitException(QstashException):
+    def __init__(self, args: ChatRateLimit):
         super().__init__(f"You have been rate limited. {json.dumps(args)}")
 
 

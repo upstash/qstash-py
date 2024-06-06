@@ -25,7 +25,6 @@ UpstashRequest = TypedDict(
         "path": List[str],
         "body": Any,
         "headers": UpstashHeaders,
-        "keepalive": bool,
         "method": Method,
         "query": Dict[str, str],
         "parse_response_as_json": bool,

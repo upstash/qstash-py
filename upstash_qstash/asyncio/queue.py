@@ -89,6 +89,7 @@ class Queue:
 
         Publish._validate_request(req)
         headers = Publish._prepare_headers(req)
+        destination = Publish._get_destination(req)
 
         return await self.http.request_async(
             {
@@ -96,7 +97,7 @@ class Queue:
                     "v2",
                     "enqueue",
                     self.queue_name,
-                    req.get("url") or req["topic"],
+                    destination,
                 ],
                 "body": req.get("body"),
                 "headers": headers,

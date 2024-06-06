@@ -94,3 +94,30 @@ async def test_enqueue(client):
 
     print("Deleting queue")
     await queue.delete()
+
+
+@pytest.mark.asyncio
+async def test_enqueue_api_llm_async(client):
+    # not a proper test, because of a dummy callback.
+    queue = client.queue({"queue_name": "test_queue"})
+
+    try:
+        res = await queue.enqueue_json(
+            {
+                "api": "llm",
+                "body": {
+                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "hello",
+                        }
+                    ],
+                },
+                "callback": "https://example.com/",
+            }
+        )
+
+        assert res["messageId"] is not None
+    finally:
+        await queue.delete()

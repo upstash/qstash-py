@@ -15,15 +15,15 @@ from upstash_qstash import Client
 
 client = Client("<QSTASH_TOKEN>")
 res = client.publish_json(
-  {
-    "url": "https://my-api...",
-    "body": {
-      "hello": "world"
-    },
-    "headers": {
-        "test-header": "test-value",
-    },
-  }
+    {
+        "url": "https://my-api...",
+        "body": {
+            "hello": "world"
+        },
+        "headers": {
+            "test-header": "test-value",
+        },
+    }
 )
 
 print(res["messageId"])
@@ -37,10 +37,10 @@ from upstash_qstash import Client
 client = Client("<QSTASH_TOKEN>")
 schedules = client.schedules()
 res = schedules.create(
-  {
-    "destination": "https://my-api...",
-    "cron": "*/5 * * * *",
-  }
+    {
+        "destination": "https://my-api...",
+        "cron": "*/5 * * * *",
+    }
 )
 
 print(res["scheduleId"])
@@ -53,10 +53,10 @@ from upstash_qstash import Receiver
 
 # Keys available from the QStash console
 receiver = Receiver(
-  {
-    "current_signing_key": "CURRENT_SIGNING_KEY",
-    "next_signing_key": "NEXT_SIGNING_KEY",
-  }
+    {
+        "current_signing_key": "CURRENT_SIGNING_KEY",
+        "next_signing_key": "NEXT_SIGNING_KEY",
+    }
 )
 
 # ... in your request handler
@@ -64,12 +64,33 @@ receiver = Receiver(
 signature, body = req.headers["Upstash-Signature"], req.body
 
 is_valid = receiver.verify(
-  {
-    "body": body,
-    "signature": signature,
-    "url": "https://my-api...", # Optional
-  }
+    {
+        "body": body,
+        "signature": signature,
+        "url": "https://my-api...",  # Optional
+    }
 )
+```
+
+#### Create Chat Completions
+
+```python
+from upstash_qstash import Client
+
+client = Client("<QSTASH_TOKEN>")
+chat = client.chat()
+
+res = chat.create({
+    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+    "messages": [
+        {
+            "role": "user",
+            "content": "What is the capital of Turkey?"
+        }
+    ]
+})
+
+print(res["choices"][0]["message"]["content"])
 ```
 
 #### Additional configuration
@@ -86,47 +107,47 @@ from upstash_qstash import Client
 #   "backoff": lambda retry_count: math.exp(retry_count) * 50,
 # }
 client = Client("<QSTASH_TOKEN>", {
-  "attempts": 2,
-  "backoff": lambda retry_count: (2 ** retry_count) * 20,
+    "attempts": 2,
+    "backoff": lambda retry_count: (2 ** retry_count) * 20,
 })
 
 # Create Topic
 topics = client.topics()
 topics.upsert_or_add_endpoints(
-  {
-    "name": "topic_name",
-    "endpoints": [
-      {"url": "https://my-endpoint-1"},
-      {"url": "https://my-endpoint-2"}
-    ],
-  }
+    {
+        "name": "topic_name",
+        "endpoints": [
+            {"url": "https://my-endpoint-1"},
+            {"url": "https://my-endpoint-2"}
+        ],
+    }
 )
 
 # Publish to Topic
 client.publish_json(
-  {
-    "topic": "my-topic",
-    "body": {
-      "key": "value"
-    },
-    # Retry sending message to API 3 times
-    # https://upstash.com/docs/qstash/features/retry
-    "retries": 3,
-    # Schedule message to be sent 4 seconds from now
-    "delay": 4,
-    # When message is sent, send a request to this URL
-    # https://upstash.com/docs/qstash/features/callbacks
-    "callback": "https://my-api.com/callback",
-    # When message fails to send, send a request to this URL
-    "failure_callback": "https://my-api.com/failure_callback",
-    # Headers to forward to the endpoint
-    "headers": {
-      "test-header": "test-value",
-    },
-    # Enable content-based deduplication
-    # https://upstash.com/docs/qstash/features/deduplication#content-based-deduplication
-    "content_based_deduplication": True,
-  }
+    {
+        "topic": "my-topic",
+        "body": {
+            "key": "value"
+        },
+        # Retry sending message to API 3 times
+        # https://upstash.com/docs/qstash/features/retry
+        "retries": 3,
+        # Schedule message to be sent 4 seconds from now
+        "delay": 4,
+        # When message is sent, send a request to this URL
+        # https://upstash.com/docs/qstash/features/callbacks
+        "callback": "https://my-api.com/callback",
+        # When message fails to send, send a request to this URL
+        "failure_callback": "https://my-api.com/failure_callback",
+        # Headers to forward to the endpoint
+        "headers": {
+            "test-header": "test-value",
+        },
+        # Enable content-based deduplication
+        # https://upstash.com/docs/qstash/features/deduplication#content-based-deduplication
+        "content_based_deduplication": True,
+    }
 )
 ```
 
