@@ -11,39 +11,34 @@ You can get your QStash token from the [Upstash Console](https://console.upstash
 #### Publish a JSON message
 
 ```python
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
-client = Client("<QSTASH_TOKEN>")
-res = client.publish_json(
-    {
-        "url": "https://my-api...",
-        "body": {
-            "hello": "world"
-        },
-        "headers": {
-            "test-header": "test-value",
-        },
-    }
+qstash = QStash("" < QSTASH_TOKEN > "")
+
+res = qstash.message.publish_json(
+    url="https://example.com",
+    body={"hello": "world"},
+    headers={
+        "test-header": "test-value",
+    },
 )
 
-print(res["messageId"])
+print(res.message_id)
 ```
 
 #### [Create a scheduled message](https://upstash.com/docs/qstash/features/schedules)
 
 ```python
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
-client = Client("<QSTASH_TOKEN>")
-schedules = client.schedules()
-res = schedules.create(
-    {
-        "destination": "https://my-api...",
-        "cron": "*/5 * * * *",
-    }
+qstash = QStash("<QSTASH_TOKEN>")
+
+schedule_id = qstash.schedule.create(
+    destination="https://example.com",
+    cron="*/5 * * * *",
 )
 
-print(res["scheduleId"])
+print(schedule_id)
 ```
 
 #### [Receiving messages](https://upstash.com/docs/qstash/howto/receiving)
@@ -53,105 +48,87 @@ from upstash_qstash import Receiver
 
 # Keys available from the QStash console
 receiver = Receiver(
-    {
-        "current_signing_key": "CURRENT_SIGNING_KEY",
-        "next_signing_key": "NEXT_SIGNING_KEY",
-    }
+    current_signing_key="CURRENT_SIGNING_KEY",
+    next_signing_key="NEXT_SIGNING_KEY",
 )
 
 # ... in your request handler
 
 signature, body = req.headers["Upstash-Signature"], req.body
 
-is_valid = receiver.verify(
-    {
-        "body": body,
-        "signature": signature,
-        "url": "https://my-api...",  # Optional
-    }
+receiver.verify(
+    body=body,
+    signature=signature,
+    url="https://example.com",  # Optional
 )
 ```
 
 #### Create Chat Completions
 
 ```python
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
-client = Client("<QSTASH_TOKEN>")
-chat = client.chat()
+qstash = QStash("<QSTASH_TOKEN>")
 
-res = chat.create({
-    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-    "messages": [
+res = qstash.chat.create(
+    model="meta-llama/Meta-Llama-3-8B-Instruct",
+    messages=[
         {
             "role": "user",
-            "content": "What is the capital of Turkey?"
+            "content": "What is the capital of Turkey?",
         }
-    ]
-})
+    ],
+)
 
-print(res["choices"][0]["message"]["content"])
+print(res.choices[0].message.content)
 ```
 
 #### Additional configuration
 
 ```python
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
 # Create a client with a custom retry configuration. This is
 # for sending messages to QStash, not for sending messages to
 # your endpoints.
 # The default configuration is:
 # {
-#   "attempts": 6,
+#   "retries": 5,
 #   "backoff": lambda retry_count: math.exp(retry_count) * 50,
 # }
-client = Client("<QSTASH_TOKEN>", {
-    "attempts": 2,
-    "backoff": lambda retry_count: (2 ** retry_count) * 20,
-})
-
-# Create Topic
-topics = client.topics()
-topics.upsert_or_add_endpoints(
-    {
-        "name": "topic_name",
-        "endpoints": [
-            {"url": "https://my-endpoint-1"},
-            {"url": "https://my-endpoint-2"}
-        ],
-    }
+qstash = QStash(
+    token="<QSTASH_TOKEN>",
+    retry={
+        "retries": 1,
+        "backoff": lambda retry_count: (2 ** retry_count) * 20,
+    },
 )
 
 # Publish to Topic
-client.publish_json(
-    {
-        "topic": "my-topic",
-        "body": {
-            "key": "value"
-        },
-        # Retry sending message to API 3 times
-        # https://upstash.com/docs/qstash/features/retry
-        "retries": 3,
-        # Schedule message to be sent 4 seconds from now
-        "delay": 4,
-        # When message is sent, send a request to this URL
-        # https://upstash.com/docs/qstash/features/callbacks
-        "callback": "https://my-api.com/callback",
-        # When message fails to send, send a request to this URL
-        "failure_callback": "https://my-api.com/failure_callback",
-        # Headers to forward to the endpoint
-        "headers": {
-            "test-header": "test-value",
-        },
-        # Enable content-based deduplication
-        # https://upstash.com/docs/qstash/features/deduplication#content-based-deduplication
-        "content_based_deduplication": True,
-    }
+qstash.message.publish_json(
+    url="https://example.com",
+    body={"key": "value"},
+    # Retry sending message to API 3 times
+    # https://upstash.com/docs/qstash/features/retry
+    retries=3,
+    # Schedule message to be sent 4 seconds from now
+    delay="4s",
+    # When message is sent, send a request to this URL
+    # https://upstash.com/docs/qstash/features/callbacks
+    callback="https://example.com/callback",
+    # When message fails to send, send a request to this URL
+    failure_callback="https://example.com/failure_callback",
+    # Headers to forward to the endpoint
+    headers={
+        "test-header": "test-value",
+    },
+    # Enable content-based deduplication
+    # https://upstash.com/docs/qstash/features/deduplication#content-based-deduplication
+    content_based_deduplication=True,
 )
 ```
 
-Additional methods are available for managing topics, schedules, and messages. See the examples folder for more.
+Additional methods are available for managing url groups, schedules, and messages. See the examples folder for more.
 
 ### Development
 
@@ -159,5 +136,5 @@ Additional methods are available for managing topics, schedules, and messages. S
 2. Install [Poetry](https://python-poetry.org/docs/#installation)
 3. Install dependencies with `poetry install`
 4. Create a .env file with `cp .env.example .env` and fill in the `QSTASH_TOKEN`
-5. Run tests with `poetry run pytest` and examples with `python3 examples/<example>.py`
-6. Format with `poetry run black . && poetry run isort .`
+5. Run tests with `poetry run pytest`
+6. Format with `poetry run ruff format .`

@@ -1,47 +1,27 @@
 """
-Create a schedule that publishes a message every minute if there are no 
-existing schedules.
-
-Also an example of how to use the schedules API (list, create, delete, get).
+Create a schedule that publishes a message every minute.
 """
 
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
 
 def main():
-    client = Client(QSTASH_TOKEN)
-    schedules = client.schedules()
+    qstash = QStash(
+        token="<QSTASH-TOKEN>",
+    )
 
-    if len(schedules.list()) > 0:
-        print("There are already schedules. Exiting.")
-        return
-
-    res = schedules.create(
-        {
-            "cron": "* * * * *",
-            "destination": "https://py-qstash-testing.requestcatcher.com",
-            "body": {"hello": "world"},
-            "headers": {
-                "content-type": "application/json",  # This is the default, but you can override it
-            },
-        }
+    schedule_id = qstash.schedule.create_json(
+        cron="* * * * *",
+        destination="https://example..com",
+        body={"hello": "world"},
     )
 
     # Print out the schedule ID
-    sched_id = res["scheduleId"]
-    print(sched_id)
+    print(schedule_id)
 
     # You can also get a schedule by ID
-    sched = schedules.get(sched_id)
-    print(sched["cron"])
-
-
-def delete_all_schedules():
-    client = Client(QSTASH_TOKEN)
-    schedules = client.schedules()
-    for sched in schedules.list():
-        schedules.delete(sched["scheduleId"])
+    schedule = qstash.schedule.get(schedule_id)
+    print(schedule.cron)
 
 
 if __name__ == "__main__":

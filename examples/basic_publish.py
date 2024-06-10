@@ -2,41 +2,24 @@
 Publishes a JSON message with a 3s delay to a URL using QStash.
 """
 
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
 
 def main():
-    client = Client(QSTASH_TOKEN)
-    res = client.publish_json(
-        {
-            "url": "https://py-qstash-testing.requestcatcher.com",
-            "body": {"hello": "world"},
-            "headers": {
-                "test-header": "test-value",
-            },
-            "delay": 3,
-        }
+    qstash = QStash(
+        token="<QSTASH-TOKEN>",
     )
 
-    print(res["messageId"])
+    res = qstash.message.publish_json(
+        url="https://example.com",
+        body={"hello": "world"},
+        headers={
+            "test-header": "test-value",
+        },
+        delay="3s",
+    )
 
-    """
-    Received from QStash:
-    POST / HTTP/1.1
-
-    Host: py-qstash-testing.requestcatcher.com
-    Accept-Encoding: gzip
-    Content-Length: 18
-    Content-Type: application/json
-    Test-Header: test-value
-    Upstash-Message-Id: msg_...
-    Upstash-Retried: 0
-    Upstash-Signature: ey...
-    User-Agent: Upstash-QStash
-
-    {"hello": "world"}
-    """
+    print(res.message_id)
 
 
 if __name__ == "__main__":

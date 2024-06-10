@@ -1,50 +1,23 @@
-import time
-
-import pytest
-
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash import Client
+from upstash_qstash import QStash
 
 
-@pytest.fixture
-def client():
-    return Client(QSTASH_TOKEN)
-
-
-def test_schedule_lifecycle(client):
-    sched = client.schedules()
-    create_res = sched.create(
-        {
-            "cron": "* * * * *",
-            "destination": "https://example.com",
-            "body": {"ex_key": "ex_value"},
-            "headers": {
-                "content-type": "application/json",
-            },
-        }
+def test_schedule_lifecycle(qstash: QStash) -> None:
+    sched_id = qstash.schedule.create_json(
+        cron="* * * * *",
+        destination="https://example.com",
+        body={"ex_key": "ex_value"},
     )
 
-    sched_id = create_res["scheduleId"]
-    assert sched_id is not None
+    assert len(sched_id) > 0
 
-    print("Waiting 1 seconds for schedule to be delivered")
-    time.sleep(1)
+    res = qstash.schedule.get(sched_id)
+    assert res.schedule_id == sched_id
+    assert res.cron == "* * * * *"
 
-    print("Checking if schedule is delivered")
-    get_res = sched.get(sched_id)
-    assert get_res["scheduleId"] == sched_id
-    assert get_res["cron"] == "* * * * *"
+    list_res = qstash.schedule.list()
+    assert any(s.schedule_id == sched_id for s in list_res)
 
-    print("Checking if schedule is in list")
-    list_res = sched.list()
-    assert any(s["scheduleId"] == sched_id for s in list_res)
+    qstash.schedule.delete(sched_id)
 
-    print("Deleting schedule")
-    sched.delete(sched_id)
-
-    print("Waiting 1 second for schedule to be deleted")
-    time.sleep(1)
-
-    print("Checking if schedule is deleted")
-    list_res = sched.list()
-    assert not any(s["scheduleId"] == sched_id for s in list_res)
+    list_res = qstash.schedule.list()
+    assert not any(s.schedule_id == sched_id for s in list_res)

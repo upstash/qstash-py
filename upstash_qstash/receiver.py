@@ -1,85 +1,99 @@
 import base64
 import hashlib
-from typing import Optional, TypedDict
+from typing import Optional
 
 import jwt
 
-from upstash_qstash.error import SignatureException
+from upstash_qstash.errors import SignatureError
 
-ReceiverConfig = TypedDict(
-    "ReceiverConfig",
-    {
-        "current_signing_key": str,
-        "next_signing_key": str,
-    },
-)
 
-VerifyRequest = TypedDict(
-    "VerifyRequest",
-    {
-        "signature": str,
-        "body": str,
-        "url": Optional[str],
-        "clock_tolerance": Optional[int],
-    },
-)
+def verify_with_key(
+    key: str,
+    *,
+    signature: str,
+    body: str,
+    url: Optional[str] = None,
+    clock_tolerance: int = 0,
+) -> None:
+    try:
+        decoded = jwt.decode(
+            signature,
+            key,
+            algorithms=["HS256"],
+            issuer="Upstash",
+            options={
+                "require": ["iss", "sub", "exp", "nbf"],
+                "leeway": clock_tolerance,
+            },
+        )
+    except jwt.ExpiredSignatureError:
+        raise SignatureError("Signature has expired")
+    except Exception as e:
+        raise SignatureError(f"Error while decoding signature: {e}")
+
+    if url is not None and decoded["sub"] != url:
+        raise SignatureError(f"Invalid subject: {decoded['sub']}, want: {url}")
+
+    body_hash = hashlib.sha256(body.encode()).digest()
+    body_hash_b64 = base64.urlsafe_b64encode(body_hash).decode().rstrip("=")
+
+    if decoded["body"].rstrip("=") != body_hash_b64:
+        raise SignatureError(
+            f"Invalid body hash: {decoded['body']}, want: {body_hash_b64}"
+        )
 
 
 class Receiver:
-    def __init__(self, config: ReceiverConfig):
-        self.current_signing_key = config["current_signing_key"]
-        self.next_signing_key = config["next_signing_key"]
+    """Receiver offers a simple way to verify the signature of a request."""
 
-    def verify(self, req: VerifyRequest) -> bool:
+    def __init__(self, current_signing_key: str, next_signing_key: str) -> None:
         """
-        Verify the signature of a request.
+        :param current_signing_key: The current signing key.
+            Get it from `https://console.upstash.com/qstash
+        :param next_signing_key: The next signing key.
+            Get it from `https://console.upstash.com/qstash
+        """
+        self._current_signing_key = current_signing_key
+        self._next_signing_key = next_signing_key
+
+    def verify(
+        self,
+        *,
+        signature: str,
+        body: str,
+        url: Optional[str] = None,
+        clock_tolerance: int = 0,
+    ) -> None:
+        """
+        Verifies the signature of a request.
 
         Tries to verify the signature with the current signing key.
-        If that fails, it will try to verify the signature with the next signing key
-        in case you have rotated the keys recently.
+        If that fails, maybe because you have rotated the keys recently, it will
+        try to verify the signature with the next signing key.
 
-        If that fails, the signature is invalid and a SignatureException is thrown.
+        If that fails, the signature is invalid and a `SignatureError` is thrown.
 
-        :param req: The request object.
-        :return: True if the signature is valid.
-        :raises SignatureException: If the signature is invalid.
+        :param signature: The signature from the `Upstash-Signature` header.
+        :param body: The raw request body.
+        :param url: Url of the endpoint where the request was sent to.
+            When set to `None`, url is not check.
+        :param clock_tolerance: Number of seconds to tolerate when checking
+            `nbf` and `exp` claims, to deal with small clock differences
+            among different servers.
         """
         try:
-            return self.verify_with_key(self.current_signing_key, req)
-        except SignatureException:
-            return self.verify_with_key(self.next_signing_key, req)
-
-    def verify_with_key(self, key: str, req: VerifyRequest):
-        """
-        Verify signature with a specific signing key.
-        """
-        try:
-            decoded = jwt.decode(
-                req["signature"],
-                key,
-                algorithms=["HS256"],
-                issuer="Upstash",
-                options={
-                    "require": ["iss", "sub", "exp", "nbf"],
-                    "leeway": req.get("clock_tolerance", 0),
-                },
+            verify_with_key(
+                self._current_signing_key,
+                signature=signature,
+                body=body,
+                url=url,
+                clock_tolerance=clock_tolerance,
             )
-
-            if "url" in req and decoded["sub"] != req["url"]:
-                raise SignatureException(
-                    f"Invalid subject: {decoded['sub']}, want: {req['url']}"
-                )
-
-            body_hash = hashlib.sha256(req["body"].encode()).digest()
-            body_hash_b64 = base64.urlsafe_b64encode(body_hash).decode().rstrip("=")
-
-            if decoded["body"].rstrip("=") != body_hash_b64:
-                raise SignatureException(
-                    f"Invalid body hash: {decoded['body']}, want: {body_hash_b64}"
-                )
-
-            return True
-        except jwt.ExpiredSignatureError:
-            raise SignatureException("Signature has expired")
-        except Exception as e:
-            raise SignatureException(str(e))
+        except SignatureError:
+            verify_with_key(
+                self._next_signing_key,
+                signature=signature,
+                body=body,
+                url=url,
+                clock_tolerance=clock_tolerance,
+            )
