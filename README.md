@@ -13,7 +13,7 @@ You can get your QStash token from the [Upstash Console](https://console.upstash
 ```python
 from upstash_qstash import QStash
 
-qstash = QStash("" < QSTASH_TOKEN > "")
+qstash = QStash("<QSTASH_TOKEN>")
 
 res = qstash.message.publish_json(
     url="https://example.com",
