@@ -4,24 +4,24 @@ Uses asyncio to asynchronously publish a JSON message with a 3s delay to a URL u
 
 import asyncio
 
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash.asyncio import Client
+from upstash_qstash import AsyncQStash
 
 
 async def main():
-    client = Client(QSTASH_TOKEN)
-    res = await client.publish_json(
-        {
-            "url": "https://py-qstash-testing.requestcatcher.com",
-            "body": {"hello": "world"},
-            "headers": {
-                "test-header": "test-value",
-            },
-            "delay": 3,
-        }
+    qstash = AsyncQStash(
+        token="<QSTASH-TOKEN>",
     )
 
-    print(res["messageId"])
+    res = await qstash.message.publish_json(
+        url="https://example.com",
+        body={"hello": "world"},
+        headers={
+            "test-header": "test-value",
+        },
+        delay="3s",
+    )
+
+    print(res.message_id)
 
 
 if __name__ == "__main__":

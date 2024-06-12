@@ -1,117 +1,58 @@
-import json
-from typing import List, Optional, Union
+from typing import List
 
-from upstash_qstash.publish import Publish, PublishToTopicResponse, PublishToUrlResponse
-from upstash_qstash.queue import (
-    EnqueueRequest,
-    QueueOpts,
-    QueueResponse,
-    UpsertQueueRequest,
-)
-from upstash_qstash.upstash_http import HttpClient
+from upstash_qstash.asyncio.http import AsyncHttpClient
+from upstash_qstash.queue import Queue, parse_queue_response, prepare_upsert_body
 
 
-class Queue:
-    def __init__(self, http: HttpClient, queue_opts: Optional[QueueOpts] = None):
-        self.http = http
-        self.queue_name = queue_opts.get("queue_name") if queue_opts else None
+class AsyncQueueApi:
+    def __init__(self, http: AsyncHttpClient) -> None:
+        self._http = http
 
-    async def upsert(self, req: UpsertQueueRequest):
+    async def upsert(self, queue: str, *, parallelism: int = 1) -> None:
         """
-        Asynchronously creates or updates a queue with the given name and parallelism
+        Updates or creates a queue.
+
+        :param queue: The name of the queue.
+        :param parallelism: The number of parallel consumers consuming from the queue.
         """
-        if not self.queue_name:
-            raise ValueError("Please provide a queue name to the Queue constructor")
+        body = prepare_upsert_body(queue, parallelism)
 
-        body = {"queueName": self.queue_name, "parallelism": req["parallelism"]}
-
-        await self.http.request_async(
-            {
-                "method": "POST",
-                "path": ["v2", "queues"],
-                "headers": {
-                    "Content-Type": "application/json",
-                },
-                "body": json.dumps(body),
-                "parse_response_as_json": False,
-            }
+        await self._http.request(
+            path="/v2/queues",
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            body=body,
+            parse_response=False,
         )
 
-    async def get(self) -> QueueResponse:
+    async def get(self, queue: str) -> Queue:
         """
-        Asynchronously get the queue details
+        Gets the queue by its name.
         """
-        if not self.queue_name:
-            raise ValueError("Please provide a queue name to the Queue constructor")
-
-        return await self.http.request_async(
-            {
-                "method": "GET",
-                "path": ["v2", "queues", self.queue_name],
-            }
+        response = await self._http.request(
+            path=f"/v2/queues/{queue}",
+            method="GET",
         )
 
-    async def list(self) -> List[QueueResponse]:
-        """
-        Asynchronously list all queues
-        """
+        return parse_queue_response(response)
 
-        return await self.http.request_async(
-            {
-                "method": "GET",
-                "path": ["v2", "queues"],
-            }
+    async def list(self) -> List[Queue]:
+        """
+        Lists all the queues.
+        """
+        response = await self._http.request(
+            path="/v2/queues",
+            method="GET",
         )
 
-    async def delete(self):
-        """
-        Asynchronously delete the queue
-        """
-        if not self.queue_name:
-            raise ValueError("Please provide a queue name to the Queue constructor")
+        return [parse_queue_response(r) for r in response]
 
-        return await self.http.request_async(
-            {
-                "method": "DELETE",
-                "path": ["v2", "queues", self.queue_name],
-                "parse_response_as_json": False,
-            }
+    async def delete(self, queue: str) -> None:
+        """
+        Deletes the queue.
+        """
+        await self._http.request(
+            path=f"/v2/queues/{queue}",
+            method="DELETE",
+            parse_response=False,
         )
-
-    async def enqueue(
-        self, req: EnqueueRequest
-    ) -> Union[PublishToUrlResponse, PublishToTopicResponse]:
-        """
-        Asynchronously enqueue a message to the queue
-        """
-        if not self.queue_name:
-            raise ValueError("Please provide a queue name to the Queue constructor")
-
-        Publish._validate_request(req)
-        headers = Publish._prepare_headers(req)
-        destination = Publish._get_destination(req)
-
-        return await self.http.request_async(
-            {
-                "path": [
-                    "v2",
-                    "enqueue",
-                    self.queue_name,
-                    destination,
-                ],
-                "body": req.get("body"),
-                "headers": headers,
-                "method": "POST",
-            }
-        )
-
-    async def enqueue_json(self, req: EnqueueRequest):
-        """
-        Asynchronously enqueue a message to the queue with the body as JSON
-        """
-        if "body" in req:
-            req["body"] = json.dumps(req["body"])
-
-        req.setdefault("headers", {}).update({"Content-Type": "application/json"})
-
-        return await self.enqueue(req)

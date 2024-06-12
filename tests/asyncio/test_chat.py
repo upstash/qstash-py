@@ -1,69 +1,70 @@
 import pytest
-
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash.asyncio import Client
-
-
-@pytest.fixture
-def client():
-    return Client(QSTASH_TOKEN)
+from upstash_qstash import AsyncQStash
+from upstash_qstash.asyncio.chat import AsyncChatCompletionChunkStream
+from upstash_qstash.chat import ChatCompletion
 
 
 @pytest.mark.asyncio
-async def test_chat_async(client):
-    res = await client.chat().create(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "messages": [{"role": "user", "content": "hello"}],
-        }
+async def test_chat_async(async_qstash: AsyncQStash) -> None:
+    res = await async_qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "hello"}],
     )
 
-    assert res["id"] is not None
+    assert isinstance(res, ChatCompletion)
 
-    assert res["choices"][0]["message"]["content"] is not None
-    assert res["choices"][0]["message"]["role"] == "assistant"
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
 
 
 @pytest.mark.asyncio
-async def test_chat_streaming_async(client):
-    res = await client.chat().create(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "messages": [{"role": "user", "content": "hello"}],
-            "stream": True,
-        }
+async def test_chat_streaming_async(async_qstash: AsyncQStash) -> None:
+    res = await async_qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "hello"}],
+        stream=True,
     )
 
+    assert isinstance(res, AsyncChatCompletionChunkStream)
+
+    i = 0
     async for r in res:
-        assert r["id"] is not None
-        assert r["choices"][0]["delta"] is not None
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+        i += 1
 
 
 @pytest.mark.asyncio
-async def test_prompt_async(client):
-    res = await client.chat().prompt(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "user": "hello",
-        }
+async def test_prompt_async(async_qstash: AsyncQStash) -> None:
+    res = await async_qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="hello",
     )
 
-    assert res["id"] is not None
+    assert isinstance(res, ChatCompletion)
 
-    assert res["choices"][0]["message"]["content"] is not None
-    assert res["choices"][0]["message"]["role"] == "assistant"
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
 
 
 @pytest.mark.asyncio
-async def test_prompt_streaming_async(client):
-    res = await client.chat().prompt(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "user": "hello",
-            "stream": True,
-        }
+async def test_prompt_streaming_async(async_qstash: AsyncQStash) -> None:
+    res = await async_qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="hello",
+        stream=True,
     )
 
+    assert isinstance(res, AsyncChatCompletionChunkStream)
+
+    i = 0
     async for r in res:
-        assert r["id"] is not None
-        assert r["choices"][0]["delta"] is not None
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+        i += 1

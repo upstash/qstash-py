@@ -1,52 +1,354 @@
 import json
-from typing import AsyncIterable, Union
+from types import TracebackType
+from typing import AsyncIterator, Dict, List, Optional, Union, Type
 
-from upstash_qstash.chat import Chat as SyncChat
+import httpx
+
+from upstash_qstash.asyncio.http import AsyncHttpClient
 from upstash_qstash.chat import (
     ChatCompletion,
     ChatCompletionChunk,
-    ChatRequest,
-    PromptRequest,
+    ChatCompletionMessage,
+    ChatModel,
+    ChatResponseFormat,
+    convert_to_chat_messages,
+    parse_chat_completion_chunk_response,
+    parse_chat_completion_response,
+    prepare_chat_request_body,
 )
-from upstash_qstash.upstash_http import HttpClient
 
 
-class Chat:
-    def __init__(self, http: HttpClient):
-        self.http = http
+class AsyncChatCompletionChunkStream:
+    """
+    An async iterable that yields completion chunks.
+
+    To not leak any resources, either
+    - the chunks most be read to completion
+    - close() must be called
+    - context manager must be used
+    """
+
+    def __init__(self, response: httpx.Response) -> None:
+        self._response = response
+        self._iterator = self._chunk_iterator()
+
+    async def close(self) -> None:
+        """
+        Closes the underlying resources.
+
+        No need to call it if the iterator is read to completion.
+        """
+        await self._response.aclose()
+
+    async def __anext__(self) -> ChatCompletionChunk:
+        return await self._iterator.__anext__()
+
+    def __aiter__(self) -> AsyncIterator[ChatCompletionChunk]:
+        return self
+
+    async def __aenter__(self) -> "AsyncChatCompletionChunkStream":
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        await self.close()
+
+    async def _chunk_iterator(self) -> AsyncIterator[ChatCompletionChunk]:
+        it = self._data_iterator()
+        async for data in it:
+            if data == b"[DONE]":
+                break
+
+            yield parse_chat_completion_chunk_response(json.loads(data))
+
+        async for _ in it:
+            pass
+
+    async def _data_iterator(self) -> AsyncIterator[bytes]:
+        pending = None
+
+        async for data in self._response.aiter_bytes():
+            if pending is not None:
+                data = pending + data
+
+            parts = data.split(b"\n\n")
+
+            if parts and parts[-1] and data and parts[-1][-1] == data[-1]:
+                pending = parts.pop()
+            else:
+                pending = None
+
+            for part in parts:
+                if part.startswith(b"data: "):
+                    part = part[6:]
+                    yield part
+
+        if pending is not None:
+            if pending.startswith(b"data: "):
+                pending = pending[6:]
+                yield pending
+
+
+class AsyncChatApi:
+    def __init__(self, http: AsyncHttpClient) -> None:
+        self._http = http
 
     async def create(
-        self, req: ChatRequest
-    ) -> Union[ChatCompletion, AsyncIterable[ChatCompletionChunk]]:
-        SyncChat._validate_request(req)
-        body = json.dumps(req)
+        self,
+        *,
+        messages: List[ChatCompletionMessage],
+        model: ChatModel,
+        frequency_penalty: Optional[float] = None,
+        logit_bias: Optional[Dict[str, int]] = None,
+        logprobs: Optional[bool] = None,
+        top_logprobs: Optional[int] = None,
+        max_tokens: Optional[int] = None,
+        n: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        response_format: Optional[ChatResponseFormat] = None,
+        seed: Optional[int] = None,
+        stop: Optional[Union[str, List[str]]] = None,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+    ) -> Union[ChatCompletion, AsyncChatCompletionChunkStream]:
+        """
+        Creates a model response for the given chat conversation.
 
-        if req.get("stream"):
-            return self.http.request_stream_async(
-                {
-                    "path": ["llm", "v1", "chat", "completions"],
-                    "method": "POST",
-                    "headers": {
-                        "Content-Type": "application/json",
-                        "Connection": "keep-alive",
-                        "Accept": "text/event-stream",
-                        "Cache-Control": "no-cache",
-                    },
-                    "body": body,
-                }
-            )
+        When `stream` is set to `True`, it returns an iterable
+        that can be used to receive chat completion delta chunks
+        one by one.
 
-        return await self.http.request_async(
-            {
-                "path": ["llm", "v1", "chat", "completions"],
-                "method": "POST",
-                "headers": {"Content-Type": "application/json"},
-                "body": body,
-            }
+        Otherwise, response is returned in one go as a chat
+        completion object.
+
+        :param messages: One or more chat messages.
+        :param model: Name of the model.
+        :param frequency_penalty: Number between `-2.0` and `2.0`.
+            Positive values penalize new tokens based on their existing
+            frequency in the text so far, decreasing the model's likelihood
+            to repeat the same line verbatim.
+        :param logit_bias: Modify the likelihood of specified tokens appearing
+            in the completion. Accepts a dictionary that maps tokens (specified
+            by their token ID in the tokenizer) to an associated bias value
+            from `-100` to `100`. Mathematically, the bias is added to the
+            logits generated by the model prior to sampling. The exact effect
+            will vary per model, but values between `-1` and `1` should
+            decrease or increase likelihood of selection; values like `-100` or
+            `100` should result in a ban or exclusive selection of the
+            relevant token.
+        :param logprobs: Whether to return log probabilities of the output
+            tokens or not. If true, returns the log probabilities of each
+            output token returned in the content of message.
+        :param top_logprobs: An integer between `0` and `20` specifying the
+            number of most likely tokens to return at each token position,
+            each with an associated log probability. logprobs must be set
+            to true if this parameter is used.
+        :param max_tokens: The maximum number of tokens that can be generated
+            in the chat completion.
+        :param n: How many chat completion choices to generate for each input
+            message. Note that you will be charged based on the number of
+            generated tokens across all of the choices. Keep `n` as `1` to
+            minimize costs.
+        :param presence_penalty: Number between `-2.0` and `2.0`. Positive
+            values penalize new tokens based on whether they appear in the
+            text so far, increasing the model's likelihood to talk about
+            new topics.
+        :param response_format: An object specifying the format that the
+            model must output.
+            Setting to `{ "type": "json_object" }` enables JSON mode,
+            which guarantees the message the model generates is valid JSON.
+
+            **Important**: when using JSON mode, you must also instruct the
+            model to produce JSON yourself via a system or user message.
+            Without this, the model may generate an unending stream of
+            whitespace until the generation reaches the token limit, resulting
+            in a long-running and seemingly "stuck" request. Also note that
+            the message content may be partially cut off if
+            `finish_reason="length"`, which indicates the generation exceeded
+            `max_tokens` or the conversation exceeded the max context length.
+        :param seed: If specified, our system will make a best effort to sample
+            deterministically, such that repeated requests with the same seed
+            and parameters should return the same result. Determinism is not
+            guaranteed, and you should refer to the `system_fingerprint`
+            response parameter to monitor changes in the backend.
+        :param stop: Up to 4 sequences where the API will stop generating
+            further tokens.
+        :param stream: If set, partial message deltas will be sent. Tokens
+            will be sent as data-only server-sent events as they become
+            available.
+        :param temperature: What sampling temperature to use, between `0`
+            and `2`. Higher values like `0.8` will make the output more random,
+            while lower values like `0.2` will make it more focused and
+            deterministic.
+            We generally recommend altering this or `top_p` but not both.
+        :param top_p: An alternative to sampling with temperature, called
+            nucleus sampling, where the model considers the results of the tokens
+            with `top_p` probability mass. So `0.1` means only the tokens
+            comprising the top `10%`` probability mass are considered.
+            We generally recommend altering this or `temperature` but not both.
+        """
+        body = prepare_chat_request_body(
+            messages=messages,
+            model=model,
+            frequency_penalty=frequency_penalty,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            max_tokens=max_tokens,
+            n=n,
+            presence_penalty=presence_penalty,
+            response_format=response_format,
+            seed=seed,
+            stop=stop,
+            stream=stream,
+            temperature=temperature,
+            top_p=top_p,
         )
 
+        if stream:
+            stream_response = await self._http.stream(
+                path="/llm/v1/chat/completions",
+                method="POST",
+                headers={
+                    "Content-Type": "application/json",
+                    "Connection": "keep-alive",
+                    "Accept": "text/event-stream",
+                    "Cache-Control": "no-cache",
+                },
+                body=body,
+            )
+
+            return AsyncChatCompletionChunkStream(stream_response)
+
+        response = await self._http.request(
+            path="/llm/v1/chat/completions",
+            method="POST",
+            headers={"Content-Type": "application/json"},
+            body=body,
+        )
+
+        return parse_chat_completion_response(response)
+
     async def prompt(
-        self, req: PromptRequest
-    ) -> Union[ChatCompletion, AsyncIterable[ChatCompletionChunk]]:
-        chat_req = SyncChat._to_chat_request(req)
-        return await self.create(chat_req)
+        self,
+        *,
+        user: str,
+        system: Optional[str] = None,
+        model: ChatModel,
+        frequency_penalty: Optional[float] = None,
+        logit_bias: Optional[Dict[str, int]] = None,
+        logprobs: Optional[bool] = None,
+        top_logprobs: Optional[int] = None,
+        max_tokens: Optional[int] = None,
+        n: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        response_format: Optional[ChatResponseFormat] = None,
+        seed: Optional[int] = None,
+        stop: Optional[Union[str, List[str]]] = None,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+    ) -> Union[ChatCompletion, AsyncChatCompletionChunkStream]:
+        """
+        Creates a model response for the given user and optional
+        system prompt. It is a utility method that converts
+        the given user and system prompts to message history
+        expected in the `create` method. It is only useful for
+        single turn chat completions.
+
+        When `stream` is set to `True`, it returns an iterable
+        that can be used to receive chat completion delta chunks
+        one by one.
+
+        Otherwise, response is returned in one go as a chat
+        completion object.
+
+        :param user: User prompt.
+        :param system: System prompt.
+        :param model: Name of the model.
+        :param frequency_penalty: Number between `-2.0` and `2.0`.
+            Positive values penalize new tokens based on their existing
+            frequency in the text so far, decreasing the model's likelihood
+            to repeat the same line verbatim.
+        :param logit_bias: Modify the likelihood of specified tokens appearing
+            in the completion. Accepts a dictionary that maps tokens (specified
+            by their token ID in the tokenizer) to an associated bias value
+            from `-100` to `100`. Mathematically, the bias is added to the
+            logits generated by the model prior to sampling. The exact effect
+            will vary per model, but values between `-1` and `1` should
+            decrease or increase likelihood of selection; values like `-100` or
+            `100` should result in a ban or exclusive selection of the
+            relevant token.
+        :param logprobs: Whether to return log probabilities of the output
+            tokens or not. If true, returns the log probabilities of each
+            output token returned in the content of message.
+        :param top_logprobs: An integer between `0` and `20` specifying the
+            number of most likely tokens to return at each token position,
+            each with an associated log probability. logprobs must be set
+            to true if this parameter is used.
+        :param max_tokens: The maximum number of tokens that can be generated
+            in the chat completion.
+        :param n: How many chat completion choices to generate for each input
+            message. Note that you will be charged based on the number of
+            generated tokens across all of the choices. Keep `n` as `1` to
+            minimize costs.
+        :param presence_penalty: Number between `-2.0` and `2.0`. Positive
+            values penalize new tokens based on whether they appear in the
+            text so far, increasing the model's likelihood to talk about
+            new topics.
+        :param response_format: An object specifying the format that the
+            model must output.
+            Setting to `{ "type": "json_object" }` enables JSON mode,
+            which guarantees the message the model generates is valid JSON.
+
+            **Important**: when using JSON mode, you must also instruct the
+            model to produce JSON yourself via a system or user message.
+            Without this, the model may generate an unending stream of
+            whitespace until the generation reaches the token limit, resulting
+            in a long-running and seemingly "stuck" request. Also note that
+            the message content may be partially cut off if
+            `finish_reason="length"`, which indicates the generation exceeded
+            `max_tokens` or the conversation exceeded the max context length.
+        :param seed: If specified, our system will make a best effort to sample
+            deterministically, such that repeated requests with the same seed
+            and parameters should return the same result. Determinism is not
+            guaranteed, and you should refer to the `system_fingerprint`
+            response parameter to monitor changes in the backend.
+        :param stop: Up to 4 sequences where the API will stop generating
+            further tokens.
+        :param stream: If set, partial message deltas will be sent. Tokens
+            will be sent as data-only server-sent events as they become
+            available.
+        :param temperature: What sampling temperature to use, between `0`
+            and `2`. Higher values like `0.8` will make the output more random,
+            while lower values like `0.2` will make it more focused and
+            deterministic.
+            We generally recommend altering this or `top_p` but not both.
+        :param top_p: An alternative to sampling with temperature, called
+            nucleus sampling, where the model considers the results of the tokens
+            with `top_p` probability mass. So `0.1` means only the tokens
+            comprising the top `10%`` probability mass are considered.
+            We generally recommend altering this or `temperature` but not both.
+        """
+        return await self.create(
+            messages=convert_to_chat_messages(user, system),
+            model=model,
+            frequency_penalty=frequency_penalty,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            max_tokens=max_tokens,
+            n=n,
+            presence_penalty=presence_penalty,
+            response_format=response_format,
+            seed=seed,
+            stop=stop,
+            stream=stream,
+            temperature=temperature,
+            top_p=top_p,
+        )

@@ -1,65 +1,58 @@
-import pytest
-
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash import Client
+from upstash_qstash import QStash
+from upstash_qstash.chat import ChatCompletion, ChatCompletionChunkStream
 
 
-@pytest.fixture
-def client():
-    return Client(QSTASH_TOKEN)
-
-
-def test_chat(client):
-    res = client.chat().create(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "messages": [{"role": "user", "content": "hello"}],
-        }
+def test_chat(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "hello"}],
     )
 
-    assert res["id"] is not None
+    assert isinstance(res, ChatCompletion)
 
-    assert res["choices"][0]["message"]["content"] is not None
-    assert res["choices"][0]["message"]["role"] == "assistant"
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
 
 
-def test_chat_streaming(client):
-    res = client.chat().create(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "messages": [{"role": "user", "content": "hello"}],
-            "stream": True,
-        }
+def test_chat_streaming(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "hello"}],
+        stream=True,
     )
 
-    for r in res:
-        assert r["id"] is not None
-        assert r["choices"][0]["delta"] is not None
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
 
 
-def test_prompt(client):
-    res = client.chat().prompt(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "user": "hello",
-        }
+def test_prompt(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="hello",
     )
 
-    assert res["id"] is not None
+    assert isinstance(res, ChatCompletion)
 
-    assert res["choices"][0]["message"]["content"] is not None
-    assert res["choices"][0]["message"]["role"] == "assistant"
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
 
 
-def test_prompt_streaming(client):
-    res = client.chat().prompt(
-        {
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-            "user": "hello",
-            "stream": True,
-        }
+def test_prompt_streaming(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="hello",
+        stream=True,
     )
 
-    for r in res:
-        assert r["id"] is not None
-        assert r["choices"][0]["delta"] is not None
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None

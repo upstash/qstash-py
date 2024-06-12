@@ -1,80 +1,80 @@
 import json
-from typing import Optional
-
+from typing import List, Optional
+from upstash_qstash.asyncio.http import AsyncHttpClient
 from upstash_qstash.dlq import (
-    BulkDeleteRequest,
-    BulkDeleteResponse,
     DlqMessage,
-    ListMessageResponse,
-    ListMessagesOpts,
+    ListDlqMessagesResponse,
+    parse_dlq_message_response,
 )
-from upstash_qstash.qstash_types import UpstashRequest
-from upstash_qstash.upstash_http import HttpClient
 
 
-class DLQ:
-    def __init__(self, http: HttpClient):
-        self.http = http
+class AsyncDlqApi:
+    def __init__(self, http: AsyncHttpClient) -> None:
+        self._http = http
 
-    async def list_messages(
-        self, opts: Optional[ListMessagesOpts] = None
-    ) -> ListMessageResponse:
+    async def get(self, dlq_id: str) -> DlqMessage:
         """
-        Asynchronously list messages in the dlq.
+        Gets a message from DLQ.
 
-        Example:
-        --------
-        >>> dlq = client.dlq()
-        >>> all_messages = []
-        >>> cursor = None
-        >>> while True:
-        >>>     res = await dlq.list_messages({"cursor": cursor})
-        >>>     all_messages.extend(res["messages"])
-        >>>     cursor = res.get("cursor")
-        >>>     if cursor is None:
-        >>>         break
+        :param dlq_id: The unique id within the DLQ to get.
         """
-        req: UpstashRequest = {
-            "path": ["v2", "dlq"],
-            "method": "GET",
-        }
-        if opts is not None and opts.get("cursor") is not None:
-            req["query"] = {"cursor": opts["cursor"]}
-
-        return await self.http.request_async(req)
-
-    async def get(self, dlq_message_id: str) -> DlqMessage:
-        """
-        Get a message from the dlq using its `dlqId`
-        """
-        return await self.http.request_async(
-            {
-                "path": ["v2", "dlq", dlq_message_id],
-                "method": "GET",
-            }
+        response = await self._http.request(
+            path=f"/v2/dlq/{dlq_id}",
+            method="GET",
         )
 
-    async def delete(self, dlq_message_id: str):
+        return parse_dlq_message_response(response, dlq_id)
+
+    async def list(self, *, cursor: Optional[str] = None) -> ListDlqMessagesResponse:
         """
-        Asynchronously remove a message from the dlq using its `dlqId`
+        Lists all messages currently inside the DLQ.
+
+        :param cursor: Optional cursor to start listing DLQ messages from.
         """
-        return await self.http.request_async(
-            {
-                "path": ["v2", "dlq", dlq_message_id],
-                "method": "DELETE",
-                "parse_response_as_json": False,
-            }
+        if cursor is not None:
+            params = {"cursor": cursor}
+        else:
+            params = None
+
+        response = await self._http.request(
+            path="/v2/dlq",
+            method="GET",
+            params=params,
         )
 
-    async def deleteMany(self, req: BulkDeleteRequest) -> BulkDeleteResponse:
-        """
-        Asynchronously remove many message from the DLQ
-        """
-        return await self.http.request_async(
-            {
-                "path": ["v2", "dlq"],
-                "headers": {"Content-Type": "application/json"},
-                "body": json.dumps({"dlqIds": req.get("dlq_ids")}),
-                "method": "DELETE",
-            }
+        messages = [parse_dlq_message_response(r) for r in response["messages"]]
+
+        return ListDlqMessagesResponse(
+            cursor=response.get("cursor"),
+            messages=messages,
         )
+
+    async def delete(self, dlq_id: str) -> None:
+        """
+        Deletes a message from the DLQ.
+
+        :param dlq_id: The unique id within the DLQ to delete.
+        """
+        await self._http.request(
+            path=f"/v2/dlq/{dlq_id}",
+            method="DELETE",
+            parse_response=False,
+        )
+
+    async def delete_many(self, dlq_ids: List[str]) -> int:
+        """
+        Deletes multiple messages from the DLQ and
+        returns how many of them are deleted.
+
+        :param dlq_ids: The unique ids within the DLQ to delete.
+        """
+        body = json.dumps({"dlqIds": dlq_ids})
+
+        response = await self._http.request(
+            path="/v2/dlq",
+            method="DELETE",
+            headers={"Content-Type": "application/json"},
+            body=body,
+        )
+
+        return response["deleted"]

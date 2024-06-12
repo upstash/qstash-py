@@ -1,51 +1,25 @@
-import asyncio
-
 import pytest
-
-from qstash_tokens import QSTASH_TOKEN
-from upstash_qstash.asyncio import Client
-
-
-@pytest.fixture
-def client():
-    return Client(QSTASH_TOKEN)
+from upstash_qstash import AsyncQStash
 
 
 @pytest.mark.asyncio
-async def test_schedule_lifecycle(client):
-    sched = client.schedules()
-    create_res = await sched.create(
-        {
-            "cron": "* * * * *",
-            "destination": "https://example.com",
-            "body": {"ex_key": "ex_value"},
-            "headers": {
-                "content-type": "application/json",
-            },
-        }
+async def test_schedule_lifecycle_async(async_qstash: AsyncQStash) -> None:
+    sched_id = await async_qstash.schedule.create_json(
+        cron="* * * * *",
+        destination="https://example.com",
+        body={"ex_key": "ex_value"},
     )
 
-    sched_id = create_res["scheduleId"]
-    assert sched_id is not None
+    assert len(sched_id) > 0
 
-    print("Waiting 1 seconds for schedule to be delivered")
-    await asyncio.sleep(1)
+    res = await async_qstash.schedule.get(sched_id)
+    assert res.schedule_id == sched_id
+    assert res.cron == "* * * * *"
 
-    print("Checking if schedule is delivered")
-    get_res = await sched.get(sched_id)
-    assert get_res["scheduleId"] == sched_id
-    assert get_res["cron"] == "* * * * *"
+    list_res = await async_qstash.schedule.list()
+    assert any(s.schedule_id == sched_id for s in list_res)
 
-    print("Checking if schedule is in list")
-    list_res = await sched.list()
-    assert any(s["scheduleId"] == sched_id for s in list_res)
+    await async_qstash.schedule.delete(sched_id)
 
-    print("Deleting schedule")
-    await sched.delete(sched_id)
-
-    print("Waiting 1 second for schedule to be deleted")
-    await asyncio.sleep(1)
-
-    print("Checking if schedule is deleted")
-    list_res = await sched.list()
-    assert not any(s["scheduleId"] == sched_id for s in list_res)
+    list_res = await async_qstash.schedule.list()
+    assert not any(s.schedule_id == sched_id for s in list_res)
