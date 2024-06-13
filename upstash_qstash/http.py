@@ -15,6 +15,11 @@ class RetryConfig(TypedDict, total=False):
     """A function that returns how many milliseconds to backoff before the given retry attempt."""
 
 
+DEFAULT_TIMEOUT = httpx.Timeout(
+    timeout=600.0,
+    connect=5.0,
+)
+
 DEFAULT_RETRY = RetryConfig(
     retries=5,
     backoff=lambda retry_count: math.exp(1 + retry_count) * 50,
@@ -60,7 +65,9 @@ class HttpClient:
         else:
             self._retry = retry
 
-        self._client = httpx.Client()
+        self._client = httpx.Client(
+            timeout=DEFAULT_TIMEOUT,
+        )
 
     def request(
         self,
