@@ -10,6 +10,7 @@ from upstash_qstash.http import (
     HttpMethod,
     RetryConfig,
     raise_for_non_ok_status,
+    DEFAULT_TIMEOUT,
 )
 
 
@@ -28,7 +29,9 @@ class AsyncHttpClient:
         else:
             self._retry = retry
 
-        self._client = httpx.AsyncClient()
+        self._client = httpx.AsyncClient(
+            timeout=DEFAULT_TIMEOUT,
+        )
 
     async def request(
         self,
