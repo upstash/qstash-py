@@ -50,6 +50,9 @@ class Schedule:
     caller_ip: Optional[str]
     """IP address of the creator of this schedule."""
 
+    paused: bool
+    """Whether the schedule is paused or not."""
+
 
 def prepare_schedule_headers(
     *,
@@ -60,7 +63,8 @@ def prepare_schedule_headers(
     retries: Optional[int],
     callback: Optional[str],
     failure_callback: Optional[str],
-    delay: Optional[str],
+    delay: Optional[Union[str, int]],
+    timeout: Optional[Union[str, int]],
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -89,7 +93,16 @@ def prepare_schedule_headers(
         h["Upstash-Failure-Callback"] = failure_callback
 
     if delay is not None:
-        h["Upstash-Delay"] = delay
+        if isinstance(delay, int):
+            h["Upstash-Delay"] = f"{delay}s"
+        else:
+            h["Upstash-Delay"] = delay
+
+    if timeout is not None:
+        if isinstance(timeout, int):
+            h["Upstash-Timeout"] = f"{timeout}s"
+        else:
+            h["Upstash-Timeout"] = timeout
 
     return h
 
@@ -109,6 +122,7 @@ def parse_schedule_response(response: Dict[str, Any]) -> Schedule:
         failure_callback=response.get("failureCallback"),
         delay=response.get("delay"),
         caller_ip=response.get("callerIP"),
+        paused=response.get("isPaused", False),
     )
 
 
@@ -128,7 +142,8 @@ class ScheduleApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -146,9 +161,15 @@ class ScheduleApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -159,6 +180,7 @@ class ScheduleApi:
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
+            timeout=timeout,
         )
 
         response = self._http.request(
@@ -181,7 +203,8 @@ class ScheduleApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -200,9 +223,15 @@ class ScheduleApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         return self.create(
             destination=destination,
@@ -215,6 +244,7 @@ class ScheduleApi:
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
+            timeout=timeout,
         )
 
     def get(self, schedule_id: str) -> Schedule:
@@ -246,5 +276,28 @@ class ScheduleApi:
         self._http.request(
             path=f"/v2/schedules/{schedule_id}",
             method="DELETE",
+            parse_response=False,
+        )
+
+    def pause(self, schedule_id: str) -> None:
+        """
+        Pauses the schedule.
+
+        A paused schedule will not produce new messages until
+        it is resumed.
+        """
+        self._http.request(
+            path=f"/v2/schedules/{schedule_id}/pause",
+            method="PATCH",
+            parse_response=False,
+        )
+
+    def resume(self, schedule_id: str) -> None:
+        """
+        Resumes the schedule.
+        """
+        self._http.request(
+            path=f"/v2/schedules/{schedule_id}/resume",
+            method="PATCH",
             parse_response=False,
         )

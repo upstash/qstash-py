@@ -119,17 +119,21 @@ class BatchRequest(TypedDict, total=False):
     that is when all the defined retries are exhausted.
     """
 
-    delay: str
+    delay: Union[str, int]
     """
-    Delay the message delivery.
-    The format is a number followed by duration abbreviation, 
-    like `10s`. Available durations are `s` (seconds), `m` (minutes), 
-    `h` (hours), and `d` (days).
+    Delay the message delivery. 
+    
+    The format for the delay string is a
+    number followed by duration abbreviation, like `10s`. Available durations
+    are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+    it is also possible to specify the delay as an integer, which will be
+    interpreted as delay in seconds.
     """
 
     not_before: int
     """
     Delay the message until a certain time in the future. 
+    
     The format is a unix timestamp in seconds, based on the UTC timezone.
     """
 
@@ -138,6 +142,19 @@ class BatchRequest(TypedDict, total=False):
 
     content_based_deduplication: bool
     """Automatically deduplicate messages based on their content."""
+
+    timeout: Union[str, int]
+    """
+    The HTTP timeout value to use while calling the destination URL.
+    When a timeout is specified, it will be used instead of the maximum timeout
+    value permitted by the QStash plan. It is useful in scenarios, where a message
+    should be delivered with a shorter timeout.
+    
+    The format for the timeout string is a number followed by duration abbreviation, 
+    like `10s`. Available durations are `s` (seconds), `m` (minutes), `h` (hours), 
+    and `d` (days). As convenience, it is also possible to specify the timeout as 
+    an integer, which will be interpreted as timeout in seconds.
+    """
 
 
 class BatchJsonRequest(TypedDict, total=False):
@@ -180,17 +197,21 @@ class BatchJsonRequest(TypedDict, total=False):
     that is when all the defined retries are exhausted.
     """
 
-    delay: str
+    delay: Union[str, int]
     """
-    Delay the message delivery.
-    The format is a number followed by duration abbreviation, 
-    like `10s`. Available durations are `s` (seconds), `m` (minutes), 
-    `h` (hours), and `d` (days).
+    Delay the message delivery. 
+    
+    The format for the delay string is a
+    number followed by duration abbreviation, like `10s`. Available durations
+    are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+    it is also possible to specify the delay as an integer, which will be
+    interpreted as delay in seconds.
     """
 
     not_before: int
     """
     Delay the message until a certain time in the future. 
+    
     The format is a unix timestamp in seconds, based on the UTC timezone.
     """
 
@@ -199,6 +220,19 @@ class BatchJsonRequest(TypedDict, total=False):
 
     content_based_deduplication: bool
     """Automatically deduplicate messages based on their content."""
+
+    timeout: Union[str, int]
+    """
+    The HTTP timeout value to use while calling the destination URL.
+    When a timeout is specified, it will be used instead of the maximum timeout
+    value permitted by the QStash plan. It is useful in scenarios, where a message
+    should be delivered with a shorter timeout.
+
+    The format for the timeout string is a number followed by duration abbreviation, 
+    like `10s`. Available durations are `s` (seconds), `m` (minutes), `h` (hours), 
+    and `d` (days). As convenience, it is also possible to specify the timeout as 
+    an integer, which will be interpreted as timeout in seconds.
+    """
 
 
 @dataclasses.dataclass
@@ -301,10 +335,11 @@ def prepare_headers(
     retries: Optional[int],
     callback: Optional[str],
     failure_callback: Optional[str],
-    delay: Optional[str],
+    delay: Optional[Union[str, int]],
     not_before: Optional[int],
     deduplication_id: Optional[str],
     content_based_deduplication: Optional[bool],
+    timeout: Optional[Union[str, int]],
 ) -> Dict[str, str]:
     h = {}
 
@@ -331,7 +366,10 @@ def prepare_headers(
         h["Upstash-Failure-Callback"] = failure_callback
 
     if delay is not None:
-        h["Upstash-Delay"] = delay
+        if isinstance(delay, int):
+            h["Upstash-Delay"] = f"{delay}s"
+        else:
+            h["Upstash-Delay"] = delay
 
     if not_before is not None:
         h["Upstash-Not-Before"] = str(not_before)
@@ -341,6 +379,12 @@ def prepare_headers(
 
     if content_based_deduplication is not None:
         h["Upstash-Content-Based-Deduplication"] = str(content_based_deduplication)
+
+    if timeout is not None:
+        if isinstance(timeout, int):
+            h["Upstash-Timeout"] = f"{timeout}s"
+        else:
+            h["Upstash-Timeout"] = timeout
 
     return h
 
@@ -410,6 +454,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             not_before=msg.get("not_before"),
             deduplication_id=msg.get("deduplication_id"),
             content_based_deduplication=msg.get("content_based_deduplication"),
+            timeout=msg.get("timeout"),
         )
 
         batch_messages.append(
@@ -504,6 +549,9 @@ def convert_to_batch_messages(
                 "content_based_deduplication"
             ]
 
+        if "timeout" in msg:
+            batch_msg["timeout"] = msg["timeout"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages
@@ -548,10 +596,11 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -575,14 +624,20 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         destination = get_destination(url=url, url_group=url_group, api=api)
 
@@ -597,6 +652,7 @@ class MessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
         response = self._http.request(
@@ -620,10 +676,11 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -648,14 +705,20 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         return self.publish(
             url=url,
@@ -672,6 +735,7 @@ class MessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
     def enqueue(
@@ -688,10 +752,11 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -717,14 +782,20 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         destination = get_destination(url=url, url_group=url_group, api=api)
 
@@ -739,6 +810,7 @@ class MessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
         response = self._http.request(
@@ -763,10 +835,11 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -793,14 +866,20 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         return self.enqueue(
             queue=queue,
@@ -818,6 +897,7 @@ class MessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
     def batch(

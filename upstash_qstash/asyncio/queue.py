@@ -8,14 +8,22 @@ class AsyncQueueApi:
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
-    async def upsert(self, queue: str, *, parallelism: int = 1) -> None:
+    async def upsert(
+        self,
+        queue: str,
+        *,
+        parallelism: int = 1,
+        paused: bool = False,
+    ) -> None:
         """
         Updates or creates a queue.
 
         :param queue: The name of the queue.
         :param parallelism: The number of parallel consumers consuming from the queue.
+        :param paused: Whether to pause the queue or not. A paused queue will not
+            deliver new messages until it is resumed.
         """
-        body = prepare_upsert_body(queue, parallelism)
+        body = prepare_upsert_body(queue, parallelism, paused)
 
         await self._http.request(
             path="/v2/queues",
@@ -54,5 +62,28 @@ class AsyncQueueApi:
         await self._http.request(
             path=f"/v2/queues/{queue}",
             method="DELETE",
+            parse_response=False,
+        )
+
+    async def pause(self, queue: str) -> None:
+        """
+        Pauses the queue.
+
+        A paused queue will not deliver messages until
+        it is resumed.
+        """
+        await self._http.request(
+            path=f"/v2/queues/{queue}/pause",
+            method="POST",
+            parse_response=False,
+        )
+
+    async def resume(self, queue: str) -> None:
+        """
+        Resumes the queue.
+        """
+        await self._http.request(
+            path=f"/v2/queues/{queue}/resume",
+            method="POST",
             parse_response=False,
         )
