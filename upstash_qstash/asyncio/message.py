@@ -42,10 +42,11 @@ class AsyncMessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -69,14 +70,20 @@ class AsyncMessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         destination = get_destination(url=url, url_group=url_group, api=api)
 
@@ -91,6 +98,7 @@ class AsyncMessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
         response = await self._http.request(
@@ -114,10 +122,11 @@ class AsyncMessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -142,14 +151,20 @@ class AsyncMessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         return await self.publish(
             url=url,
@@ -166,6 +181,7 @@ class AsyncMessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
     async def enqueue(
@@ -182,10 +198,11 @@ class AsyncMessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -211,14 +228,20 @@ class AsyncMessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         destination = get_destination(url=url, url_group=url_group, api=api)
 
@@ -233,6 +256,7 @@ class AsyncMessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
         response = await self._http.request(
@@ -257,10 +281,11 @@ class AsyncMessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[str] = None,
+        delay: Optional[Union[str, int]] = None,
         not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
+        timeout: Optional[Union[str, int]] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -287,14 +312,20 @@ class AsyncMessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format is a number followed by duration
-            abbreviation, like `10s`. Available durations are `s` (seconds), `m` (minutes),
-            `h` (hours), and `d` (days).
+        :param delay: Delay the message delivery. The format for the delay string is a
+            number followed by duration abbreviation, like `10s`. Available durations
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+            it is also possible to specify the delay as an integer, which will be
+            interpreted as delay in seconds.
         :param not_before: Delay the message until a certain time in the future.
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
+        :param timeout: The HTTP timeout value to use while calling the destination URL.
+            When a timeout is specified, it will be used instead of the maximum timeout
+            value permitted by the QStash plan. It is useful in scenarios, where a message
+            should be delivered with a shorter timeout.
         """
         return await self.enqueue(
             queue=queue,
@@ -312,6 +343,7 @@ class AsyncMessageApi:
             not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
+            timeout=timeout,
         )
 
     async def batch(

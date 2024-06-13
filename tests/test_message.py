@@ -1,3 +1,5 @@
+from typing import Callable
+
 import pytest
 
 from tests import assert_eventually
@@ -179,9 +181,15 @@ def test_batch_api_llm(qstash: QStash) -> None:
     assert_delivered_eventually(qstash, res[0].message_id)
 
 
-def test_enqueue(qstash: QStash) -> None:
+def test_enqueue(
+    qstash: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    name = "test_queue"
+    cleanup_queue(qstash, name)
+
     res = qstash.message.enqueue(
-        queue="test_queue",
+        queue=name,
         body="test-body",
         url="https://example.com",
         headers={
@@ -193,12 +201,16 @@ def test_enqueue(qstash: QStash) -> None:
 
     assert len(res.message_id) > 0
 
-    qstash.queue.delete("test_queue")
 
+def test_enqueue_json(
+    qstash: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    name = "test_queue"
+    cleanup_queue(qstash, name)
 
-def test_enqueue_json(qstash: QStash) -> None:
     res = qstash.message.enqueue_json(
-        queue="test_queue",
+        queue=name,
         body={"test": "body"},
         url="https://example.com",
         headers={
@@ -210,12 +222,16 @@ def test_enqueue_json(qstash: QStash) -> None:
 
     assert len(res.message_id) > 0
 
-    qstash.queue.delete("test_queue")
 
+def test_enqueue_api_llm(
+    qstash: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    name = "test_queue"
+    cleanup_queue(qstash, name)
 
-def test_enqueue_api_llm(qstash: QStash) -> None:
     res = qstash.message.enqueue_json(
-        queue="test_queue",
+        queue=name,
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
@@ -232,8 +248,6 @@ def test_enqueue_api_llm(qstash: QStash) -> None:
     assert isinstance(res, EnqueueResponse)
 
     assert len(res.message_id) > 0
-
-    qstash.queue.delete("test_queue")
 
 
 def test_publish_to_url_group(qstash: QStash) -> None:
@@ -258,3 +272,16 @@ def test_publish_to_url_group(qstash: QStash) -> None:
 
     assert_delivered_eventually(qstash, res[0].message_id)
     assert_delivered_eventually(qstash, res[1].message_id)
+
+
+def test_timeout(qstash: QStash) -> None:
+    res = qstash.message.publish_json(
+        body={"ex_key": "ex_value"},
+        url="https://example.com",
+        timeout=90,
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    assert_delivered_eventually(qstash, res.message_id)
