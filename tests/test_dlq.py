@@ -56,3 +56,30 @@ def test_dlq_get_and_delete_many(qstash: QStash) -> None:
         msg_ids.append(res.message_id)
 
     assert_failed_eventually(qstash, *msg_ids)
+
+
+def test_dlq_filter(qstash: QStash) -> None:
+    res = qstash.message.publish_json(
+        url="http://httpstat.us/404",
+        retries=0,
+    )
+
+    assert isinstance(res, PublishResponse)
+
+    def assertion():
+        messages = qstash.dlq.list(
+            filter={"message_id": res.message_id},
+            count=1,
+        ).messages
+
+        assert len(messages) == 1
+        assert messages[0].message_id == res.message_id
+
+        qstash.dlq.delete(messages[0].dlq_id)
+
+    assert_eventually(
+        assertion,
+        initial_delay=2.0,
+        retry_delay=1.0,
+        timeout=10.0,
+    )

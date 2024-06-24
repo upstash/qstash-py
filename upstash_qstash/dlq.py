@@ -1,6 +1,6 @@
 import dataclasses
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TypedDict
 
 from upstash_qstash.http import HttpClient
 from upstash_qstash.message import Message
@@ -28,6 +28,38 @@ class DlqMessage(Message):
     The base64 encoded response body of the last failed delivery attempt
     if the response body contains non-UTF-8 characters, `None` otherwise.
     """
+
+
+class DlqFilter(TypedDict, total=False):
+    message_id: str
+    """Filter DLQ entries by message id."""
+
+    url: str
+    """Filter DLQ entries by url."""
+
+    url_group: str
+    """Filter DLQ entries by url group name."""
+
+    api: str
+    """Filter DLQ entries by api name."""
+
+    queue: str
+    """Filter DLQ entries by queue name."""
+
+    schedule_id: str
+    """Filter DLQ entries by schedule id."""
+
+    from_time: int
+    """Filter DLQ entries by starting time, in milliseconds"""
+
+    to_time: int
+    """Filter DLQ entries by ending time, in milliseconds"""
+
+    response_status: int
+    """Filter DLQ entries by HTTP status of the response"""
+
+    caller_ip: str
+    """Filter DLQ entries by IP address of the publisher of the message"""
 
 
 @dataclasses.dataclass
@@ -72,6 +104,54 @@ def parse_dlq_message_response(
     )
 
 
+def prepare_list_dlq_messages_params(
+    *,
+    cursor: Optional[str],
+    count: Optional[int],
+    filter: Optional[DlqFilter],
+) -> Dict[str, str]:
+    params = {}
+
+    if cursor is not None:
+        params["cursor"] = cursor
+
+    if count is not None:
+        params["count"] = str(count)
+
+    if filter is not None:
+        if "message_id" in filter:
+            params["messageId"] = filter["message_id"]
+
+        if "url" in filter:
+            params["url"] = filter["url"]
+
+        if "url_group" in filter:
+            params["topicName"] = filter["url_group"]
+
+        if "api" in filter:
+            params["api"] = filter["api"]
+
+        if "queue" in filter:
+            params["queueName"] = filter["queue"]
+
+        if "schedule_id" in filter:
+            params["scheduleId"] = filter["schedule_id"]
+
+        if "from_time" in filter:
+            params["fromDate"] = str(filter["from_time"])
+
+        if "to_time" in filter:
+            params["toDate"] = str(filter["to_time"])
+
+        if "response_status" in filter:
+            params["responseStatus"] = str(filter["response_status"])
+
+        if "caller_ip" in filter:
+            params["callerIp"] = filter["caller_ip"]
+
+    return params
+
+
 class DlqApi:
     def __init__(self, http: HttpClient) -> None:
         self._http = http
@@ -89,16 +169,26 @@ class DlqApi:
 
         return parse_dlq_message_response(response, dlq_id)
 
-    def list(self, *, cursor: Optional[str] = None) -> ListDlqMessagesResponse:
+    def list(
+        self,
+        *,
+        cursor: Optional[str] = None,
+        count: Optional[int] = None,
+        filter: Optional[DlqFilter] = None,
+    ) -> ListDlqMessagesResponse:
         """
         Lists all messages currently inside the DLQ.
 
         :param cursor: Optional cursor to start listing DLQ messages from.
+        :param count: The maximum number of DLQ messages to return.
+            Default and max is `100`.
+        :param filter: Filter to use.
         """
-        if cursor is not None:
-            params = {"cursor": cursor}
-        else:
-            params = None
+        params = prepare_list_dlq_messages_params(
+            cursor=cursor,
+            count=count,
+            filter=filter,
+        )
 
         response = self._http.request(
             path="/v2/dlq",
