@@ -37,7 +37,7 @@ def assert_delivered_eventually(qstash: QStash, msg_id: str) -> None:
 def test_publish_to_url(qstash: QStash) -> None:
     res = qstash.message.publish(
         body="test-body",
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -52,7 +52,7 @@ def test_publish_to_url(qstash: QStash) -> None:
 def test_publish_to_url_json(qstash: QStash) -> None:
     res = qstash.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -67,13 +67,13 @@ def test_publish_to_url_json(qstash: QStash) -> None:
 def test_disallow_multiple_destinations(qstash: QStash) -> None:
     with pytest.raises(QStashError):
         qstash.message.publish_json(
-            url="https://example.com",
+            url="https://httpstat.us/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
         qstash.message.publish_json(
-            url="https://example.com",
+            url="https://httpstat.us/200",
             api="llm",
         )
 
@@ -91,7 +91,7 @@ def test_batch(qstash: QStash) -> None:
         messages.append(
             BatchRequest(
                 body=f"hi {i}",
-                url="https://example.com",
+                url="https://httpstat.us/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -116,7 +116,7 @@ def test_batch_json(qstash: QStash) -> None:
         messages.append(
             BatchJsonRequest(
                 body={"hi": i},
-                url="https://example.com",
+                url="https://httpstat.us/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -145,7 +145,7 @@ def test_publish_to_api_llm(qstash: QStash) -> None:
                 }
             ],
         },
-        callback="https://example.com",
+        callback="https://httpstat.us/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -168,7 +168,7 @@ def test_batch_api_llm(qstash: QStash) -> None:
                         }
                     ],
                 },
-                "callback": "https://example.com",
+                "callback": "https://httpstat.us/200",
             }
         ]
     )
@@ -191,7 +191,7 @@ def test_enqueue(
     res = qstash.message.enqueue(
         queue=name,
         body="test-body",
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -212,7 +212,7 @@ def test_enqueue_json(
     res = qstash.message.enqueue_json(
         queue=name,
         body={"test": "body"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -242,7 +242,7 @@ def test_enqueue_api_llm(
             ],
         },
         api="llm",
-        callback="https://example.com/",
+        callback="https://httpstat.us/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -257,8 +257,8 @@ def test_publish_to_url_group(qstash: QStash) -> None:
     qstash.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://example.com"},
-            {"url": "https://example.net"},
+            {"url": "https://httpstat.us/200"},
+            {"url": "https://httpstat.us/201"},
         ],
     )
 
@@ -277,7 +277,7 @@ def test_publish_to_url_group(qstash: QStash) -> None:
 def test_timeout(qstash: QStash) -> None:
     res = qstash.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         timeout=90,
     )
 
