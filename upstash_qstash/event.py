@@ -74,6 +74,12 @@ class Event:
     schedule_id: Optional[str]
     """The schedule id of the message if the message is triggered by a schedule."""
 
+    headers: Optional[Dict[str, List[str]]]
+    """Headers of the message"""
+
+    body_base64: Optional[str]
+    """The base64 encoded body of the message."""
+
 
 class EventFilter(TypedDict, total=False):
     message_id: str
@@ -178,6 +184,8 @@ def parse_events_response(response: List[Dict[str, Any]]) -> List[Event]:
                 api=event.get("api"),
                 queue=event.get("queueName"),
                 schedule_id=event.get("scheduleId"),
+                headers=event.get("header"),
+                body_base64=event.get("body"),
             )
         )
 
