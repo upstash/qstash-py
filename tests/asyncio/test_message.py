@@ -319,7 +319,9 @@ async def test_cancel_many_async(async_qstash: AsyncQStash) -> None:
 
     assert isinstance(res1, PublishResponse)
 
-    cancelled = async_qstash.message.cancel_many([res0.message_id, res1.message_id])
+    cancelled = await async_qstash.message.cancel_many(
+        [res0.message_id, res1.message_id]
+    )
 
     assert cancelled == 2
 
