@@ -30,7 +30,7 @@ def test_schedule_lifecycle(
 ) -> None:
     schedule_id = qstash.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://example.com",
+        destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
     )
 
@@ -57,7 +57,7 @@ def test_schedule_pause_resume(
 ) -> None:
     schedule_id = qstash.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://example.com",
+        destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
     )
 

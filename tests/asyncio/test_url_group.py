@@ -1,4 +1,5 @@
 import pytest
+
 from upstash_qstash import AsyncQStash
 
 
@@ -10,15 +11,15 @@ async def test_url_group_async(async_qstash: AsyncQStash) -> None:
     await async_qstash.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://example.com"},
-            {"url": "https://example.net"},
+            {"url": "https://httpstat.us/200"},
+            {"url": "https://httpstat.us/201"},
         ],
     )
 
     url_group = await async_qstash.url_group.get(name)
     assert url_group.name == name
-    assert any(True for e in url_group.endpoints if e.url == "https://example.com")
-    assert any(True for e in url_group.endpoints if e.url == "https://example.net")
+    assert any(True for e in url_group.endpoints if e.url == "https://httpstat.us/200")
+    assert any(True for e in url_group.endpoints if e.url == "https://httpstat.us/201")
 
     url_groups = await async_qstash.url_group.list()
     assert any(True for ug in url_groups if ug.name == name)
@@ -27,12 +28,14 @@ async def test_url_group_async(async_qstash: AsyncQStash) -> None:
         url_group=name,
         endpoints=[
             {
-                "url": "https://example.net",
+                "url": "https://httpstat.us/201",
             }
         ],
     )
 
     url_group = await async_qstash.url_group.get(name)
     assert url_group.name == name
-    assert any(True for e in url_group.endpoints if e.url == "https://example.com")
-    assert not any(True for e in url_group.endpoints if e.url == "https://example.net")
+    assert any(True for e in url_group.endpoints if e.url == "https://httpstat.us/200")
+    assert not any(
+        True for e in url_group.endpoints if e.url == "https://httpstat.us/201"
+    )

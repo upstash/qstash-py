@@ -64,3 +64,33 @@ async def test_dlq_get_and_delete_many_async(async_qstash: AsyncQStash) -> None:
         msg_ids.append(res.message_id)
 
     await assert_failed_eventually_async(async_qstash, *msg_ids)
+
+
+@pytest.mark.asyncio
+async def test_dlq_filter_async(async_qstash: AsyncQStash) -> None:
+    res = await async_qstash.message.publish_json(
+        url="http://httpstat.us/404",
+        retries=0,
+    )
+
+    assert isinstance(res, PublishResponse)
+
+    async def assertion():
+        messages = (
+            await async_qstash.dlq.list(
+                filter={"message_id": res.message_id},
+                count=1,
+            )
+        ).messages
+
+        assert len(messages) == 1
+        assert messages[0].message_id == res.message_id
+
+        await async_qstash.dlq.delete(messages[0].dlq_id)
+
+    await assert_eventually_async(
+        assertion,
+        initial_delay=2.0,
+        retry_delay=1.0,
+        timeout=10.0,
+    )

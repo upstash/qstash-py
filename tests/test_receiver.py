@@ -31,7 +31,7 @@ def get_signature(body: str, key: Optional[str]) -> str:
         "iss": "Upstash",
         "jti": time.time(),
         "nbf": int(time.time()),
-        "sub": "https://example.com",
+        "sub": "https://httpstat.us/200",
     }
     signature = jwt.encode(
         payload, key, algorithm="HS256", headers={"alg": "HS256", "typ": "JWT"}
@@ -46,7 +46,7 @@ def test_receiver(receiver: Receiver) -> None:
     receiver.verify(
         signature=sig,
         body=body,
-        url="https://example.com",
+        url="https://httpstat.us/200",
     )
 
 
@@ -58,5 +58,5 @@ def test_failed_verification(receiver: Receiver) -> None:
         receiver.verify(
             signature=sig,
             body=body,
-            url="https://example.com/invalid",
+            url="https://httpstat.us/201",
         )

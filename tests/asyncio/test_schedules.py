@@ -12,7 +12,7 @@ async def test_schedule_lifecycle_async(
 ) -> None:
     schedule_id = await async_qstash.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://example.com",
+        destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
     )
 
@@ -40,7 +40,7 @@ async def test_schedule_pause_resume_async(
 ) -> None:
     schedule_id = await async_qstash.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://example.com",
+        destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
     )
 

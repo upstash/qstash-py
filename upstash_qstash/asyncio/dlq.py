@@ -1,10 +1,13 @@
 import json
 from typing import List, Optional
+
 from upstash_qstash.asyncio.http import AsyncHttpClient
 from upstash_qstash.dlq import (
     DlqMessage,
     ListDlqMessagesResponse,
     parse_dlq_message_response,
+    DlqFilter,
+    prepare_list_dlq_messages_params,
 )
 
 
@@ -25,16 +28,26 @@ class AsyncDlqApi:
 
         return parse_dlq_message_response(response, dlq_id)
 
-    async def list(self, *, cursor: Optional[str] = None) -> ListDlqMessagesResponse:
+    async def list(
+        self,
+        *,
+        cursor: Optional[str] = None,
+        count: Optional[int] = None,
+        filter: Optional[DlqFilter] = None,
+    ) -> ListDlqMessagesResponse:
         """
         Lists all messages currently inside the DLQ.
 
         :param cursor: Optional cursor to start listing DLQ messages from.
+        :param count: The maximum number of DLQ messages to return.
+            Default and max is `100`.
+        :param filter: Filter to use.
         """
-        if cursor is not None:
-            params = {"cursor": cursor}
-        else:
-            params = None
+        params = prepare_list_dlq_messages_params(
+            cursor=cursor,
+            count=count,
+            filter=filter,
+        )
 
         response = await self._http.request(
             path="/v2/dlq",

@@ -42,7 +42,7 @@ async def assert_delivered_eventually_async(
 async def test_publish_to_url_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.message.publish(
         body="test-body",
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -58,7 +58,7 @@ async def test_publish_to_url_async(async_qstash: AsyncQStash) -> None:
 async def test_publish_to_url_json_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -74,13 +74,13 @@ async def test_publish_to_url_json_async(async_qstash: AsyncQStash) -> None:
 async def test_disallow_multiple_destinations_async(async_qstash: AsyncQStash) -> None:
     with pytest.raises(QStashError):
         await async_qstash.message.publish_json(
-            url="https://example.com",
+            url="https://httpstat.us/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
         await async_qstash.message.publish_json(
-            url="https://example.com",
+            url="https://httpstat.us/200",
             api="llm",
         )
 
@@ -99,7 +99,7 @@ async def test_batch_async(async_qstash: AsyncQStash) -> None:
         messages.append(
             BatchRequest(
                 body=f"hi {i}",
-                url="https://example.com",
+                url="https://httpstat.us/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -125,7 +125,7 @@ async def test_batch_json_async(async_qstash: AsyncQStash) -> None:
         messages.append(
             BatchJsonRequest(
                 body={"hi": i},
-                url="https://example.com",
+                url="https://httpstat.us/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -155,7 +155,7 @@ async def test_publish_to_api_llm_async(async_qstash: AsyncQStash) -> None:
                 }
             ],
         },
-        callback="https://example.com",
+        callback="https://httpstat.us/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -179,7 +179,7 @@ async def test_batch_api_llm_async(async_qstash: AsyncQStash) -> None:
                         }
                     ],
                 },
-                "callback": "https://example.com",
+                "callback": "https://httpstat.us/200",
             }
         ]
     )
@@ -203,7 +203,7 @@ async def test_enqueue_async(
     res = await async_qstash.message.enqueue(
         queue=name,
         body="test-body",
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -225,7 +225,7 @@ async def test_enqueue_json_async(
     res = await async_qstash.message.enqueue_json(
         queue=name,
         body={"test": "body"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         headers={
             "test-header": "test-value",
         },
@@ -256,7 +256,7 @@ async def test_enqueue_api_llm_async(
             ],
         },
         api="llm",
-        callback="https://example.com/",
+        callback="https://httpstat.us/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -272,8 +272,8 @@ async def test_publish_to_url_group_async(async_qstash: AsyncQStash) -> None:
     await async_qstash.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://example.com"},
-            {"url": "https://example.net"},
+            {"url": "https://httpstat.us/200"},
+            {"url": "https://httpstat.us/201"},
         ],
     )
 
@@ -293,7 +293,7 @@ async def test_publish_to_url_group_async(async_qstash: AsyncQStash) -> None:
 async def test_timeout_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://example.com",
+        url="https://httpstat.us/200",
         timeout=90,
     )
 
