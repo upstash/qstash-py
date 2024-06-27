@@ -285,3 +285,43 @@ def test_timeout(qstash: QStash) -> None:
     assert len(res.message_id) > 0
 
     assert_delivered_eventually(qstash, res.message_id)
+
+
+def test_cancel_many(qstash: QStash) -> None:
+    res0 = qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res0, PublishResponse)
+
+    res1 = qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res1, PublishResponse)
+
+    cancelled = qstash.message.cancel_many([res0.message_id, res1.message_id])
+
+    assert cancelled == 2
+
+
+def test_cancel_all(qstash: QStash) -> None:
+    res0 = qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res0, PublishResponse)
+
+    res1 = qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res1, PublishResponse)
+
+    cancelled = qstash.message.cancel_all()
+
+    assert cancelled >= 2

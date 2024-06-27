@@ -972,3 +972,41 @@ class MessageApi:
             method="DELETE",
             parse_response=False,
         )
+
+    def cancel_many(self, message_ids: List[str]) -> int:
+        """
+        Cancels delivery of existing messages.
+
+        Cancelling a message will remove it from QStash and stop it from being
+        delivered in the future. If a message is in flight to your API,
+        it might be too late to cancel.
+
+        Returns how many of the messages are cancelled.
+        """
+        body = json.dumps({"messageIds": message_ids})
+
+        response = self._http.request(
+            path="/v2/messages",
+            method="DELETE",
+            headers={"Content-Type": "application/json"},
+            body=body,
+        )
+
+        return response["cancelled"]
+
+    def cancel_all(self):
+        """
+        Cancels delivery of all the existing messages.
+
+        Cancelling a message will remove it from QStash and stop it from being
+        delivered in the future. If a message is in flight to your API,
+        it might be too late to cancel.
+
+        Returns how many messages are cancelled.
+        """
+        response = self._http.request(
+            path="/v2/messages",
+            method="DELETE",
+        )
+
+        return response["cancelled"]

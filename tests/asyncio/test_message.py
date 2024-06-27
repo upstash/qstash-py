@@ -301,3 +301,47 @@ async def test_timeout_async(async_qstash: AsyncQStash) -> None:
     assert len(res.message_id) > 0
 
     await assert_delivered_eventually_async(async_qstash, res.message_id)
+
+
+@pytest.mark.asyncio
+async def test_cancel_many_async(async_qstash: AsyncQStash) -> None:
+    res0 = await async_qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res0, PublishResponse)
+
+    res1 = await async_qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res1, PublishResponse)
+
+    cancelled = await async_qstash.message.cancel_many(
+        [res0.message_id, res1.message_id]
+    )
+
+    assert cancelled == 2
+
+
+@pytest.mark.asyncio
+async def test_cancel_all_async(async_qstash: AsyncQStash) -> None:
+    res0 = await async_qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res0, PublishResponse)
+
+    res1 = await async_qstash.message.publish(
+        url="http://httpstat.us/404",
+        retries=3,
+    )
+
+    assert isinstance(res1, PublishResponse)
+
+    cancelled = await async_qstash.message.cancel_all()
+
+    assert cancelled >= 2
