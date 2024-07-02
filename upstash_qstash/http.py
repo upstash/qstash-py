@@ -4,7 +4,11 @@ from typing import TypedDict, Callable, Optional, Union, Literal, Any, Dict
 
 import httpx
 
-from upstash_qstash.errors import RateLimitExceededError, QStashError
+from upstash_qstash.errors import (
+    RateLimitExceededError,
+    QStashError,
+    ChatRateLimitExceededError,
+)
 
 
 class RetryConfig(TypedDict, total=False):
@@ -40,10 +44,31 @@ def raise_for_non_ok_status(response: httpx.Response) -> None:
         return
 
     if response.status_code == 429:
-        limit = response.headers.get("Burst-RateLimit-Limit")
-        remaining = response.headers.get("Burst-RateLimit-Remaining")
-        reset = response.headers.get("Burst-RateLimit-Reset")
-        raise RateLimitExceededError(limit, remaining, reset)
+        headers = response.headers
+        if "x-ratelimit-limit-requests" in headers:
+            limit_requests = headers.get("x-ratelimit-limit-requests")
+            limit_tokens = headers.get("x-ratelimit-limit-tokens")
+            remaining_requests = headers.get("x-ratelimit-remaining-requests")
+            remaining_tokens = headers.get("x-ratelimit-remaining-tokens")
+            reset_requests = headers.get("x-ratelimit-reset-requests")
+            reset_tokens = headers.get("x-ratelimit-reset-tokens")
+            raise ChatRateLimitExceededError(
+                limit_requests=limit_requests,
+                limit_tokens=limit_tokens,
+                remaining_requests=remaining_requests,
+                remaining_tokens=remaining_tokens,
+                reset_requests=reset_requests,
+                reset_tokens=reset_tokens,
+            )
+
+        limit = headers.get("Burst-RateLimit-Limit")
+        remaining = headers.get("Burst-RateLimit-Remaining")
+        reset = headers.get("Burst-RateLimit-Reset")
+        raise RateLimitExceededError(
+            limit=limit,
+            remaining=remaining,
+            reset=reset,
+        )
 
     raise QStashError(
         f"Request failed with status: {response.status_code}, body: {response.text}"
