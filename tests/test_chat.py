@@ -158,7 +158,7 @@ def test_prompt_custom_provider(qstash: QStash) -> None:
     res = qstash.chat.prompt(
         model="gpt-3.5-turbo",
         user="just say hello",
-        provider=openai(token="OPENAI_API_KEY"),
+        provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
     )
 
     assert isinstance(res, ChatCompletion)

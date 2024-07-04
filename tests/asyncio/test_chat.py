@@ -188,7 +188,7 @@ async def test_prompt_custom_provider_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.chat.prompt(
         model="gpt-3.5-turbo",
         user="just say hello",
-        provider=openai(token="OPENAI_API_KEY"),
+        provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
     )
 
     assert isinstance(res, ChatCompletion)
