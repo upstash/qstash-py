@@ -103,9 +103,14 @@ class HttpClient:
         body: Optional[Union[str, bytes]] = None,
         params: Optional[Dict[str, str]] = None,
         parse_response: bool = True,
+        base_url: Optional[str] = None,
+        token: Optional[str] = None,
     ) -> Any:
-        url = BASE_URL + path
-        headers = {"Authorization": self._token, **(headers or {})}
+        base_url = base_url or BASE_URL
+        token = token or self._token
+
+        url = base_url + path
+        headers = {"Authorization": token, **(headers or {})}
 
         max_attempts = 1 + max(0, self._retry["retries"])
         last_error = None
@@ -144,9 +149,14 @@ class HttpClient:
         headers: Optional[Dict[str, str]] = None,
         body: Optional[Union[str, bytes]] = None,
         params: Optional[Dict[str, str]] = None,
+        base_url: Optional[str] = None,
+        token: Optional[str] = None,
     ) -> httpx.Response:
-        url = BASE_URL + path
-        headers = {"Authorization": self._token, **(headers or {})}
+        base_url = base_url or BASE_URL
+        token = token or self._token
+
+        url = base_url + path
+        headers = {"Authorization": token, **(headers or {})}
 
         max_attempts = 1 + max(0, self._retry["retries"])
         last_error = None

@@ -10,10 +10,22 @@ from typing import (
     TypedDict,
 )
 
+from upstash_qstash.chat import LlmProvider, UPSTASH_LLM_PROVIDER
 from upstash_qstash.errors import QStashError
 from upstash_qstash.http import HttpClient, HttpMethod
 
-ApiT = Literal["llm"]
+
+class LlmApi(TypedDict):
+    name: Literal["llm"]
+    """The name of the API type."""
+
+    provider: LlmProvider
+    """
+    The LLM provider for the API.
+    """
+
+
+ApiT = LlmApi  # In the future, this can be union of different API types
 
 
 @dataclasses.dataclass
@@ -234,6 +246,14 @@ class BatchJsonRequest(TypedDict, total=False):
     an integer, which will be interpreted as timeout in seconds.
     """
 
+    provider: LlmProvider
+    """
+    LLM provider to use. 
+    
+    When specified, destination and headers will be
+    set according to the LLM provider.
+    """
+
 
 @dataclasses.dataclass
 class Message:
@@ -303,6 +323,7 @@ def get_destination(
     url: Optional[str],
     url_group: Optional[str],
     api: Optional[ApiT],
+    headers: Dict[str, str],
 ) -> str:
     destination = None
     count = 0
@@ -315,7 +336,13 @@ def get_destination(
         count += 1
 
     if api is not None:
-        destination = f"api/{api}"
+        provider = api["provider"]
+        if provider.name == UPSTASH_LLM_PROVIDER.name:
+            destination = "api/llm"
+        else:
+            destination = provider.base_url + "/v1/chat/completions"
+            headers["Authorization"] = f"Bearer {provider.token}"
+
         count += 1
 
     if count != 1:
@@ -437,16 +464,18 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
     batch_messages = []
 
     for msg in messages:
+        user_headers = msg.get("headers") or {}
         destination = get_destination(
             url=msg.get("url"),
             url_group=msg.get("url_group"),
             api=msg.get("api"),
+            headers=user_headers,
         )
 
         headers = prepare_headers(
             content_type=msg.get("content_type"),
             method=msg.get("method"),
-            headers=msg.get("headers"),
+            headers=user_headers,
             retries=msg.get("retries"),
             callback=msg.get("callback"),
             failure_callback=msg.get("failure_callback"),
@@ -639,7 +668,13 @@ class MessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         """
-        destination = get_destination(url=url, url_group=url_group, api=api)
+        headers = headers or {}
+        destination = get_destination(
+            url=url,
+            url_group=url_group,
+            api=api,
+            headers=headers,
+        )
 
         req_headers = prepare_headers(
             content_type=content_type,
@@ -797,7 +832,13 @@ class MessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         """
-        destination = get_destination(url=url, url_group=url_group, api=api)
+        headers = headers or {}
+        destination = get_destination(
+            url=url,
+            url_group=url_group,
+            api=api,
+            headers=headers,
+        )
 
         req_headers = prepare_headers(
             content_type=content_type,

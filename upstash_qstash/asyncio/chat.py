@@ -15,6 +15,8 @@ from upstash_qstash.chat import (
     parse_chat_completion_chunk_response,
     parse_chat_completion_response,
     prepare_chat_request_body,
+    LlmProvider,
+    UPSTASH_LLM_PROVIDER,
 )
 
 
@@ -102,6 +104,7 @@ class AsyncChatApi:
         *,
         messages: List[ChatCompletionMessage],
         model: ChatModel,
+        provider: Optional[LlmProvider] = None,
         frequency_penalty: Optional[float] = None,
         logit_bias: Optional[Dict[str, int]] = None,
         logprobs: Optional[bool] = None,
@@ -128,6 +131,8 @@ class AsyncChatApi:
 
         :param messages: One or more chat messages.
         :param model: Name of the model.
+        :param provider: LLM provider for the chat completion request. By default,
+            Upstash will be used.
         :param frequency_penalty: Number between `-2.0` and `2.0`.
             Positive values penalize new tokens based on their existing
             frequency in the text so far, decreasing the model's likelihood
@@ -210,9 +215,18 @@ class AsyncChatApi:
             top_p=top_p,
         )
 
+        base_url = None
+        token = None
+        path = "/llm/v1/chat/completions"
+
+        if provider is not None and provider.name != UPSTASH_LLM_PROVIDER.name:
+            base_url = provider.base_url
+            token = f"Bearer {provider.token}"
+            path = "/v1/chat/completions"
+
         if stream:
             stream_response = await self._http.stream(
-                path="/llm/v1/chat/completions",
+                path=path,
                 method="POST",
                 headers={
                     "Content-Type": "application/json",
@@ -221,15 +235,19 @@ class AsyncChatApi:
                     "Cache-Control": "no-cache",
                 },
                 body=body,
+                base_url=base_url,
+                token=token,
             )
 
             return AsyncChatCompletionChunkStream(stream_response)
 
         response = await self._http.request(
-            path="/llm/v1/chat/completions",
+            path=path,
             method="POST",
             headers={"Content-Type": "application/json"},
             body=body,
+            base_url=base_url,
+            token=token,
         )
 
         return parse_chat_completion_response(response)
@@ -240,6 +258,7 @@ class AsyncChatApi:
         user: str,
         system: Optional[str] = None,
         model: ChatModel,
+        provider: Optional[LlmProvider] = None,
         frequency_penalty: Optional[float] = None,
         logit_bias: Optional[Dict[str, int]] = None,
         logprobs: Optional[bool] = None,
@@ -271,6 +290,8 @@ class AsyncChatApi:
         :param user: User prompt.
         :param system: System prompt.
         :param model: Name of the model.
+        :param provider: LLM provider for the chat completion request. By default,
+            Upstash will be used.
         :param frequency_penalty: Number between `-2.0` and `2.0`.
             Positive values penalize new tokens based on their existing
             frequency in the text so far, decreasing the model's likelihood
@@ -338,6 +359,7 @@ class AsyncChatApi:
         return await self.create(
             messages=convert_to_chat_messages(user, system),
             model=model,
+            provider=provider,
             frequency_penalty=frequency_penalty,
             logit_bias=logit_bias,
             logprobs=logprobs,

@@ -3,7 +3,7 @@
 > [!NOTE]  
 > **This project is in GA Stage.**
 >
-> The Upstash Professional Support fully covers this project. It receives regular updates, and bug fixes. 
+> The Upstash Professional Support fully covers this project. It receives regular updates, and bug fixes.
 > The Upstash team is committed to maintaining and improving its functionality.
 
 **QStash** is an HTTP based messaging and scheduling solution for serverless and edge runtimes.
@@ -73,11 +73,13 @@ receiver.verify(
 
 ```python
 from upstash_qstash import QStash
+from upstash_qstash.chat import upstash
 
 qstash = QStash("<QSTASH_TOKEN>")
 
 res = qstash.chat.create(
     model="meta-llama/Meta-Llama-3-8B-Instruct",
+    provider=upstash(),
     messages=[
         {
             "role": "user",
@@ -87,6 +89,78 @@ res = qstash.chat.create(
 )
 
 print(res.choices[0].message.content)
+```
+
+#### Create Chat Completions Using Custom Providers
+
+```python
+from upstash_qstash import QStash
+from upstash_qstash.chat import openai
+
+qstash = QStash("<QSTASH_TOKEN>")
+
+res = qstash.chat.create(
+    model="gpt-3.5-turbo",
+    provider=openai("<OPENAI_API_KEY>"),
+    messages=[
+        {
+            "role": "user",
+            "content": "What is the capital of Turkey?",
+        }
+    ],
+)
+
+print(res.choices[0].message.content)
+```
+
+#### Publish a JSON message to LLM
+
+```python
+from upstash_qstash import QStash
+from upstash_qstash.chat import upstash
+
+qstash = QStash("<QSTASH_TOKEN>")
+
+res = qstash.message.publish_json(
+    api={"name": "llm", "provider": upstash()},
+    body={
+        "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "messages": [
+            {
+                "role": "user",
+                "content": "What is the capital of Turkey?",
+            }
+        ],
+    },
+    callback="https://example-cb.com",
+)
+
+print(res.message_id)
+```
+
+#### Publish a JSON message to LLM Using Custom Providers
+
+```python
+from upstash_qstash import QStash
+from upstash_qstash.chat import openai
+
+qstash = QStash("<QSTASH_TOKEN>")
+
+res = qstash.message.publish_json(
+    api={"name": "llm", "provider": openai("<OPENAI_API_KEY>")},
+    body={
+        "model": "gpt-3.5-turbo",
+        "messages": [
+            {
+                "role": "user",
+                "content": "What is the capital of Turkey?",
+            }
+        ],
+    },
+    callback="https://example-cb.com",
+)
+
+print(res.message_id)
 ```
 
 #### Additional configuration

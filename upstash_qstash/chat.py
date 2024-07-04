@@ -19,6 +19,42 @@ from upstash_qstash.errors import QStashError
 from upstash_qstash.http import HttpClient
 
 
+@dataclasses.dataclass
+class LlmProvider:
+    name: str
+    """Name of the LLM provider."""
+
+    base_url: str
+    """Base URL of the provider."""
+
+    token: str
+    """
+    The token for the provider.
+    
+    The provided key will be passed to the
+    endpoint as a bearer token.
+    """
+
+
+def openai(token: str) -> LlmProvider:
+    return LlmProvider(
+        name="OpenAI",
+        base_url="https://api.openai.com",
+        token=token,
+    )
+
+
+UPSTASH_LLM_PROVIDER = LlmProvider(
+    name="Upstash",
+    base_url="",
+    token="",
+)
+
+
+def upstash() -> LlmProvider:
+    return UPSTASH_LLM_PROVIDER
+
+
 class ChatCompletionMessage(TypedDict):
     role: Literal["system", "assistant", "user"]
     """The role of the message author."""
@@ -27,9 +63,12 @@ class ChatCompletionMessage(TypedDict):
     """The content of the message."""
 
 
-ChatModel = Literal[
-    "meta-llama/Meta-Llama-3-8B-Instruct",
-    "mistralai/Mistral-7B-Instruct-v0.2",
+ChatModel = Union[
+    Literal[
+        "meta-llama/Meta-Llama-3-8B-Instruct",
+        "mistralai/Mistral-7B-Instruct-v0.2",
+    ],
+    str,
 ]
 
 
@@ -527,6 +566,7 @@ class ChatApi:
         *,
         messages: List[ChatCompletionMessage],
         model: ChatModel,
+        provider: Optional[LlmProvider] = None,
         frequency_penalty: Optional[float] = None,
         logit_bias: Optional[Dict[str, int]] = None,
         logprobs: Optional[bool] = None,
@@ -557,6 +597,8 @@ class ChatApi:
             Positive values penalize new tokens based on their existing
             frequency in the text so far, decreasing the model's likelihood
             to repeat the same line verbatim.
+        :param provider: LLM provider for the chat completion request. By default,
+            Upstash will be used.
         :param logit_bias: Modify the likelihood of specified tokens appearing
             in the completion. Accepts a dictionary that maps tokens (specified
             by their token ID in the tokenizer) to an associated bias value
@@ -635,9 +677,18 @@ class ChatApi:
             top_p=top_p,
         )
 
+        base_url = None
+        token = None
+        path = "/llm/v1/chat/completions"
+
+        if provider is not None and provider.name != UPSTASH_LLM_PROVIDER.name:
+            base_url = provider.base_url
+            token = f"Bearer {provider.token}"
+            path = "/v1/chat/completions"
+
         if stream:
             stream_response = self._http.stream(
-                path="/llm/v1/chat/completions",
+                path=path,
                 method="POST",
                 headers={
                     "Content-Type": "application/json",
@@ -646,15 +697,19 @@ class ChatApi:
                     "Cache-Control": "no-cache",
                 },
                 body=body,
+                base_url=base_url,
+                token=token,
             )
 
             return ChatCompletionChunkStream(stream_response)
 
         response = self._http.request(
-            path="/llm/v1/chat/completions",
+            path=path,
             method="POST",
             headers={"Content-Type": "application/json"},
             body=body,
+            base_url=base_url,
+            token=token,
         )
 
         return parse_chat_completion_response(response)
@@ -665,6 +720,7 @@ class ChatApi:
         user: str,
         system: Optional[str] = None,
         model: ChatModel,
+        provider: Optional[LlmProvider] = None,
         frequency_penalty: Optional[float] = None,
         logit_bias: Optional[Dict[str, int]] = None,
         logprobs: Optional[bool] = None,
@@ -696,6 +752,8 @@ class ChatApi:
         :param user: User prompt.
         :param system: System prompt.
         :param model: Name of the model.
+        :param provider: LLM provider for the chat completion request. By default,
+            Upstash will be used.
         :param frequency_penalty: Number between `-2.0` and `2.0`.
             Positive values penalize new tokens based on their existing
             frequency in the text so far, decreasing the model's likelihood
@@ -763,6 +821,7 @@ class ChatApi:
         return self.create(
             messages=convert_to_chat_messages(user, system),
             model=model,
+            provider=provider,
             frequency_penalty=frequency_penalty,
             logit_bias=logit_bias,
             logprobs=logprobs,

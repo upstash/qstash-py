@@ -1,11 +1,17 @@
+from tests import OPENAI_API_KEY
 from upstash_qstash import QStash
-from upstash_qstash.chat import ChatCompletion, ChatCompletionChunkStream
+from upstash_qstash.chat import (
+    ChatCompletion,
+    ChatCompletionChunkStream,
+    upstash,
+    openai,
+)
 
 
 def test_chat(qstash: QStash) -> None:
     res = qstash.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
-        messages=[{"role": "user", "content": "hello"}],
+        messages=[{"role": "user", "content": "just say hello"}],
     )
 
     assert isinstance(res, ChatCompletion)
@@ -17,7 +23,7 @@ def test_chat(qstash: QStash) -> None:
 def test_chat_streaming(qstash: QStash) -> None:
     res = qstash.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
-        messages=[{"role": "user", "content": "hello"}],
+        messages=[{"role": "user", "content": "just say hello"}],
         stream=True,
     )
 
@@ -33,7 +39,7 @@ def test_chat_streaming(qstash: QStash) -> None:
 def test_prompt(qstash: QStash) -> None:
     res = qstash.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
-        user="hello",
+        user="just say hello",
     )
 
     assert isinstance(res, ChatCompletion)
@@ -45,7 +51,127 @@ def test_prompt(qstash: QStash) -> None:
 def test_prompt_streaming(qstash: QStash) -> None:
     res = qstash.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
-        user="hello",
+        user="just say hello",
+        stream=True,
+    )
+
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+
+def test_chat_explicit_upstash_provider(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "just say hello"}],
+        provider=upstash(),
+    )
+
+    assert isinstance(res, ChatCompletion)
+
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
+
+
+def test_chat_explicit_upstash_provider_streaming(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        messages=[{"role": "user", "content": "just say hello"}],
+        provider=upstash(),
+        stream=True,
+    )
+
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+
+def test_prompt_explicit_upstash_provider(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="just say hello",
+        provider=upstash(),
+    )
+
+    assert isinstance(res, ChatCompletion)
+
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
+
+
+def test_prompt_explicit_upstash_provider_streaming(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="meta-llama/Meta-Llama-3-8B-Instruct",
+        user="just say hello",
+        provider=upstash(),
+        stream=True,
+    )
+
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+
+def test_chat_custom_provider(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": "just say hello"}],
+        provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
+    )
+
+    assert isinstance(res, ChatCompletion)
+
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
+
+
+def test_chat_custom_provider_streaming(qstash: QStash) -> None:
+    res = qstash.chat.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": "just say hello"}],
+        provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
+        stream=True,
+    )
+
+    assert isinstance(res, ChatCompletionChunkStream)
+
+    for i, r in enumerate(res):
+        if i == 0:
+            assert r.choices[0].delta.role is not None
+        else:
+            assert r.choices[0].delta.content is not None
+
+
+def test_prompt_custom_provider(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="gpt-3.5-turbo",
+        user="just say hello",
+        provider=openai(token="OPENAI_API_KEY"),
+    )
+
+    assert isinstance(res, ChatCompletion)
+
+    assert len(res.choices[0].message.content) > 0
+    assert res.choices[0].message.role == "assistant"
+
+
+def test_prompt_custom_provider_streaming(qstash: QStash) -> None:
+    res = qstash.chat.prompt(
+        model="gpt-3.5-turbo",
+        user="just say hello",
+        provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
         stream=True,
     )
 

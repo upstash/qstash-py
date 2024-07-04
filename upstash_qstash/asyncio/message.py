@@ -85,7 +85,13 @@ class AsyncMessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         """
-        destination = get_destination(url=url, url_group=url_group, api=api)
+        headers = headers or {}
+        destination = get_destination(
+            url=url,
+            url_group=url_group,
+            api=api,
+            headers=headers,
+        )
 
         req_headers = prepare_headers(
             content_type=content_type,
@@ -243,7 +249,13 @@ class AsyncMessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         """
-        destination = get_destination(url=url, url_group=url_group, api=api)
+        headers = headers or {}
+        destination = get_destination(
+            url=url,
+            url_group=url_group,
+            api=api,
+            headers=headers,
+        )
 
         req_headers = prepare_headers(
             content_type=content_type,

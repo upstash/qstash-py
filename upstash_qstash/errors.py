@@ -13,7 +13,7 @@ class RateLimitExceededError(QStashError):
     def __init__(
         self, limit: Optional[str], remaining: Optional[str], reset: Optional[str]
     ):
-        super(
+        super().__init__(
             f"Exceeded rate limit: Limit: {limit}, remaining: {remaining}, reset: {reset}"
         )
         self.limit = limit
@@ -31,7 +31,7 @@ class ChatRateLimitExceededError(QStashError):
         reset_requests: Optional[str],
         reset_tokens: Optional[str],
     ):
-        super(
+        super().__init__(
             f"Exceeded chat rate limit: "
             f"Request limit: {limit_requests}, remaining: {remaining_requests}, reset: {reset_requests}; "
             f"token limit: {limit_tokens}, remaining: {remaining_tokens}, reset: {reset_tokens}"
