@@ -178,7 +178,10 @@ async def test_chat_custom_provider_streaming_async(async_qstash: AsyncQStash) -
         if i == 0:
             assert r.choices[0].delta.role is not None
         else:
-            assert r.choices[0].delta.content is not None
+            assert (
+                r.choices[0].delta.content is not None
+                or r.choices[0].finish_reason is not None
+            )
 
         i += 1
 
@@ -215,6 +218,9 @@ async def test_prompt_custom_provider_streaming_async(
         if i == 0:
             assert r.choices[0].delta.role is not None
         else:
-            assert r.choices[0].delta.content is not None
+            assert (
+                r.choices[0].delta.content is not None
+                or r.choices[0].finish_reason is not None
+            )
 
         i += 1
