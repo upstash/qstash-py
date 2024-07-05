@@ -1,5 +1,6 @@
 import dataclasses
 import json
+import re
 from types import TracebackType
 from typing import (
     Any,
@@ -53,6 +54,15 @@ UPSTASH_LLM_PROVIDER = LlmProvider(
 
 def upstash() -> LlmProvider:
     return UPSTASH_LLM_PROVIDER
+
+
+def custom(base_url: str, token: str) -> LlmProvider:
+    base_url = re.sub("/(v1/)?chat/completions$", "", base_url)
+    return LlmProvider(
+        name="custom",
+        base_url=base_url,
+        token=token,
+    )
 
 
 class ChatCompletionMessage(TypedDict):
