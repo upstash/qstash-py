@@ -2,8 +2,9 @@ from typing import Callable
 
 import pytest
 
-from tests import assert_eventually
+from tests import assert_eventually, OPENAI_API_KEY
 from upstash_qstash import QStash
+from upstash_qstash.chat import upstash, openai
 from upstash_qstash.errors import QStashError
 from upstash_qstash.event import EventState
 from upstash_qstash.message import (
@@ -74,13 +75,13 @@ def test_disallow_multiple_destinations(qstash: QStash) -> None:
     with pytest.raises(QStashError):
         qstash.message.publish_json(
             url="https://httpstat.us/200",
-            api="llm",
+            api={"name": "llm", "provider": upstash()},
         )
 
     with pytest.raises(QStashError):
         qstash.message.publish_json(
             url_group="test-url-group",
-            api="llm",
+            api={"name": "llm", "provider": upstash()},
         )
 
 
@@ -135,13 +136,13 @@ def test_batch_json(qstash: QStash) -> None:
 
 def test_publish_to_api_llm(qstash: QStash) -> None:
     res = qstash.message.publish_json(
-        api="llm",
+        api={"name": "llm", "provider": upstash()},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
                 {
                     "role": "user",
-                    "content": "hello",
+                    "content": "just say hello",
                 }
             ],
         },
@@ -158,27 +159,47 @@ def test_batch_api_llm(qstash: QStash) -> None:
     res = qstash.message.batch_json(
         [
             {
-                "api": "llm",
+                "api": {"name": "llm", "provider": upstash()},
                 "body": {
                     "model": "meta-llama/Meta-Llama-3-8B-Instruct",
                     "messages": [
                         {
                             "role": "user",
-                            "content": "hello",
+                            "content": "just say hello",
                         }
                     ],
                 },
                 "callback": "https://httpstat.us/200",
-            }
+            },
+            {
+                "api": {
+                    "name": "llm",
+                    "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+                },  # type:ignore[arg-type]
+                "body": {
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "just say hello",
+                        }
+                    ],
+                },
+                "callback": "https://httpstat.us/200",
+            },
         ]
     )
 
-    assert len(res) == 1
+    assert len(res) == 2
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
+    assert isinstance(res[1], BatchResponse)
+    assert len(res[1].message_id) > 0
+
     assert_delivered_eventually(qstash, res[0].message_id)
+    assert_delivered_eventually(qstash, res[1].message_id)
 
 
 def test_enqueue(
@@ -237,11 +258,11 @@ def test_enqueue_api_llm(
             "messages": [
                 {
                     "role": "user",
-                    "content": "hello",
+                    "content": "just say hello",
                 }
             ],
         },
-        api="llm",
+        api={"name": "llm", "provider": upstash()},
         callback="https://httpstat.us/200",
     )
 
@@ -325,3 +346,57 @@ def test_cancel_all(qstash: QStash) -> None:
     cancelled = qstash.message.cancel_all()
 
     assert cancelled >= 2
+
+
+def test_publish_to_api_llm_custom_provider(qstash: QStash) -> None:
+    res = qstash.message.publish_json(
+        api={
+            "name": "llm",
+            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+        },
+        body={
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "just say hello",
+                }
+            ],
+        },
+        callback="https://httpstat.us/200",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    assert_delivered_eventually(qstash, res.message_id)
+
+
+def test_enqueue_api_llm_custom_provider(
+    qstash: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    name = "test_queue"
+    cleanup_queue(qstash, name)
+
+    res = qstash.message.enqueue_json(
+        queue=name,
+        body={
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "just say hello",
+                }
+            ],
+        },
+        api={
+            "name": "llm",
+            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+        },
+        callback="https://httpstat.us/200",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+
+    assert len(res.message_id) > 0

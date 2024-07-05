@@ -20,6 +20,11 @@ QSTASH_NEXT_SIGNING_KEY = os.environ.get(
     dotenv.dotenv_values().get("QSTASH_NEXT_SIGNING_KEY"),
 )
 
+OPENAI_API_KEY = os.environ.get(
+    "OPENAI_API_KEY",
+    dotenv.dotenv_values().get("OPENAI_API_KEY"),
+)
+
 
 def assert_eventually(
     assertion: Callable[[], None],

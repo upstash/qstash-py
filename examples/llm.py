@@ -6,6 +6,7 @@ to wait for the response in a serverless function.
 """
 
 from upstash_qstash import QStash
+from upstash_qstash.chat import upstash
 
 
 def main():
@@ -14,7 +15,7 @@ def main():
     )
 
     qstash.message.publish_json(
-        api="llm",
+        api={"name": "llm", "provider": upstash()},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [

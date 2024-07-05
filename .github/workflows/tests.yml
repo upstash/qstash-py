@@ -47,4 +47,5 @@ jobs:
           export QSTASH_TOKEN="${{ secrets.QSTASH_TOKEN }}"
           export QSTASH_CURRENT_SIGNING_KEY="${{ secrets.QSTASH_CURRENT_SIGNING_KEY }}"
           export QSTASH_NEXT_SIGNING_KEY="${{ secrets.QSTASH_NEXT_SIGNING_KEY }}"
+          export OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
           poetry run pytest

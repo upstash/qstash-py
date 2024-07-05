@@ -2,8 +2,9 @@ from typing import Callable
 
 import pytest
 
-from tests import assert_eventually_async
+from tests import assert_eventually_async, OPENAI_API_KEY
 from upstash_qstash import AsyncQStash
+from upstash_qstash.chat import upstash, openai
 from upstash_qstash.errors import QStashError
 from upstash_qstash.event import EventState
 from upstash_qstash.message import (
@@ -81,13 +82,13 @@ async def test_disallow_multiple_destinations_async(async_qstash: AsyncQStash) -
     with pytest.raises(QStashError):
         await async_qstash.message.publish_json(
             url="https://httpstat.us/200",
-            api="llm",
+            api={"name": "llm", "provider": upstash()},
         )
 
     with pytest.raises(QStashError):
         await async_qstash.message.publish_json(
             url_group="test-url-group",
-            api="llm",
+            api={"name": "llm", "provider": upstash()},
         )
 
 
@@ -145,13 +146,13 @@ async def test_batch_json_async(async_qstash: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_publish_to_api_llm_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.message.publish_json(
-        api="llm",
+        api={"name": "llm", "provider": upstash()},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
                 {
                     "role": "user",
-                    "content": "hello",
+                    "content": "just say hello",
                 }
             ],
         },
@@ -169,27 +170,47 @@ async def test_batch_api_llm_async(async_qstash: AsyncQStash) -> None:
     res = await async_qstash.message.batch_json(
         [
             {
-                "api": "llm",
+                "api": {"name": "llm", "provider": upstash()},
                 "body": {
                     "model": "meta-llama/Meta-Llama-3-8B-Instruct",
                     "messages": [
                         {
                             "role": "user",
-                            "content": "hello",
+                            "content": "just say hello",
                         }
                     ],
                 },
                 "callback": "https://httpstat.us/200",
-            }
+            },
+            {
+                "api": {
+                    "name": "llm",
+                    "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+                },
+                "body": {
+                    "model": "gpt-3.5-turbo",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": "just say hello",
+                        }
+                    ],
+                },
+                "callback": "https://httpstat.us/200",
+            },
         ]
     )
 
-    assert len(res) == 1
+    assert len(res) == 2
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
+    assert isinstance(res[1], BatchResponse)
+    assert len(res[1].message_id) > 0
+
     await assert_delivered_eventually_async(async_qstash, res[0].message_id)
+    await assert_delivered_eventually_async(async_qstash, res[1].message_id)
 
 
 @pytest.mark.asyncio
@@ -251,11 +272,11 @@ async def test_enqueue_api_llm_async(
             "messages": [
                 {
                     "role": "user",
-                    "content": "hello",
+                    "content": "just say hello",
                 }
             ],
         },
-        api="llm",
+        api={"name": "llm", "provider": upstash()},
         callback="https://httpstat.us/200",
     )
 
@@ -345,3 +366,61 @@ async def test_cancel_all_async(async_qstash: AsyncQStash) -> None:
     cancelled = await async_qstash.message.cancel_all()
 
     assert cancelled >= 2
+
+
+@pytest.mark.asyncio
+async def test_publish_to_api_llm_custom_provider_async(
+    async_qstash: AsyncQStash,
+) -> None:
+    res = await async_qstash.message.publish_json(
+        api={
+            "name": "llm",
+            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+        },
+        body={
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "just say hello",
+                }
+            ],
+        },
+        callback="https://httpstat.us/200",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    await assert_delivered_eventually_async(async_qstash, res.message_id)
+
+
+@pytest.mark.asyncio
+async def test_enqueue_api_llm_custom_provider_async(
+    async_qstash: AsyncQStash,
+    cleanup_queue: Callable[[AsyncQStash, str], None],
+) -> None:
+    name = "test_queue"
+    cleanup_queue(async_qstash, name)
+
+    res = await async_qstash.message.enqueue_json(
+        queue=name,
+        body={
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "just say hello",
+                }
+            ],
+        },
+        api={
+            "name": "llm",
+            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
+        },
+        callback="https://httpstat.us/200",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+
+    assert len(res.message_id) > 0
