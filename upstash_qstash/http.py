@@ -8,6 +8,7 @@ from upstash_qstash.errors import (
     RateLimitExceededError,
     QStashError,
     ChatRateLimitExceededError,
+    DailyMessageLimitExceededError,
 )
 
 
@@ -39,6 +40,45 @@ BASE_URL = "https://qstash.upstash.io"
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
 
 
+def chat_rate_limit_error(headers: httpx.Headers) -> ChatRateLimitExceededError:
+    limit_requests = headers.get("x-ratelimit-limit-requests")
+    limit_tokens = headers.get("x-ratelimit-limit-tokens")
+    remaining_requests = headers.get("x-ratelimit-remaining-requests")
+    remaining_tokens = headers.get("x-ratelimit-remaining-tokens")
+    reset_requests = headers.get("x-ratelimit-reset-requests")
+    reset_tokens = headers.get("x-ratelimit-reset-tokens")
+    return ChatRateLimitExceededError(
+        limit_requests=limit_requests,
+        limit_tokens=limit_tokens,
+        remaining_requests=remaining_requests,
+        remaining_tokens=remaining_tokens,
+        reset_requests=reset_requests,
+        reset_tokens=reset_tokens,
+    )
+
+
+def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:
+    limit = headers.get("RateLimit-Limit")
+    remaining = headers.get("RateLimit-Remaining")
+    reset = headers.get("RateLimit-Reset")
+    return DailyMessageLimitExceededError(
+        limit=limit,
+        remaining=remaining,
+        reset=reset,
+    )
+
+
+def burst_rate_limit_error(headers: httpx.Headers) -> RateLimitExceededError:
+    limit = headers.get("Burst-RateLimit-Limit")
+    remaining = headers.get("Burst-RateLimit-Remaining")
+    reset = headers.get("Burst-RateLimit-Reset")
+    return RateLimitExceededError(
+        limit=limit,
+        remaining=remaining,
+        reset=reset,
+    )
+
+
 def raise_for_non_ok_status(response: httpx.Response) -> None:
     if response.is_success:
         return
@@ -46,29 +86,11 @@ def raise_for_non_ok_status(response: httpx.Response) -> None:
     if response.status_code == 429:
         headers = response.headers
         if "x-ratelimit-limit-requests" in headers:
-            limit_requests = headers.get("x-ratelimit-limit-requests")
-            limit_tokens = headers.get("x-ratelimit-limit-tokens")
-            remaining_requests = headers.get("x-ratelimit-remaining-requests")
-            remaining_tokens = headers.get("x-ratelimit-remaining-tokens")
-            reset_requests = headers.get("x-ratelimit-reset-requests")
-            reset_tokens = headers.get("x-ratelimit-reset-tokens")
-            raise ChatRateLimitExceededError(
-                limit_requests=limit_requests,
-                limit_tokens=limit_tokens,
-                remaining_requests=remaining_requests,
-                remaining_tokens=remaining_tokens,
-                reset_requests=reset_requests,
-                reset_tokens=reset_tokens,
-            )
-
-        limit = headers.get("Burst-RateLimit-Limit")
-        remaining = headers.get("Burst-RateLimit-Remaining")
-        reset = headers.get("Burst-RateLimit-Reset")
-        raise RateLimitExceededError(
-            limit=limit,
-            remaining=remaining,
-            reset=reset,
-        )
+            raise chat_rate_limit_error(headers)
+        elif "RateLimit-Limit" in headers:
+            raise daily_message_limit_error(headers)
+        else:
+            raise burst_rate_limit_error(headers)
 
     raise QStashError(
         f"Request failed with status: {response.status_code}, body: {response.text}"
