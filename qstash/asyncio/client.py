@@ -1,15 +1,15 @@
 from typing import Literal, Optional, Union
 
-from upstash_qstash.asyncio.chat import AsyncChatApi
-from upstash_qstash.asyncio.dlq import AsyncDlqApi
-from upstash_qstash.asyncio.event import AsyncEventApi
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.asyncio.message import AsyncMessageApi
-from upstash_qstash.asyncio.queue import AsyncQueueApi
-from upstash_qstash.asyncio.schedule import AsyncScheduleApi
-from upstash_qstash.asyncio.signing_key import AsyncSigningKeyApi
-from upstash_qstash.asyncio.url_group import AsyncUrlGroupApi
-from upstash_qstash.http import RetryConfig
+from qstash.asyncio.chat import AsyncChatApi
+from qstash.asyncio.dlq import AsyncDlqApi
+from qstash.asyncio.event import AsyncEventApi
+from qstash.asyncio.http import AsyncHttpClient
+from qstash.asyncio.message import AsyncMessageApi
+from qstash.asyncio.queue import AsyncQueueApi
+from qstash.asyncio.schedule import AsyncScheduleApi
+from qstash.asyncio.signing_key import AsyncSigningKeyApi
+from qstash.asyncio.url_group import AsyncUrlGroupApi
+from qstash.http import RetryConfig
 
 
 class AsyncQStash:

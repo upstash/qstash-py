@@ -2,15 +2,15 @@
 Publishes a JSON message with a 3s delay to a URL using QStash.
 """
 
-from upstash_qstash import QStash
+from qstash import QStash
 
 
 def main():
-    qstash = QStash(
+    client = QStash(
         token="<QSTASH-TOKEN>",
     )
 
-    res = qstash.message.publish_json(
+    res = client.message.publish_json(
         url="https://example.com",
         body={"hello": "world"},
         headers={

@@ -1,15 +1,15 @@
-from tests import OPENAI_API_KEY
-from upstash_qstash import QStash
-from upstash_qstash.chat import (
+from qstash import QStash
+from qstash.chat import (
     ChatCompletion,
     ChatCompletionChunkStream,
     upstash,
     openai,
 )
+from tests import OPENAI_API_KEY
 
 
-def test_chat(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat(client: QStash) -> None:
+    res = client.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         messages=[{"role": "user", "content": "just say hello"}],
     )
@@ -20,8 +20,8 @@ def test_chat(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_chat_streaming(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat_streaming(client: QStash) -> None:
+    res = client.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         messages=[{"role": "user", "content": "just say hello"}],
         stream=True,
@@ -36,8 +36,8 @@ def test_chat_streaming(qstash: QStash) -> None:
             assert r.choices[0].delta.content is not None
 
 
-def test_prompt(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt(client: QStash) -> None:
+    res = client.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         user="just say hello",
     )
@@ -48,8 +48,8 @@ def test_prompt(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_prompt_streaming(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt_streaming(client: QStash) -> None:
+    res = client.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         user="just say hello",
         stream=True,
@@ -64,8 +64,8 @@ def test_prompt_streaming(qstash: QStash) -> None:
             assert r.choices[0].delta.content is not None
 
 
-def test_chat_explicit_upstash_provider(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat_explicit_upstash_provider(client: QStash) -> None:
+    res = client.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         messages=[{"role": "user", "content": "just say hello"}],
         provider=upstash(),
@@ -77,8 +77,8 @@ def test_chat_explicit_upstash_provider(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_chat_explicit_upstash_provider_streaming(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat_explicit_upstash_provider_streaming(client: QStash) -> None:
+    res = client.chat.create(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         messages=[{"role": "user", "content": "just say hello"}],
         provider=upstash(),
@@ -94,8 +94,8 @@ def test_chat_explicit_upstash_provider_streaming(qstash: QStash) -> None:
             assert r.choices[0].delta.content is not None
 
 
-def test_prompt_explicit_upstash_provider(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt_explicit_upstash_provider(client: QStash) -> None:
+    res = client.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         user="just say hello",
         provider=upstash(),
@@ -107,8 +107,8 @@ def test_prompt_explicit_upstash_provider(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_prompt_explicit_upstash_provider_streaming(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt_explicit_upstash_provider_streaming(client: QStash) -> None:
+    res = client.chat.prompt(
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         user="just say hello",
         provider=upstash(),
@@ -124,8 +124,8 @@ def test_prompt_explicit_upstash_provider_streaming(qstash: QStash) -> None:
             assert r.choices[0].delta.content is not None
 
 
-def test_chat_custom_provider(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat_custom_provider(client: QStash) -> None:
+    res = client.chat.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "just say hello"}],
         provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -137,8 +137,8 @@ def test_chat_custom_provider(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_chat_custom_provider_streaming(qstash: QStash) -> None:
-    res = qstash.chat.create(
+def test_chat_custom_provider_streaming(client: QStash) -> None:
+    res = client.chat.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "just say hello"}],
         provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -157,8 +157,8 @@ def test_chat_custom_provider_streaming(qstash: QStash) -> None:
             )
 
 
-def test_prompt_custom_provider(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt_custom_provider(client: QStash) -> None:
+    res = client.chat.prompt(
         model="gpt-3.5-turbo",
         user="just say hello",
         provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -170,8 +170,8 @@ def test_prompt_custom_provider(qstash: QStash) -> None:
     assert res.choices[0].message.role == "assistant"
 
 
-def test_prompt_custom_provider_streaming(qstash: QStash) -> None:
-    res = qstash.chat.prompt(
+def test_prompt_custom_provider_streaming(client: QStash) -> None:
+    res = client.chat.prompt(
         model="gpt-3.5-turbo",
         user="just say hello",
         provider=openai(token=OPENAI_API_KEY),  # type:ignore[arg-type]

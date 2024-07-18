@@ -3,15 +3,15 @@ Create a chat completion request and receive the response, either
 at once, or streaming chunk by chunk.
 """
 
-from upstash_qstash import QStash
+from qstash import QStash
 
 
 def main():
-    qstash = QStash(
+    client = QStash(
         token="<QSTASH-TOKEN>",
     )
 
-    res = qstash.chat.create(
+    res = client.chat.create(
         messages=[{"role": "user", "content": "How are you?"}],
         model="meta-llama/Meta-Llama-3-8B-Instruct",
     )
@@ -19,7 +19,7 @@ def main():
     # Get the response at once
     print(res.choices[0].message.content)
 
-    stream_res = qstash.chat.create(
+    stream_res = client.chat.create(
         messages=[{"role": "user", "content": "How are you again?"}],
         model="meta-llama/Meta-Llama-3-8B-Instruct",
         stream=True,

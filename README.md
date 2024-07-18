@@ -23,11 +23,11 @@ You can get your QStash token from the [Upstash Console](https://console.upstash
 #### Publish a JSON message
 
 ```python
-from upstash_qstash import QStash
+from qstash import QStash
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-res = qstash.message.publish_json(
+res = client.message.publish_json(
     url="https://example.com",
     body={"hello": "world"},
     headers={
@@ -41,11 +41,11 @@ print(res.message_id)
 #### [Create a scheduled message](https://upstash.com/docs/qstash/features/schedules)
 
 ```python
-from upstash_qstash import QStash
+from qstash import QStash
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-schedule_id = qstash.schedule.create(
+schedule_id = client.schedule.create(
     destination="https://example.com",
     cron="*/5 * * * *",
 )
@@ -56,7 +56,7 @@ print(schedule_id)
 #### [Receiving messages](https://upstash.com/docs/qstash/howto/receiving)
 
 ```python
-from upstash_qstash import Receiver
+from qstash import Receiver
 
 # Keys available from the QStash console
 receiver = Receiver(
@@ -78,12 +78,12 @@ receiver.verify(
 #### Create Chat Completions
 
 ```python
-from upstash_qstash import QStash
-from upstash_qstash.chat import upstash
+from qstash import QStash
+from qstash.chat import upstash
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-res = qstash.chat.create(
+res = client.chat.create(
     model="meta-llama/Meta-Llama-3-8B-Instruct",
     provider=upstash(),
     messages=[
@@ -100,12 +100,12 @@ print(res.choices[0].message.content)
 #### Create Chat Completions Using Custom Providers
 
 ```python
-from upstash_qstash import QStash
-from upstash_qstash.chat import openai
+from qstash import QStash
+from qstash.chat import openai
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-res = qstash.chat.create(
+res = client.chat.create(
     model="gpt-3.5-turbo",
     provider=openai("<OPENAI_API_KEY>"),
     messages=[
@@ -122,12 +122,12 @@ print(res.choices[0].message.content)
 #### Publish a JSON message to LLM
 
 ```python
-from upstash_qstash import QStash
-from upstash_qstash.chat import upstash
+from qstash import QStash
+from qstash.chat import upstash
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-res = qstash.message.publish_json(
+res = client.message.publish_json(
     api={"name": "llm", "provider": upstash()},
     body={
         "model": "meta-llama/Meta-Llama-3-8B-Instruct",
@@ -147,12 +147,12 @@ print(res.message_id)
 #### Publish a JSON message to LLM Using Custom Providers
 
 ```python
-from upstash_qstash import QStash
-from upstash_qstash.chat import openai
+from qstash import QStash
+from qstash.chat import openai
 
-qstash = QStash("<QSTASH_TOKEN>")
+client = QStash("<QSTASH_TOKEN>")
 
-res = qstash.message.publish_json(
+res = client.message.publish_json(
     api={"name": "llm", "provider": openai("<OPENAI_API_KEY>")},
     body={
         "model": "gpt-3.5-turbo",
@@ -172,7 +172,7 @@ print(res.message_id)
 #### Additional configuration
 
 ```python
-from upstash_qstash import QStash
+from qstash import QStash
 
 # Create a client with a custom retry configuration. This is
 # for sending messages to QStash, not for sending messages to
@@ -182,7 +182,7 @@ from upstash_qstash import QStash
 #   "retries": 5,
 #   "backoff": lambda retry_count: math.exp(retry_count) * 50,
 # }
-qstash = QStash(
+client = QStash(
     token="<QSTASH_TOKEN>",
     retry={
         "retries": 1,
@@ -190,8 +190,8 @@ qstash = QStash(
     },
 )
 
-# Publish to Topic
-qstash.message.publish_json(
+# Publish to URL
+client.message.publish_json(
     url="https://example.com",
     body={"key": "value"},
     # Retry sending message to API 3 times

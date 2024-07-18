@@ -2,15 +2,15 @@
 Create a schedule that publishes a message every minute.
 """
 
-from upstash_qstash import QStash
+from qstash import QStash
 
 
 def main():
-    qstash = QStash(
+    client = QStash(
         token="<QSTASH-TOKEN>",
     )
 
-    schedule_id = qstash.schedule.create_json(
+    schedule_id = client.schedule.create_json(
         cron="* * * * *",
         destination="https://example..com",
         body={"hello": "world"},
@@ -20,7 +20,7 @@ def main():
     print(schedule_id)
 
     # You can also get a schedule by ID
-    schedule = qstash.schedule.get(schedule_id)
+    schedule = client.schedule.get(schedule_id)
     print(schedule.cron)
 
 

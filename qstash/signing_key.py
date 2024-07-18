@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Any, Dict
 
-from upstash_qstash.http import HttpClient
+from qstash.http import HttpClient
 
 
 @dataclasses.dataclass

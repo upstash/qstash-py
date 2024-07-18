@@ -1,14 +1,14 @@
 from typing import Optional, Union, Literal
 
-from upstash_qstash.chat import ChatApi
-from upstash_qstash.dlq import DlqApi
-from upstash_qstash.event import EventApi
-from upstash_qstash.http import RetryConfig, HttpClient
-from upstash_qstash.message import MessageApi
-from upstash_qstash.queue import QueueApi
-from upstash_qstash.schedule import ScheduleApi
-from upstash_qstash.signing_key import SigningKeyApi
-from upstash_qstash.url_group import UrlGroupApi
+from qstash.chat import ChatApi
+from qstash.dlq import DlqApi
+from qstash.event import EventApi
+from qstash.http import RetryConfig, HttpClient
+from qstash.message import MessageApi
+from qstash.queue import QueueApi
+from qstash.schedule import ScheduleApi
+from qstash.signing_key import SigningKeyApi
+from qstash.url_group import UrlGroupApi
 
 
 class QStash:

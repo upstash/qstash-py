@@ -6,15 +6,15 @@ and you want to send the response to your API URL without having
 to wait for the response in a serverless function.
 """
 
-from upstash_qstash import QStash
+from qstash import QStash
 
 
 def main():
-    qstash = QStash(
+    client = QStash(
         token="<QSTASH-TOKEN>",
     )
 
-    qstash.message.publish_json(
+    client.message.publish_json(
         url="https://expensive.com",
         callback="https://example-cb.com",
         # We want to send a GET request to https://expensive.com and have the response

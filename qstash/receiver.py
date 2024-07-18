@@ -4,7 +4,7 @@ from typing import Optional
 
 import jwt
 
-from upstash_qstash.errors import SignatureError
+from qstash.errors import SignatureError
 
 
 def verify_with_key(

@@ -1,5 +1,5 @@
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.signing_key import SigningKey, parse_signing_key_response
+from qstash.asyncio.http import AsyncHttpClient
+from qstash.signing_key import SigningKey, parse_signing_key_response
 
 
 class AsyncSigningKeyApi:

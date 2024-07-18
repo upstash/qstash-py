@@ -1,6 +1,7 @@
 from typing import Optional
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.event import (
+
+from qstash.asyncio.http import AsyncHttpClient
+from qstash.event import (
     EventFilter,
     ListEventsResponse,
     parse_events_response,

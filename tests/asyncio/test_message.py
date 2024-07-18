@@ -2,26 +2,26 @@ from typing import Callable
 
 import pytest
 
-from tests import assert_eventually_async, OPENAI_API_KEY
-from upstash_qstash import AsyncQStash
-from upstash_qstash.chat import upstash, openai
-from upstash_qstash.errors import QStashError
-from upstash_qstash.event import EventState
-from upstash_qstash.message import (
+from qstash import AsyncQStash
+from qstash.chat import upstash, openai
+from qstash.errors import QStashError
+from qstash.event import EventState
+from qstash.message import (
     BatchJsonRequest,
     BatchRequest,
     BatchResponse,
     EnqueueResponse,
     PublishResponse,
 )
+from tests import assert_eventually_async, OPENAI_API_KEY
 
 
 async def assert_delivered_eventually_async(
-    async_qstash: AsyncQStash, msg_id: str
+    async_client: AsyncQStash, msg_id: str
 ) -> None:
     async def assertion() -> None:
         events = (
-            await async_qstash.event.list(
+            await async_client.event.list(
                 filter={
                     "message_id": msg_id,
                     "state": EventState.DELIVERED,
@@ -40,8 +40,8 @@ async def assert_delivered_eventually_async(
 
 
 @pytest.mark.asyncio
-async def test_publish_to_url_async(async_qstash: AsyncQStash) -> None:
-    res = await async_qstash.message.publish(
+async def test_publish_to_url_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish(
         body="test-body",
         url="https://httpstat.us/200",
         headers={
@@ -52,12 +52,12 @@ async def test_publish_to_url_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res, PublishResponse)
     assert len(res.message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res.message_id)
+    await assert_delivered_eventually_async(async_client, res.message_id)
 
 
 @pytest.mark.asyncio
-async def test_publish_to_url_json_async(async_qstash: AsyncQStash) -> None:
-    res = await async_qstash.message.publish_json(
+async def test_publish_to_url_json_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200",
         headers={
@@ -68,32 +68,32 @@ async def test_publish_to_url_json_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res, PublishResponse)
     assert len(res.message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res.message_id)
+    await assert_delivered_eventually_async(async_client, res.message_id)
 
 
 @pytest.mark.asyncio
-async def test_disallow_multiple_destinations_async(async_qstash: AsyncQStash) -> None:
+async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -> None:
     with pytest.raises(QStashError):
-        await async_qstash.message.publish_json(
+        await async_client.message.publish_json(
             url="https://httpstat.us/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
-        await async_qstash.message.publish_json(
+        await async_client.message.publish_json(
             url="https://httpstat.us/200",
             api={"name": "llm", "provider": upstash()},
         )
 
     with pytest.raises(QStashError):
-        await async_qstash.message.publish_json(
+        await async_client.message.publish_json(
             url_group="test-url-group",
             api={"name": "llm", "provider": upstash()},
         )
 
 
 @pytest.mark.asyncio
-async def test_batch_async(async_qstash: AsyncQStash) -> None:
+async def test_batch_async(async_client: AsyncQStash) -> None:
     N = 3
     messages = []
     for i in range(N):
@@ -109,7 +109,7 @@ async def test_batch_async(async_qstash: AsyncQStash) -> None:
             )
         )
 
-    res = await async_qstash.message.batch(messages)
+    res = await async_client.message.batch(messages)
 
     assert len(res) == N
 
@@ -119,7 +119,7 @@ async def test_batch_async(async_qstash: AsyncQStash) -> None:
 
 
 @pytest.mark.asyncio
-async def test_batch_json_async(async_qstash: AsyncQStash) -> None:
+async def test_batch_json_async(async_client: AsyncQStash) -> None:
     N = 3
     messages = []
     for i in range(N):
@@ -134,7 +134,7 @@ async def test_batch_json_async(async_qstash: AsyncQStash) -> None:
             )
         )
 
-    res = await async_qstash.message.batch_json(messages)
+    res = await async_client.message.batch_json(messages)
 
     assert len(res) == N
 
@@ -144,8 +144,8 @@ async def test_batch_json_async(async_qstash: AsyncQStash) -> None:
 
 
 @pytest.mark.asyncio
-async def test_publish_to_api_llm_async(async_qstash: AsyncQStash) -> None:
-    res = await async_qstash.message.publish_json(
+async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish_json(
         api={"name": "llm", "provider": upstash()},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
@@ -162,12 +162,12 @@ async def test_publish_to_api_llm_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res, PublishResponse)
     assert len(res.message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res.message_id)
+    await assert_delivered_eventually_async(async_client, res.message_id)
 
 
 @pytest.mark.asyncio
-async def test_batch_api_llm_async(async_qstash: AsyncQStash) -> None:
-    res = await async_qstash.message.batch_json(
+async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.batch_json(
         [
             {
                 "api": {"name": "llm", "provider": upstash()},
@@ -209,19 +209,19 @@ async def test_batch_api_llm_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res[1], BatchResponse)
     assert len(res[1].message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res[0].message_id)
-    await assert_delivered_eventually_async(async_qstash, res[1].message_id)
+    await assert_delivered_eventually_async(async_client, res[0].message_id)
+    await assert_delivered_eventually_async(async_client, res[1].message_id)
 
 
 @pytest.mark.asyncio
 async def test_enqueue_async(
-    async_qstash: AsyncQStash,
+    async_client: AsyncQStash,
     cleanup_queue_async: Callable[[AsyncQStash, str], None],
 ) -> None:
     name = "test_queue"
-    cleanup_queue_async(async_qstash, name)
+    cleanup_queue_async(async_client, name)
 
-    res = await async_qstash.message.enqueue(
+    res = await async_client.message.enqueue(
         queue=name,
         body="test-body",
         url="https://httpstat.us/200",
@@ -237,13 +237,13 @@ async def test_enqueue_async(
 
 @pytest.mark.asyncio
 async def test_enqueue_json_async(
-    async_qstash: AsyncQStash,
+    async_client: AsyncQStash,
     cleanup_queue_async: Callable[[AsyncQStash, str], None],
 ) -> None:
     name = "test_queue"
-    cleanup_queue_async(async_qstash, name)
+    cleanup_queue_async(async_client, name)
 
-    res = await async_qstash.message.enqueue_json(
+    res = await async_client.message.enqueue_json(
         queue=name,
         body={"test": "body"},
         url="https://httpstat.us/200",
@@ -259,13 +259,13 @@ async def test_enqueue_json_async(
 
 @pytest.mark.asyncio
 async def test_enqueue_api_llm_async(
-    async_qstash: AsyncQStash,
+    async_client: AsyncQStash,
     cleanup_queue_async: Callable[[AsyncQStash, str], None],
 ) -> None:
     name = "test_queue"
-    cleanup_queue_async(async_qstash, name)
+    cleanup_queue_async(async_client, name)
 
-    res = await async_qstash.message.enqueue_json(
+    res = await async_client.message.enqueue_json(
         queue=name,
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
@@ -286,11 +286,11 @@ async def test_enqueue_api_llm_async(
 
 
 @pytest.mark.asyncio
-async def test_publish_to_url_group_async(async_qstash: AsyncQStash) -> None:
+async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
     name = "python_url_group"
-    await async_qstash.url_group.delete(name)
+    await async_client.url_group.delete(name)
 
-    await async_qstash.url_group.upsert_endpoints(
+    await async_client.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
             {"url": "https://httpstat.us/200"},
@@ -298,7 +298,7 @@ async def test_publish_to_url_group_async(async_qstash: AsyncQStash) -> None:
         ],
     )
 
-    res = await async_qstash.message.publish(
+    res = await async_client.message.publish(
         body="test-body",
         url_group=name,
     )
@@ -306,13 +306,13 @@ async def test_publish_to_url_group_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res, list)
     assert len(res) == 2
 
-    await assert_delivered_eventually_async(async_qstash, res[0].message_id)
-    await assert_delivered_eventually_async(async_qstash, res[1].message_id)
+    await assert_delivered_eventually_async(async_client, res[0].message_id)
+    await assert_delivered_eventually_async(async_client, res[1].message_id)
 
 
 @pytest.mark.asyncio
-async def test_timeout_async(async_qstash: AsyncQStash) -> None:
-    res = await async_qstash.message.publish_json(
+async def test_timeout_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200",
         timeout=90,
@@ -321,26 +321,26 @@ async def test_timeout_async(async_qstash: AsyncQStash) -> None:
     assert isinstance(res, PublishResponse)
     assert len(res.message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res.message_id)
+    await assert_delivered_eventually_async(async_client, res.message_id)
 
 
 @pytest.mark.asyncio
-async def test_cancel_many_async(async_qstash: AsyncQStash) -> None:
-    res0 = await async_qstash.message.publish(
+async def test_cancel_many_async(async_client: AsyncQStash) -> None:
+    res0 = await async_client.message.publish(
         url="http://httpstat.us/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
-    res1 = await async_qstash.message.publish(
+    res1 = await async_client.message.publish(
         url="http://httpstat.us/404",
         retries=3,
     )
 
     assert isinstance(res1, PublishResponse)
 
-    cancelled = await async_qstash.message.cancel_many(
+    cancelled = await async_client.message.cancel_many(
         [res0.message_id, res1.message_id]
     )
 
@@ -348,31 +348,31 @@ async def test_cancel_many_async(async_qstash: AsyncQStash) -> None:
 
 
 @pytest.mark.asyncio
-async def test_cancel_all_async(async_qstash: AsyncQStash) -> None:
-    res0 = await async_qstash.message.publish(
+async def test_cancel_all_async(async_client: AsyncQStash) -> None:
+    res0 = await async_client.message.publish(
         url="http://httpstat.us/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
-    res1 = await async_qstash.message.publish(
+    res1 = await async_client.message.publish(
         url="http://httpstat.us/404",
         retries=3,
     )
 
     assert isinstance(res1, PublishResponse)
 
-    cancelled = await async_qstash.message.cancel_all()
+    cancelled = await async_client.message.cancel_all()
 
     assert cancelled >= 2
 
 
 @pytest.mark.asyncio
 async def test_publish_to_api_llm_custom_provider_async(
-    async_qstash: AsyncQStash,
+    async_client: AsyncQStash,
 ) -> None:
-    res = await async_qstash.message.publish_json(
+    res = await async_client.message.publish_json(
         api={
             "name": "llm",
             "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -392,18 +392,18 @@ async def test_publish_to_api_llm_custom_provider_async(
     assert isinstance(res, PublishResponse)
     assert len(res.message_id) > 0
 
-    await assert_delivered_eventually_async(async_qstash, res.message_id)
+    await assert_delivered_eventually_async(async_client, res.message_id)
 
 
 @pytest.mark.asyncio
 async def test_enqueue_api_llm_custom_provider_async(
-    async_qstash: AsyncQStash,
+    async_client: AsyncQStash,
     cleanup_queue: Callable[[AsyncQStash, str], None],
 ) -> None:
     name = "test_queue"
-    cleanup_queue(async_qstash, name)
+    cleanup_queue(async_client, name)
 
-    res = await async_qstash.message.enqueue_json(
+    res = await async_client.message.enqueue_json(
         queue=name,
         body={
             "model": "gpt-3.5-turbo",
