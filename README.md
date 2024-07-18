@@ -10,6 +10,12 @@
 
 [QStash Documentation](https://upstash.com/docs/qstash)
 
+### Install
+
+```shell
+pip install qstash-python
+```
+
 ### Usage
 
 You can get your QStash token from the [Upstash Console](https://console.upstash.com/qstash).
