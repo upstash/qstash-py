@@ -13,7 +13,7 @@
 ### Install
 
 ```shell
-pip install qstash-python
+pip install qstash
 ```
 
 ### Usage
