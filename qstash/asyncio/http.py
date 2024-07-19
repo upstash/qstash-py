@@ -3,7 +3,7 @@ from typing import Any, Dict, Literal, Optional, Union
 
 import httpx
 
-from upstash_qstash.http import (
+from qstash.http import (
     BASE_URL,
     DEFAULT_RETRY,
     NO_RETRY,

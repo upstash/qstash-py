@@ -4,15 +4,15 @@ Uses asyncio to asynchronously publish a JSON message with a 3s delay to a URL u
 
 import asyncio
 
-from upstash_qstash import AsyncQStash
+from qstash import AsyncQStash
 
 
 async def main():
-    qstash = AsyncQStash(
+    client = AsyncQStash(
         token="<QSTASH-TOKEN>",
     )
 
-    res = await qstash.message.publish_json(
+    res = await client.message.publish_json(
         url="https://example.com",
         body={"hello": "world"},
         headers={

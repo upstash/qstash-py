@@ -2,8 +2,8 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Optional, TypedDict
 
-from upstash_qstash.errors import QStashError
-from upstash_qstash.http import HttpClient
+from qstash.errors import QStashError
+from qstash.http import HttpClient
 
 
 class UpsertEndpointRequest(TypedDict, total=False):

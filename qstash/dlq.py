@@ -2,8 +2,8 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Optional, TypedDict
 
-from upstash_qstash.http import HttpClient
-from upstash_qstash.message import Message
+from qstash.http import HttpClient
+from qstash.message import Message
 
 
 @dataclasses.dataclass

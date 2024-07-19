@@ -4,7 +4,7 @@ from typing import TypedDict, Callable, Optional, Union, Literal, Any, Dict
 
 import httpx
 
-from upstash_qstash.errors import (
+from qstash.errors import (
     RateLimitExceededError,
     QStashError,
     ChatRateLimitExceededError,

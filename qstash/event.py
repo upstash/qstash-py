@@ -2,7 +2,7 @@ import dataclasses
 import enum
 from typing import Any, Dict, List, Optional, TypedDict
 
-from upstash_qstash.http import HttpClient
+from qstash.http import HttpClient
 
 
 class EventState(enum.Enum):

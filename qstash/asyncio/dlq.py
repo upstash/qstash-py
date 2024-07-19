@@ -1,8 +1,8 @@
 import json
 from typing import List, Optional
 
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.dlq import (
+from qstash.asyncio.http import AsyncHttpClient
+from qstash.dlq import (
     DlqMessage,
     ListDlqMessagesResponse,
     parse_dlq_message_response,

@@ -7,9 +7,9 @@ from typing import Optional
 import jwt
 import pytest
 
+from qstash import Receiver
+from qstash.errors import SignatureError
 from tests import QSTASH_CURRENT_SIGNING_KEY, QSTASH_NEXT_SIGNING_KEY
-from upstash_qstash import Receiver
-from upstash_qstash.errors import SignatureError
 
 
 @pytest.fixture

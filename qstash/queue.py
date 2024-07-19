@@ -1,14 +1,57 @@
-from typing import List
+import dataclasses
+import json
+from typing import Any, Dict, List
 
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.queue import Queue, parse_queue_response, prepare_upsert_body
+from qstash.http import HttpClient
 
 
-class AsyncQueueApi:
-    def __init__(self, http: AsyncHttpClient) -> None:
+@dataclasses.dataclass
+class Queue:
+    name: str
+    """The name of the queue."""
+
+    parallelism: int
+    """The number of parallel consumers consuming from the queue."""
+
+    created_at: int
+    """The creation time of the queue, in unix milliseconds."""
+
+    updated_at: int
+    """The last update time of the queue, in unix milliseconds."""
+
+    lag: int
+    """The number of unprocessed messages that exist in the queue."""
+
+    paused: bool
+    """Whether the queue is paused or not."""
+
+
+def prepare_upsert_body(queue: str, parallelism: int, paused: bool) -> str:
+    return json.dumps(
+        {
+            "queueName": queue,
+            "parallelism": parallelism,
+            "paused": paused,
+        }
+    )
+
+
+def parse_queue_response(response: Dict[str, Any]) -> Queue:
+    return Queue(
+        name=response["name"],
+        parallelism=response["parallelism"],
+        created_at=response["createdAt"],
+        updated_at=response["updatedAt"],
+        lag=response["lag"],
+        paused=response["paused"],
+    )
+
+
+class QueueApi:
+    def __init__(self, http: HttpClient) -> None:
         self._http = http
 
-    async def upsert(
+    def upsert(
         self,
         queue: str,
         *,
@@ -25,7 +68,7 @@ class AsyncQueueApi:
         """
         body = prepare_upsert_body(queue, parallelism, paused)
 
-        await self._http.request(
+        self._http.request(
             path="/v2/queues",
             method="POST",
             headers={"Content-Type": "application/json"},
@@ -33,56 +76,56 @@ class AsyncQueueApi:
             parse_response=False,
         )
 
-    async def get(self, queue: str) -> Queue:
+    def get(self, queue: str) -> Queue:
         """
         Gets the queue by its name.
         """
-        response = await self._http.request(
+        response = self._http.request(
             path=f"/v2/queues/{queue}",
             method="GET",
         )
 
         return parse_queue_response(response)
 
-    async def list(self) -> List[Queue]:
+    def list(self) -> List[Queue]:
         """
         Lists all the queues.
         """
-        response = await self._http.request(
+        response = self._http.request(
             path="/v2/queues",
             method="GET",
         )
 
         return [parse_queue_response(r) for r in response]
 
-    async def delete(self, queue: str) -> None:
+    def delete(self, queue: str) -> None:
         """
         Deletes the queue.
         """
-        await self._http.request(
+        self._http.request(
             path=f"/v2/queues/{queue}",
             method="DELETE",
             parse_response=False,
         )
 
-    async def pause(self, queue: str) -> None:
+    def pause(self, queue: str) -> None:
         """
         Pauses the queue.
 
         A paused queue will not deliver messages until
         it is resumed.
         """
-        await self._http.request(
+        self._http.request(
             path=f"/v2/queues/{queue}/pause",
             method="POST",
             parse_response=False,
         )
 
-    async def resume(self, queue: str) -> None:
+    def resume(self, queue: str) -> None:
         """
         Resumes the queue.
         """
-        await self._http.request(
+        self._http.request(
             path=f"/v2/queues/{queue}/resume",
             method="POST",
             parse_response=False,

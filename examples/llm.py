@@ -5,16 +5,16 @@ This is useful to send the response to your API without having
 to wait for the response in a serverless function.
 """
 
-from upstash_qstash import QStash
-from upstash_qstash.chat import upstash
+from qstash import QStash
+from qstash.chat import upstash
 
 
 def main():
-    qstash = QStash(
+    client = QStash(
         token="<QSTASH-TOKEN>",
     )
 
-    qstash.message.publish_json(
+    client.message.publish_json(
         api={"name": "llm", "provider": upstash()},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",

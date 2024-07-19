@@ -4,17 +4,17 @@ from typing import Callable
 import pytest
 import pytest_asyncio
 
+from qstash import QStash, AsyncQStash
 from tests import QSTASH_TOKEN
-from upstash_qstash import QStash, AsyncQStash
 
 
 @pytest.fixture
-def qstash():
+def client():
     return QStash(token=QSTASH_TOKEN)
 
 
 @pytest_asyncio.fixture
-async def async_qstash():
+async def async_client():
     return AsyncQStash(token=QSTASH_TOKEN)
 
 
@@ -22,13 +22,13 @@ async def async_qstash():
 def cleanup_queue(request: pytest.FixtureRequest) -> Callable[[QStash, str], None]:
     queue_names = []
 
-    def register(qstash: QStash, queue_name: str) -> None:
-        queue_names.append((qstash, queue_name))
+    def register(client: QStash, queue_name: str) -> None:
+        queue_names.append((client, queue_name))
 
     def delete():
-        for qstash, queue_name in queue_names:
+        for client, queue_name in queue_names:
             try:
-                qstash.queue.delete(queue_name)
+                client.queue.delete(queue_name)
             except Exception:
                 pass
 
@@ -43,14 +43,14 @@ def cleanup_queue_async(
 ) -> Callable[[AsyncQStash, str], None]:
     queue_names = []
 
-    def register(async_qstash: AsyncQStash, queue_name: str) -> None:
-        queue_names.append((async_qstash, queue_name))
+    def register(async_client: AsyncQStash, queue_name: str) -> None:
+        queue_names.append((async_client, queue_name))
 
     def finalizer():
         async def delete():
-            for async_qstash, queue_name in queue_names:
+            for async_client, queue_name in queue_names:
                 try:
-                    await async_qstash.queue.delete(queue_name)
+                    await async_client.queue.delete(queue_name)
                 except Exception:
                     pass
 
@@ -65,13 +65,13 @@ def cleanup_queue_async(
 def cleanup_schedule(request: pytest.FixtureRequest) -> Callable[[QStash, str], None]:
     schedule_ids = []
 
-    def register(qstash: QStash, schedule_id: str) -> None:
-        schedule_ids.append((qstash, schedule_id))
+    def register(client: QStash, schedule_id: str) -> None:
+        schedule_ids.append((client, schedule_id))
 
     def delete():
-        for qstash, schedule_id in schedule_ids:
+        for client, schedule_id in schedule_ids:
             try:
-                qstash.schedule.delete(schedule_id)
+                client.schedule.delete(schedule_id)
             except Exception:
                 pass
 
@@ -86,14 +86,14 @@ def cleanup_schedule_async(
 ) -> Callable[[AsyncQStash, str], None]:
     schedule_ids = []
 
-    def register(async_qstash: AsyncQStash, schedule_id: str) -> None:
-        schedule_ids.append((async_qstash, schedule_id))
+    def register(async_client: AsyncQStash, schedule_id: str) -> None:
+        schedule_ids.append((async_client, schedule_id))
 
     def finalizer():
         async def delete():
-            for async_qstash, schedule_id in schedule_ids:
+            for async_client, schedule_id in schedule_ids:
                 try:
-                    await async_qstash.schedule.delete(schedule_id)
+                    await async_client.schedule.delete(schedule_id)
                 except Exception:
                     pass
 

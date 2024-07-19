@@ -1,7 +1,7 @@
 from typing import List
 
-from upstash_qstash.asyncio.http import AsyncHttpClient
-from upstash_qstash.url_group import (
+from qstash.asyncio.http import AsyncHttpClient
+from qstash.url_group import (
     RemoveEndpointRequest,
     UpsertEndpointRequest,
     UrlGroup,
