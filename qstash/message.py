@@ -787,8 +787,6 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[Union[str, int]] = None,
-        not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
@@ -817,13 +815,6 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
-            it is also possible to specify the delay as an integer, which will be
-            interpreted as delay in seconds.
-        :param not_before: Delay the message until a certain time in the future.
-            The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
@@ -847,8 +838,8 @@ class MessageApi:
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
-            delay=delay,
-            not_before=not_before,
+            delay=None,
+            not_before=None,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
@@ -876,8 +867,6 @@ class MessageApi:
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
-        delay: Optional[Union[str, int]] = None,
-        not_before: Optional[int] = None,
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
@@ -907,13 +896,6 @@ class MessageApi:
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
-            it is also possible to specify the delay as an integer, which will be
-            interpreted as delay in seconds.
-        :param not_before: Delay the message until a certain time in the future.
-            The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
         :param content_based_deduplication: Automatically deduplicate messages based on
             their content.
@@ -934,8 +916,6 @@ class MessageApi:
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
-            delay=delay,
-            not_before=not_before,
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
