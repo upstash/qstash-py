@@ -78,7 +78,7 @@ def prepare_schedule_headers(
 
     if headers:
         for k, v in headers.items():
-            if not k.lower().startswith("upstash-forward-"):
+            if not k.lower().startswith("upstash-"):
                 k = f"Upstash-Forward-{k}"
 
             h[k] = v
