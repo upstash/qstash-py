@@ -65,6 +65,7 @@ def prepare_schedule_headers(
     failure_callback: Optional[str],
     delay: Optional[Union[str, int]],
     timeout: Optional[Union[str, int]],
+    schedule_id: Optional[str],
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -103,6 +104,9 @@ def prepare_schedule_headers(
             h["Upstash-Timeout"] = f"{timeout}s"
         else:
             h["Upstash-Timeout"] = timeout
+
+    if schedule_id is not None:
+        h["Upstash-Schedule-Id"] = schedule_id
 
     return h
 
@@ -144,6 +148,7 @@ class ScheduleApi:
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
+        schedule_id: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -170,6 +175,7 @@ class ScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -181,6 +187,7 @@ class ScheduleApi:
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
+            schedule_id=schedule_id,
         )
 
         response = self._http.request(
@@ -205,6 +212,7 @@ class ScheduleApi:
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
+        schedule_id: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -232,6 +240,7 @@ class ScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
         """
         return self.create(
             destination=destination,
@@ -245,6 +254,7 @@ class ScheduleApi:
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
+            schedule_id=schedule_id,
         )
 
     def get(self, schedule_id: str) -> Schedule:
