@@ -28,6 +28,7 @@ class AsyncScheduleApi:
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
+        schedule_id: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -54,6 +55,7 @@ class AsyncScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -65,6 +67,7 @@ class AsyncScheduleApi:
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
+            schedule_id=schedule_id,
         )
 
         response = await self._http.request(
@@ -89,6 +92,7 @@ class AsyncScheduleApi:
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
+        schedule_id: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -116,6 +120,7 @@ class AsyncScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
         """
         return await self.create(
             destination=destination,
@@ -128,6 +133,8 @@ class AsyncScheduleApi:
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
+            timeout=timeout,
+            schedule_id=schedule_id,
         )
 
     async def get(self, schedule_id: str) -> Schedule:
