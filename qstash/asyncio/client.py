@@ -18,12 +18,17 @@ class AsyncQStash:
         token: str,
         *,
         retry: Optional[Union[Literal[False], RetryConfig]] = None,
+        base_url: Optional[str] = None,
     ) -> None:
         """
         :param token: The authorization token from the Upstash console.
         :param retry: Configures how the client should retry requests.
         """
-        http = AsyncHttpClient(token, retry)
+        http = AsyncHttpClient(
+            token,
+            retry,
+            base_url,
+        )
         self.message = AsyncMessageApi(http)
         """Message api."""
 

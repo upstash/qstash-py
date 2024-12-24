@@ -19,6 +19,7 @@ class AsyncHttpClient:
         self,
         token: str,
         retry: Optional[Union[Literal[False], RetryConfig]],
+        base_url: Optional[str] = None,
     ) -> None:
         self._token = f"Bearer {token}"
 
@@ -33,6 +34,8 @@ class AsyncHttpClient:
             timeout=DEFAULT_TIMEOUT,
         )
 
+        self._base_url = base_url.rstrip("/") if base_url else BASE_URL
+
     async def request(
         self,
         *,
@@ -45,7 +48,7 @@ class AsyncHttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> Any:
-        base_url = base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
@@ -91,7 +94,7 @@ class AsyncHttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> httpx.Response:
-        base_url = base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
