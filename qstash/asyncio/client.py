@@ -27,7 +27,7 @@ class AsyncQStash:
         http = AsyncHttpClient(
             token,
             retry,
-            base_url=(base_url or "https://qstash.upstash.io"),
+            base_url,
         )
         self.message = AsyncMessageApi(http)
         """Message api."""

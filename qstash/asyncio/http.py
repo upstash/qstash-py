@@ -19,7 +19,7 @@ class AsyncHttpClient:
         self,
         token: str,
         retry: Optional[Union[Literal[False], RetryConfig]],
-        base_url: str,
+        base_url: Optional[str] = None,
     ) -> None:
         self._token = f"Bearer {token}"
 

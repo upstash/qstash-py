@@ -28,7 +28,7 @@ class QStash:
         http = HttpClient(
             token,
             retry,
-            base_url=(base_url or "https://qstash.upstash.io"),
+            base_url,
         )
         self.message = MessageApi(http)
         """Message api."""
