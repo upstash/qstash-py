@@ -19,12 +19,19 @@ class QStash:
         token: str,
         *,
         retry: Optional[Union[Literal[False], RetryConfig]] = None,
+        base_url: Optional[str] = None,
     ) -> None:
         """
         :param token: The authorization token from the Upstash console.
         :param retry: Configures how the client should retry requests.
         """
-        http = HttpClient(token, retry)
+        http = HttpClient(
+            token,
+            retry,
+            base_url=(
+                base_url.rstrip("/") if base_url else "https://qstash.upstash.io"
+            ),
+        )
         self.message = MessageApi(http)
         """Message api."""
 

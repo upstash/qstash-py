@@ -4,7 +4,6 @@ from typing import Any, Dict, Literal, Optional, Union
 import httpx
 
 from qstash.http import (
-    BASE_URL,
     DEFAULT_RETRY,
     NO_RETRY,
     HttpMethod,
@@ -19,6 +18,7 @@ class AsyncHttpClient:
         self,
         token: str,
         retry: Optional[Union[Literal[False], RetryConfig]],
+        base_url: str,
     ) -> None:
         self._token = f"Bearer {token}"
 
@@ -33,6 +33,8 @@ class AsyncHttpClient:
             timeout=DEFAULT_TIMEOUT,
         )
 
+        self._base_url = base_url.rstrip("/")
+
     async def request(
         self,
         *,
@@ -45,7 +47,7 @@ class AsyncHttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> Any:
-        base_url = base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
@@ -91,7 +93,7 @@ class AsyncHttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> httpx.Response:
-        base_url = base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
