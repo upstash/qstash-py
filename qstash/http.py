@@ -117,7 +117,7 @@ class HttpClient:
             timeout=DEFAULT_TIMEOUT,
         )
 
-        self._base_url = base_url
+        self._base_url = base_url.rstrip("/") if base_url else BASE_URL
 
     def request(
         self,
@@ -131,7 +131,7 @@ class HttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> Any:
-        base_url = base_url or self._base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
@@ -177,7 +177,7 @@ class HttpClient:
         base_url: Optional[str] = None,
         token: Optional[str] = None,
     ) -> httpx.Response:
-        base_url = base_url or self._base_url or BASE_URL
+        base_url = base_url or self._base_url
         token = token or self._token
 
         url = base_url + path
