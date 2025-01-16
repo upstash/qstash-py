@@ -25,31 +25,31 @@ class QStash:
         :param token: The authorization token from the Upstash console.
         :param retry: Configures how the client should retry requests.
         """
-        http = HttpClient(
+        self.http = HttpClient(
             token,
             retry,
             base_url,
         )
-        self.message = MessageApi(http)
+        self.message = MessageApi(self.http)
         """Message api."""
 
-        self.url_group = UrlGroupApi(http)
+        self.url_group = UrlGroupApi(self.http)
         """Url group api."""
 
-        self.queue = QueueApi(http)
+        self.queue = QueueApi(self.http)
         """Queue api."""
 
-        self.schedule = ScheduleApi(http)
+        self.schedule = ScheduleApi(self.http)
         """Schedule api."""
 
-        self.signing_key = SigningKeyApi(http)
+        self.signing_key = SigningKeyApi(self.http)
         """Signing key api."""
 
-        self.event = EventApi(http)
+        self.event = EventApi(self.http)
         """Event api."""
 
-        self.dlq = DlqApi(http)
+        self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
 
-        self.chat = ChatApi(http)
+        self.chat = ChatApi(self.http)
         """Chat api."""
