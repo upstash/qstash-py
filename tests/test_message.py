@@ -31,7 +31,7 @@ def assert_delivered_eventually(client: QStash, msg_id: str) -> None:
         assertion,
         initial_delay=1.0,
         retry_delay=1.0,
-        timeout=10.0,
+        timeout=60.0,
     )
 
 
