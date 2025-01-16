@@ -24,31 +24,31 @@ class AsyncQStash:
         :param token: The authorization token from the Upstash console.
         :param retry: Configures how the client should retry requests.
         """
-        http = AsyncHttpClient(
+        self.http = AsyncHttpClient(
             token,
             retry,
             base_url,
         )
-        self.message = AsyncMessageApi(http)
+        self.message = AsyncMessageApi(self.http)
         """Message api."""
 
-        self.url_group = AsyncUrlGroupApi(http)
+        self.url_group = AsyncUrlGroupApi(self.http)
         """Url group api."""
 
-        self.queue = AsyncQueueApi(http)
+        self.queue = AsyncQueueApi(self.http)
         """Queue api."""
 
-        self.schedule = AsyncScheduleApi(http)
+        self.schedule = AsyncScheduleApi(self.http)
         """Schedule api."""
 
-        self.signing_key = AsyncSigningKeyApi(http)
+        self.signing_key = AsyncSigningKeyApi(self.http)
         """Signing key api."""
 
-        self.event = AsyncEventApi(http)
+        self.event = AsyncEventApi(self.http)
         """Event api."""
 
-        self.dlq = AsyncDlqApi(http)
+        self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
 
-        self.chat = AsyncChatApi(http)
+        self.chat = AsyncChatApi(self.http)
         """Chat api."""

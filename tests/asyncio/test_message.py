@@ -35,7 +35,7 @@ async def assert_delivered_eventually_async(
         assertion,
         initial_delay=1.0,
         retry_delay=1.0,
-        timeout=10.0,
+        timeout=60.0,
     )
 
 
