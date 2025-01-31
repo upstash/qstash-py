@@ -29,7 +29,7 @@ class QStash:
         self.http = HttpClient(
             token,
             retry,
-            base_url or environ["QSTASH_URL"],
+            base_url or environ.get("QSTASH_URL"),
         )
         self.message = MessageApi(self.http)
         """Message api."""
