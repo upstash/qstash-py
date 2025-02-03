@@ -1,3 +1,4 @@
+from os import environ
 from typing import Literal, Optional, Union
 
 from qstash.asyncio.chat import AsyncChatApi
@@ -27,7 +28,7 @@ class AsyncQStash:
         self.http = AsyncHttpClient(
             token,
             retry,
-            base_url,
+            base_url or environ.get("QSTASH_URL"),
         )
         self.message = AsyncMessageApi(self.http)
         """Message api."""

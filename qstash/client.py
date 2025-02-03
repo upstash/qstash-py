@@ -1,3 +1,4 @@
+from os import environ
 from typing import Optional, Union, Literal
 
 from qstash.chat import ChatApi
@@ -28,7 +29,7 @@ class QStash:
         self.http = HttpClient(
             token,
             retry,
-            base_url,
+            base_url or environ.get("QSTASH_URL"),
         )
         self.message = MessageApi(self.http)
         """Message api."""
