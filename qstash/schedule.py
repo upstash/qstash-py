@@ -3,6 +3,8 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.http import HttpClient, HttpMethod
+from qstash.message import FlowControl
+from qstash.errors import QStashError
 
 
 @dataclasses.dataclass
@@ -66,6 +68,7 @@ def prepare_schedule_headers(
     delay: Optional[Union[str, int]],
     timeout: Optional[Union[str, int]],
     schedule_id: Optional[str],
+    flow_control: Optional[FlowControl]
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -108,6 +111,19 @@ def prepare_schedule_headers(
     if schedule_id is not None:
         h["Upstash-Schedule-Id"] = schedule_id
 
+    if flow_control and flow_control.get("key"):
+        control_values = []
+        if flow_control.get("parallelism") is not None:
+            control_values.append(f"parallelism={flow_control['parallelism']}")
+        if flow_control.get("rate_per_second") is not None:
+            control_values.append(f"rate={flow_control['rate_per_second']}")
+
+        if not control_values:
+            raise QStashError("Provide at least one of parallelism or rate_per_second for rate_limit")
+
+        h["Upstash-Flow-Control-Key"] = flow_control["key"]
+        h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
+
     return h
 
 
@@ -149,6 +165,7 @@ class ScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -176,6 +193,8 @@ class ScheduleApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -188,6 +207,7 @@ class ScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            flow_control=flow_control
         )
 
         response = self._http.request(
@@ -213,6 +233,7 @@ class ScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -241,6 +262,8 @@ class ScheduleApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         return self.create(
             destination=destination,
@@ -255,6 +278,7 @@ class ScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            flow_control=flow_control
         )
 
     def get(self, schedule_id: str) -> Schedule:

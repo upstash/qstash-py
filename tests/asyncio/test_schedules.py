@@ -62,3 +62,25 @@ async def test_schedule_pause_resume_async(
 
     res = await async_client.schedule.get(schedule_id)
     assert res.paused is False
+
+async def test_schedule_with_flow_control_async(
+    async_client: AsyncQStash,
+    cleanup_schedule_async: Callable[[AsyncQStash, str], None],
+    ) -> None:
+
+    schedule_id = await async_client.schedule.create_json(
+        cron="1 1 1 1 1",
+        destination="https://httpstat.us/200",
+        body={"ex_key": "ex_value"},
+        flow_control={
+            "key": "flow-key",
+            "parallelism": 2
+        }
+    )
+
+
+    schedule = await async_client.schedule.get(schedule_id)
+
+    # TODO: Add assertions
+
+    await cleanup_schedule_async(async_client, schedule_id)

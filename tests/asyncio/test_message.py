@@ -424,3 +424,53 @@ async def test_enqueue_api_llm_custom_provider_async(
     assert isinstance(res, EnqueueResponse)
 
     assert len(res.message_id) > 0
+
+
+@pytest.mark.asyncio
+async def test_publish_with_flow_control_async(
+    async_client: AsyncQStash,
+) -> None:
+    result = await async_client.message.publish_json(
+        body={"ex_key": "ex_value"},
+        url="https://httpstat.us/200",
+        flow_control={
+            "key": "flow-key",
+            "parallelism": "3",
+            "rate_per_second": "4"
+        },
+    )
+
+    message = await async_client.message.get(result.message_id)
+
+    # TODO assert flow control settings of message
+
+
+@pytest.mark.asyncio
+async def test_batch_with_flow_control_async(
+    async_client: AsyncQStash,
+) -> None:
+    result = await async_client.message.batch_json(
+        [
+            {
+                "body": {"ex_key": "ex_value"},
+                "url": "https://httpstat.us/200",
+                "flow_control": {
+                    "key": "flow-key",
+                    "rate_per_second": "1"
+                }
+            },
+            {
+                "body": {"ex_key": "ex_value"},
+                "url": "https://httpstat.us/200",
+                "flow_control": {
+                    "key": "flow-key",
+                    "parallelism": "5",
+                }
+            }
+        ]
+    )
+
+    message1 = await async_client.message.get(result[0].message_id)
+    message2 = await async_client.message.get(result[1].message_id)
+
+    # TODO assert flow control settings of message

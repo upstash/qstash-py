@@ -79,3 +79,21 @@ def test_schedule_pause_resume(
 
     res = client.schedule.get(schedule_id)
     assert res.paused is False
+
+def test_schedule_with_flow_control(client: QStash, cleanup_schedule: Callable[[QStash, str], None]) -> None:
+
+    schedule_id = client.schedule.create_json(
+        cron="1 1 1 1 1",
+        destination="https://httpstat.us/200",
+        body={"ex_key": "ex_value"},
+        flow_control={
+            "key": "flow-key",
+            "parallelism": 2
+        }
+    )
+
+    schedule = client.schedule.get(schedule_id)
+
+    # TODO: Add assertions
+
+    cleanup_schedule(client, schedule_id)

@@ -28,6 +28,17 @@ class LlmApi(TypedDict):
 ApiT = LlmApi  # In the future, this can be union of different API types
 
 
+class FlowControl(TypedDict):
+    key: str
+    """flow control key"""
+
+    parallelism: Optional[int] = None
+    """number of requests which can be active with the same key"""
+
+    rate_per_second: Optional[int] = None
+    """number of requests to activate per second with the same key"""
+
+
 @dataclasses.dataclass
 class PublishResponse:
     message_id: str
@@ -166,6 +177,12 @@ class BatchRequest(TypedDict, total=False):
     like `10s`. Available durations are `s` (seconds), `m` (minutes), `h` (hours), 
     and `d` (days). As convenience, it is also possible to specify the timeout as 
     an integer, which will be interpreted as timeout in seconds.
+    """
+
+    flow_control: Optional[FlowControl] = None
+    """
+    Settings for controlling the number of active requests and number of requests
+    per second with the same key.
     """
 
 
@@ -367,6 +384,7 @@ def prepare_headers(
     deduplication_id: Optional[str],
     content_based_deduplication: Optional[bool],
     timeout: Optional[Union[str, int]],
+    flow_control: Optional[FlowControl]
 ) -> Dict[str, str]:
     h = {}
 
@@ -412,6 +430,19 @@ def prepare_headers(
             h["Upstash-Timeout"] = f"{timeout}s"
         else:
             h["Upstash-Timeout"] = timeout
+
+    if flow_control and flow_control.get("key"):
+        control_values = []
+        if flow_control.get("parallelism") is not None:
+            control_values.append(f"parallelism={flow_control['parallelism']}")
+        if flow_control.get("rate_per_second") is not None:
+            control_values.append(f"rate={flow_control['rate_per_second']}")
+
+        if not control_values:
+            raise QStashError("Provide at least one of parallelism or rate_per_second for rate_limit")
+
+        h["Upstash-Flow-Control-Key"] = flow_control["key"]
+        h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
     return h
 
@@ -484,6 +515,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             deduplication_id=msg.get("deduplication_id"),
             content_based_deduplication=msg.get("content_based_deduplication"),
             timeout=msg.get("timeout"),
+            flow_control=msg.get("flow_control")
         )
 
         batch_messages.append(
@@ -630,6 +662,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -667,6 +700,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         headers = headers or {}
         destination = get_destination(
@@ -688,6 +723,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control
         )
 
         response = self._http.request(
@@ -716,6 +752,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -754,6 +791,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         return self.publish(
             url=url,
@@ -771,6 +810,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control
         )
 
     def enqueue(

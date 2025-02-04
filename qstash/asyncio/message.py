@@ -5,6 +5,7 @@ from qstash.asyncio.http import AsyncHttpClient
 from qstash.http import HttpMethod
 from qstash.message import (
     ApiT,
+    FlowControl,
     BatchJsonRequest,
     BatchRequest,
     BatchResponse,
@@ -47,6 +48,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -84,6 +86,8 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         headers = headers or {}
         destination = get_destination(
@@ -105,6 +109,7 @@ class AsyncMessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control,
         )
 
         response = await self._http.request(
@@ -133,6 +138,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -171,6 +177,8 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         return await self.publish(
             url=url,
@@ -188,6 +196,7 @@ class AsyncMessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control,
         )
 
     async def enqueue(
