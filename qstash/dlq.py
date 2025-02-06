@@ -101,6 +101,9 @@ def parse_dlq_message_response(
         response_headers=response.get("responseHeader"),
         response_body=response.get("responseBody"),
         response_body_base64=response.get("responseBodyBase64"),
+        flow_control_key=response.get("flowControlKey"),
+        parallelism=response.get("parallelism"),
+        rate_per_second=response.get("ratePerSecond"),
     )
 
 

@@ -1,4 +1,5 @@
 from typing import Callable
+from qstash.message import FlowControl
 
 import pytest
 
@@ -88,7 +89,7 @@ def test_schedule_with_flow_control(
         cron="1 1 1 1 1",
         destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
-        flow_control={"key": "flow-key", "parallelism": 2},
+        flow_control=FlowControl(key="flow-key", parallelism=2),
     )
 
     schedule = client.schedule.get(schedule_id)

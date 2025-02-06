@@ -269,6 +269,7 @@ class AsyncMessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=None,
         )
 
         response = await self._http.request(

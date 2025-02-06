@@ -3,6 +3,7 @@ from typing import Callable
 import pytest
 
 from qstash import AsyncQStash
+from qstash.message import FlowControl
 
 
 @pytest.mark.asyncio
@@ -72,7 +73,7 @@ async def test_schedule_with_flow_control_async(
         cron="1 1 1 1 1",
         destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
-        flow_control={"key": "flow-key", "parallelism": 2},
+        flow_control=FlowControl(key="flow-key", parallelism=2),
     )
 
     schedule = await async_client.schedule.get(schedule_id)
@@ -81,4 +82,4 @@ async def test_schedule_with_flow_control_async(
     assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
 
-    await cleanup_schedule_async(async_client, schedule_id)
+    await async_client.schedule.delete(schedule_id)

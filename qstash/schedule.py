@@ -120,19 +120,19 @@ def prepare_schedule_headers(
     if schedule_id is not None:
         h["Upstash-Schedule-Id"] = schedule_id
 
-    if flow_control and flow_control.get("key"):
+    if flow_control and flow_control.key:
         control_values = []
-        if flow_control.get("parallelism") is not None:
-            control_values.append(f"parallelism={flow_control['parallelism']}")
-        if flow_control.get("rate_per_second") is not None:
-            control_values.append(f"rate={flow_control['rate_per_second']}")
+        if flow_control.parallelism is not None:
+            control_values.append(f"parallelism={flow_control.parallelism}")
+        if flow_control.rate_per_second is not None:
+            control_values.append(f"rate={flow_control.rate_per_second}")
 
         if not control_values:
             raise QStashError(
                 "Provide at least one of parallelism or rate_per_second for rate_limit"
             )
 
-        h["Upstash-Flow-Control-Key"] = flow_control["key"]
+        h["Upstash-Flow-Control-Key"] = flow_control.key
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
     return h

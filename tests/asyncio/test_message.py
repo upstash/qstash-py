@@ -434,9 +434,10 @@ async def test_publish_with_flow_control_async(
     result = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200",
-        flow_control={"key": "flow-key", "parallelism": "3", "rate_per_second": "4"},
+        flow_control=FlowControl(key="flow-key", parallelism=3, rate_per_second=4),
     )
 
+    assert isinstance(result, PublishResponse)
     message = await async_client.message.get(result.message_id)
 
     assert message.flow_control_key == "flow-key"
@@ -455,7 +456,7 @@ async def test_batch_with_flow_control_async(
                 url="https://httpstat.us/200",
                 flow_control=FlowControl(
                     key="flow-key-1",
-                    rate_per_second="1",
+                    rate_per_second=1,
                 ),
             ),
             BatchJsonRequest(
@@ -463,13 +464,15 @@ async def test_batch_with_flow_control_async(
                 url="https://httpstat.us/200",
                 flow_control=FlowControl(
                     key="flow-key-2",
-                    parallelism="5",
+                    parallelism=5,
                 ),
             ),
         ]
     )
 
+    assert isinstance(result[0], PublishResponse)
     message1 = await async_client.message.get(result[0].message_id)
+    assert isinstance(result[1], PublishResponse)
     message2 = await async_client.message.get(result[1].message_id)
 
     assert message1.flow_control_key == "flow-key-1"

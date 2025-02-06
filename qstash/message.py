@@ -28,7 +28,8 @@ class LlmApi(TypedDict):
 ApiT = LlmApi  # In the future, this can be union of different API types
 
 
-class FlowControl(TypedDict):
+@dataclasses.dataclass
+class FlowControl:
     key: str
     """flow control key"""
 
@@ -179,7 +180,7 @@ class BatchRequest(TypedDict, total=False):
     an integer, which will be interpreted as timeout in seconds.
     """
 
-    flow_control: Optional[FlowControl] = None
+    flow_control: Optional[FlowControl]
     """
     Settings for controlling the number of active requests and number of requests
     per second with the same key.
@@ -269,6 +270,12 @@ class BatchJsonRequest(TypedDict, total=False):
     
     When specified, destination and headers will be
     set according to the LLM provider.
+    """
+
+    flow_control: Optional[FlowControl]
+    """
+    Settings for controlling the number of active requests and number of requests
+    per second with the same key.
     """
 
 
@@ -440,19 +447,19 @@ def prepare_headers(
         else:
             h["Upstash-Timeout"] = timeout
 
-    if flow_control and flow_control.get("key"):
+    if flow_control and flow_control.key:
         control_values = []
-        if flow_control.get("parallelism") is not None:
-            control_values.append(f"parallelism={flow_control['parallelism']}")
-        if flow_control.get("rate_per_second") is not None:
-            control_values.append(f"rate={flow_control['rate_per_second']}")
+        if flow_control.parallelism is not None:
+            control_values.append(f"parallelism={flow_control.parallelism}")
+        if flow_control.rate_per_second is not None:
+            control_values.append(f"rate={flow_control.rate_per_second}")
 
         if not control_values:
             raise QStashError(
                 "Provide at least one of parallelism or rate_per_second for rate_limit"
             )
 
-        h["Upstash-Flow-Control-Key"] = flow_control["key"]
+        h["Upstash-Flow-Control-Key"] = flow_control.key
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
     return h
@@ -897,6 +904,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=None,
         )
 
         response = self._http.request(
