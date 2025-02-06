@@ -631,6 +631,9 @@ def convert_to_batch_messages(
         if "timeout" in msg:
             batch_msg["timeout"] = msg["timeout"]
 
+        if "flow_control" in msg:
+            batch_msg["flow_control"] = msg["flow_control"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages
