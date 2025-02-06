@@ -12,7 +12,7 @@ from qstash.message import (
     BatchResponse,
     EnqueueResponse,
     PublishResponse,
-    FlowControl
+    FlowControl,
 )
 from tests import assert_eventually_async, OPENAI_API_KEY
 
@@ -434,11 +434,7 @@ async def test_publish_with_flow_control_async(
     result = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200",
-        flow_control={
-            "key": "flow-key",
-            "parallelism": "3",
-            "rate_per_second": "4"
-        },
+        flow_control={"key": "flow-key", "parallelism": "3", "rate_per_second": "4"},
     )
 
     message = await async_client.message.get(result.message_id)

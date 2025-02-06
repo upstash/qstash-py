@@ -77,7 +77,7 @@ def prepare_schedule_headers(
     delay: Optional[Union[str, int]],
     timeout: Optional[Union[str, int]],
     schedule_id: Optional[str],
-    flow_control: Optional[FlowControl]
+    flow_control: Optional[FlowControl],
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -128,7 +128,9 @@ def prepare_schedule_headers(
             control_values.append(f"rate={flow_control['rate_per_second']}")
 
         if not control_values:
-            raise QStashError("Provide at least one of parallelism or rate_per_second for rate_limit")
+            raise QStashError(
+                "Provide at least one of parallelism or rate_per_second for rate_limit"
+            )
 
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
@@ -177,7 +179,7 @@ class ScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -219,7 +221,7 @@ class ScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
         response = self._http.request(
@@ -245,7 +247,7 @@ class ScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -290,7 +292,7 @@ class ScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
     def get(self, schedule_id: str) -> Schedule:

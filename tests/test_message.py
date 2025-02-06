@@ -408,11 +408,7 @@ def test_publish_with_flow_control(
     result = client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200",
-        flow_control={
-            "key": "flow-key",
-            "parallelism": "3",
-            "rate_per_second": "4"
-        },
+        flow_control={"key": "flow-key", "parallelism": "3", "rate_per_second": "4"},
     )
 
     message = client.message.get(result.message_id)
@@ -421,18 +417,14 @@ def test_publish_with_flow_control(
     assert message.parallelism == 3
     assert message.rate_per_second == 4
 
-def test_batch_with_flow_control(
-    client: QStash
-) -> None:
+
+def test_batch_with_flow_control(client: QStash) -> None:
     result = client.message.batch_json(
         [
             {
                 "body": {"ex_key": "ex_value"},
                 "url": "https://httpstat.us/200",
-                "flow_control": {
-                    "key": "flow-key-1",
-                    "rate_per_second": "1"
-                }
+                "flow_control": {"key": "flow-key-1", "rate_per_second": "1"},
             },
             {
                 "body": {"ex_key": "ex_value"},
@@ -440,8 +432,8 @@ def test_batch_with_flow_control(
                 "flow_control": {
                     "key": "flow-key-2",
                     "parallelism": "5",
-                }
-            }
+                },
+            },
         ]
     )
 

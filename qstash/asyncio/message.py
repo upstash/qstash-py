@@ -48,7 +48,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -138,7 +138,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the

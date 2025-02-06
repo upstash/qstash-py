@@ -393,7 +393,7 @@ def prepare_headers(
     deduplication_id: Optional[str],
     content_based_deduplication: Optional[bool],
     timeout: Optional[Union[str, int]],
-    flow_control: Optional[FlowControl]
+    flow_control: Optional[FlowControl],
 ) -> Dict[str, str]:
     h = {}
 
@@ -448,7 +448,9 @@ def prepare_headers(
             control_values.append(f"rate={flow_control['rate_per_second']}")
 
         if not control_values:
-            raise QStashError("Provide at least one of parallelism or rate_per_second for rate_limit")
+            raise QStashError(
+                "Provide at least one of parallelism or rate_per_second for rate_limit"
+            )
 
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
@@ -524,7 +526,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             deduplication_id=msg.get("deduplication_id"),
             content_based_deduplication=msg.get("content_based_deduplication"),
             timeout=msg.get("timeout"),
-            flow_control=msg.get("flow_control")
+            flow_control=msg.get("flow_control"),
         )
 
         batch_messages.append(
@@ -674,7 +676,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -735,7 +737,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
         response = self._http.request(
@@ -764,7 +766,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -822,7 +824,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
     def enqueue(

@@ -30,7 +30,7 @@ class AsyncScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -72,7 +72,7 @@ class AsyncScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
         response = await self._http.request(
@@ -98,7 +98,7 @@ class AsyncScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
-        flow_control: Optional[FlowControl] = None
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -143,7 +143,7 @@ class AsyncScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
-            flow_control=flow_control
+            flow_control=flow_control,
         )
 
     async def get(self, schedule_id: str) -> Schedule:
