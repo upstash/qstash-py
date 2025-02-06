@@ -417,9 +417,9 @@ def test_publish_with_flow_control(
 
     message = client.message.get(result.message_id)
 
-    assert message.flow_control_key is "flow-key"
-    assert message.parallelism is 3
-    assert message.rate_per_second is 4
+    assert message.flow_control_key == "flow-key"
+    assert message.parallelism == 3
+    assert message.rate_per_second == 4
 
 def test_batch_with_flow_control(
     client: QStash
@@ -448,10 +448,10 @@ def test_batch_with_flow_control(
     message1 = client.message.get(result[0].message_id)
     message2 = client.message.get(result[1].message_id)
 
-    assert message1.flow_control_key is "flow-key-1"
+    assert message1.flow_control_key == "flow-key-1"
     assert message1.parallelism is None
-    assert message1.rate_per_second is 1
+    assert message1.rate_per_second == 1
 
-    assert message2.flow_control_key is "flow-key-2"
-    assert message2.parallelism is 5
+    assert message2.flow_control_key == "flow-key-2"
+    assert message2.parallelism == 5
     assert message2.rate_per_second is None

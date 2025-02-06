@@ -94,8 +94,8 @@ def test_schedule_with_flow_control(client: QStash, cleanup_schedule: Callable[[
 
     schedule = client.schedule.get(schedule_id)
 
-    assert schedule.flow_control_key is "flow-key"
-    assert schedule.parallelism is 2
+    assert schedule.flow_control_key == "flow-key"
+    assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
 
     cleanup_schedule(client, schedule_id)
