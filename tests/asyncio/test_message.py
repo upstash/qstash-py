@@ -470,9 +470,9 @@ async def test_batch_with_flow_control_async(
         ]
     )
 
-    assert isinstance(result[0], PublishResponse)
+    assert isinstance(result[0], BatchResponse)
     message1 = await async_client.message.get(result[0].message_id)
-    assert isinstance(result[1], PublishResponse)
+    assert isinstance(result[1], BatchResponse)
     message2 = await async_client.message.get(result[1].message_id)
 
     assert message1.flow_control_key == "flow-key-1"
