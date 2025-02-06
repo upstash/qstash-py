@@ -334,6 +334,15 @@ class Message:
     caller_ip: Optional[str]
     """IP address of the publisher of this message."""
 
+    flow_control_key: Optional[str]
+    """flow control key"""
+
+    parallelism: Optional[int]
+    """number of requests which can be active with the same flow control key"""
+
+    rate_per_second: Optional[int]
+    """number of requests to activate per second with the same flow control key"""
+
 
 def get_destination(
     *,
@@ -637,6 +646,9 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         failure_callback=response.get("failureCallback"),
         schedule_id=response.get("scheduleId"),
         caller_ip=response.get("callerIP"),
+        flow_control_key=response.get("flowControlKey"),
+        parallelism=response.get("parallelism"),
+        rate_per_second=response.get("rate"),
     )
 
 

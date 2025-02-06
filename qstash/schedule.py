@@ -55,6 +55,15 @@ class Schedule:
     paused: bool
     """Whether the schedule is paused or not."""
 
+    flow_control_key: Optional[str]
+    """flow control key"""
+
+    parallelism: Optional[int]
+    """number of requests which can be active with the same flow control key"""
+
+    rate_per_second: Optional[int]
+    """number of requests to activate per second with the same flow control key"""
+
 
 def prepare_schedule_headers(
     *,
@@ -143,6 +152,9 @@ def parse_schedule_response(response: Dict[str, Any]) -> Schedule:
         delay=response.get("delay"),
         caller_ip=response.get("callerIP"),
         paused=response.get("isPaused", False),
+        flow_control_key=response.get("flowControlKey"),
+        parallelism=response.get("parallelism"),
+        rate_per_second=response.get("rate"),
     )
 
 

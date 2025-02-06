@@ -12,6 +12,7 @@ from qstash.message import (
     BatchResponse,
     EnqueueResponse,
     PublishResponse,
+    FlowControl
 )
 from tests import assert_eventually_async, OPENAI_API_KEY
 
@@ -442,7 +443,9 @@ async def test_publish_with_flow_control_async(
 
     message = await async_client.message.get(result.message_id)
 
-    # TODO assert flow control settings of message
+    assert message.flow_control_key is "flow-key"
+    assert message.parallelism is 3
+    assert message.rate_per_second is 4
 
 
 @pytest.mark.asyncio
@@ -451,26 +454,32 @@ async def test_batch_with_flow_control_async(
 ) -> None:
     result = await async_client.message.batch_json(
         [
-            {
-                "body": {"ex_key": "ex_value"},
-                "url": "https://httpstat.us/200",
-                "flow_control": {
-                    "key": "flow-key",
-                    "rate_per_second": "1"
-                }
-            },
-            {
-                "body": {"ex_key": "ex_value"},
-                "url": "https://httpstat.us/200",
-                "flow_control": {
-                    "key": "flow-key",
-                    "parallelism": "5",
-                }
-            }
+            BatchJsonRequest(
+                body={"ex_key": "ex_value"},
+                url="https://httpstat.us/200",
+                flow_control=FlowControl(
+                    key="flow-key-1",
+                    rate_per_second="1",
+                ),
+            ),
+            BatchJsonRequest(
+                body={"ex_key": "ex_value"},
+                url="https://httpstat.us/200",
+                flow_control=FlowControl(
+                    key="flow-key-2",
+                    parallelism="5",
+                ),
+            ),
         ]
     )
 
     message1 = await async_client.message.get(result[0].message_id)
     message2 = await async_client.message.get(result[1].message_id)
 
-    # TODO assert flow control settings of message
+    assert message1.flow_control_key is "flow-key-1"
+    assert message1.parallelism is None
+    assert message1.rate_per_second is 1
+
+    assert message2.flow_control_key is "flow-key-2"
+    assert message2.parallelism is 5
+    assert message2.rate_per_second is None

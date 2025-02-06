@@ -81,6 +81,8 @@ async def test_schedule_with_flow_control_async(
 
     schedule = await async_client.schedule.get(schedule_id)
 
-    # TODO: Add assertions
+    assert schedule.flow_control_key is "flow-key"
+    assert schedule.parallelism is 2
+    assert schedule.rate_per_second is None
 
     await cleanup_schedule_async(async_client, schedule_id)
