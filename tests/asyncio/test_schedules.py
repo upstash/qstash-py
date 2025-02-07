@@ -75,6 +75,7 @@ async def test_schedule_with_flow_control_async(
         body={"ex_key": "ex_value"},
         flow_control=FlowControl(key="flow-key", parallelism=2),
     )
+    cleanup_schedule_async(async_client, schedule_id)
 
     schedule = await async_client.schedule.get(schedule_id)
 
@@ -82,4 +83,3 @@ async def test_schedule_with_flow_control_async(
     assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
 
-    cleanup_schedule_async(async_client, schedule_id)

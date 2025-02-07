@@ -453,7 +453,7 @@ async def test_batch_with_flow_control_async(
         [
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://httpstat.us/200",
+                url="https://httpstat.us/200?sleep=30000",
                 flow_control=FlowControl(
                     key="flow-key-1",
                     rate_per_second=1,
@@ -461,7 +461,7 @@ async def test_batch_with_flow_control_async(
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://httpstat.us/200",
+                url="https://httpstat.us/200?sleep=30000",
                 flow_control=FlowControl(
                     key="flow-key-2",
                     parallelism=5,

@@ -408,7 +408,7 @@ def test_publish_with_flow_control(
 ) -> None:
     result = client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://httpstat.us/200",
+        url="https://httpstat.us/200?sleep=30000",
         flow_control=FlowControl(key="flow-key", parallelism=3, rate_per_second=4),
     )
 
@@ -425,12 +425,12 @@ def test_batch_with_flow_control(client: QStash) -> None:
         [
             {
                 "body": {"ex_key": "ex_value"},
-                "url": "https://httpstat.us/200",
+                "url": "https://httpstat.us/200?sleep=30000",
                 "flow_control": FlowControl(key="flow-key-1", rate_per_second=1),
             },
             {
                 "body": {"ex_key": "ex_value"},
-                "url": "https://httpstat.us/200",
+                "url": "https://httpstat.us/200?sleep=30000",
                 "flow_control": FlowControl(key="flow-key-2", parallelism=5),
             },
         ]

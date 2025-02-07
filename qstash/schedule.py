@@ -120,11 +120,11 @@ def prepare_schedule_headers(
     if schedule_id is not None:
         h["Upstash-Schedule-Id"] = schedule_id
 
-    if flow_control and flow_control["key"]:
+    if flow_control and "key" in flow_control:
         control_values = []
-        if flow_control["parallelism"] is not None:
+        if "parallelism" in flow_control:
             control_values.append(f"parallelism={flow_control['parallelism']}")
-        if flow_control["rate_per_second"] is not None:
+        if "rate_per_second" in flow_control:
             control_values.append(f"rate={flow_control['rate_per_second']}")
 
         if not control_values:

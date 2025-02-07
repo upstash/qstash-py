@@ -91,6 +91,7 @@ def test_schedule_with_flow_control(
         body={"ex_key": "ex_value"},
         flow_control=FlowControl(key="flow-key", parallelism=2),
     )
+    cleanup_schedule(client, schedule_id)
 
     schedule = client.schedule.get(schedule_id)
 
@@ -98,4 +99,3 @@ def test_schedule_with_flow_control(
     assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
 
-    cleanup_schedule(client, schedule_id)
