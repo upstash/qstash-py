@@ -28,15 +28,14 @@ class LlmApi(TypedDict):
 ApiT = LlmApi  # In the future, this can be union of different API types
 
 
-@dataclasses.dataclass
-class FlowControl:
+class FlowControl(TypedDict, total=False):
     key: str
     """flow control key"""
 
-    parallelism: Optional[int] = None
+    parallelism: Optional[int]
     """number of requests which can be active with the same key"""
 
-    rate_per_second: Optional[int] = None
+    rate_per_second: Optional[int]
     """number of requests to activate per second with the same key"""
 
 
@@ -447,19 +446,19 @@ def prepare_headers(
         else:
             h["Upstash-Timeout"] = timeout
 
-    if flow_control and flow_control.key:
+    if flow_control and flow_control["key"]:
         control_values = []
-        if flow_control.parallelism is not None:
-            control_values.append(f"parallelism={flow_control.parallelism}")
-        if flow_control.rate_per_second is not None:
-            control_values.append(f"rate={flow_control.rate_per_second}")
+        if flow_control["parallelism"] is not None:
+            control_values.append(f"parallelism={flow_control["parallelism"]}")
+        if flow_control["rate_per_second"] is not None:
+            control_values.append(f"rate={flow_control["rate_per_second"]}")
 
         if not control_values:
             raise QStashError(
                 "Provide at least one of parallelism or rate_per_second for rate_limit"
             )
 
-        h["Upstash-Flow-Control-Key"] = flow_control.key
+        h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
     return h
