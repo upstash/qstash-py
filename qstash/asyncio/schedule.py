@@ -8,6 +8,7 @@ from qstash.schedule import (
     parse_schedule_response,
     prepare_schedule_headers,
 )
+from qstash.message import FlowControl
 
 
 class AsyncScheduleApi:
@@ -29,6 +30,7 @@ class AsyncScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -56,6 +58,8 @@ class AsyncScheduleApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -68,6 +72,7 @@ class AsyncScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            flow_control=flow_control,
         )
 
         response = await self._http.request(
@@ -93,6 +98,7 @@ class AsyncScheduleApi:
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -121,6 +127,8 @@ class AsyncScheduleApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         return await self.create(
             destination=destination,
@@ -135,6 +143,7 @@ class AsyncScheduleApi:
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            flow_control=flow_control,
         )
 
     async def get(self, schedule_id: str) -> Schedule:

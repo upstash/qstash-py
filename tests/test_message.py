@@ -12,6 +12,7 @@ from qstash.message import (
     BatchResponse,
     EnqueueResponse,
     PublishResponse,
+    FlowControl,
 )
 from tests import assert_eventually, OPENAI_API_KEY
 
@@ -400,3 +401,50 @@ def test_enqueue_api_llm_custom_provider(
     assert isinstance(res, EnqueueResponse)
 
     assert len(res.message_id) > 0
+
+
+def test_publish_with_flow_control(
+    client: QStash,
+) -> None:
+    result = client.message.publish_json(
+        body={"ex_key": "ex_value"},
+        url="https://httpstat.us/200?sleep=30000",
+        flow_control=FlowControl(key="flow-key", parallelism=3, rate_per_second=4),
+    )
+
+    assert isinstance(result, PublishResponse)
+    message = client.message.get(result.message_id)
+
+    assert message.flow_control_key == "flow-key"
+    assert message.parallelism == 3
+    assert message.rate_per_second == 4
+
+
+def test_batch_with_flow_control(client: QStash) -> None:
+    result = client.message.batch_json(
+        [
+            {
+                "body": {"ex_key": "ex_value"},
+                "url": "https://httpstat.us/200?sleep=30000",
+                "flow_control": FlowControl(key="flow-key-1", rate_per_second=1),
+            },
+            {
+                "body": {"ex_key": "ex_value"},
+                "url": "https://httpstat.us/200?sleep=30000",
+                "flow_control": FlowControl(key="flow-key-2", parallelism=5),
+            },
+        ]
+    )
+
+    assert isinstance(result[0], BatchResponse)
+    message1 = client.message.get(result[0].message_id)
+    assert isinstance(result[1], BatchResponse)
+    message2 = client.message.get(result[1].message_id)
+
+    assert message1.flow_control_key == "flow-key-1"
+    assert message1.parallelism is None
+    assert message1.rate_per_second == 1
+
+    assert message2.flow_control_key == "flow-key-2"
+    assert message2.parallelism == 5
+    assert message2.rate_per_second is None

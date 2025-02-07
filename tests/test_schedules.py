@@ -1,4 +1,5 @@
 from typing import Callable
+from qstash.message import FlowControl
 
 import pytest
 
@@ -79,3 +80,21 @@ def test_schedule_pause_resume(
 
     res = client.schedule.get(schedule_id)
     assert res.paused is False
+
+
+def test_schedule_with_flow_control(
+    client: QStash, cleanup_schedule: Callable[[QStash, str], None]
+) -> None:
+    schedule_id = client.schedule.create_json(
+        cron="1 1 1 1 1",
+        destination="https://httpstat.us/200",
+        body={"ex_key": "ex_value"},
+        flow_control=FlowControl(key="flow-key", parallelism=2),
+    )
+    cleanup_schedule(client, schedule_id)
+
+    schedule = client.schedule.get(schedule_id)
+
+    assert schedule.flow_control_key == "flow-key"
+    assert schedule.parallelism == 2
+    assert schedule.rate_per_second is None

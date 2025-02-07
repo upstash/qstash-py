@@ -28,6 +28,17 @@ class LlmApi(TypedDict):
 ApiT = LlmApi  # In the future, this can be union of different API types
 
 
+class FlowControl(TypedDict, total=False):
+    key: str
+    """flow control key"""
+
+    parallelism: Optional[int]
+    """number of requests which can be active with the same key"""
+
+    rate_per_second: Optional[int]
+    """number of requests to activate per second with the same key"""
+
+
 @dataclasses.dataclass
 class PublishResponse:
     message_id: str
@@ -168,6 +179,12 @@ class BatchRequest(TypedDict, total=False):
     an integer, which will be interpreted as timeout in seconds.
     """
 
+    flow_control: Optional[FlowControl]
+    """
+    Settings for controlling the number of active requests and number of requests
+    per second with the same key.
+    """
+
 
 class BatchJsonRequest(TypedDict, total=False):
     queue: str
@@ -254,6 +271,12 @@ class BatchJsonRequest(TypedDict, total=False):
     set according to the LLM provider.
     """
 
+    flow_control: Optional[FlowControl]
+    """
+    Settings for controlling the number of active requests and number of requests
+    per second with the same key.
+    """
+
 
 @dataclasses.dataclass
 class Message:
@@ -317,6 +340,15 @@ class Message:
     caller_ip: Optional[str]
     """IP address of the publisher of this message."""
 
+    flow_control_key: Optional[str]
+    """flow control key"""
+
+    parallelism: Optional[int]
+    """number of requests which can be active with the same flow control key"""
+
+    rate_per_second: Optional[int]
+    """number of requests to activate per second with the same flow control key"""
+
 
 def get_destination(
     *,
@@ -367,6 +399,7 @@ def prepare_headers(
     deduplication_id: Optional[str],
     content_based_deduplication: Optional[bool],
     timeout: Optional[Union[str, int]],
+    flow_control: Optional[FlowControl],
 ) -> Dict[str, str]:
     h = {}
 
@@ -412,6 +445,21 @@ def prepare_headers(
             h["Upstash-Timeout"] = f"{timeout}s"
         else:
             h["Upstash-Timeout"] = timeout
+
+    if flow_control and "key" in flow_control:
+        control_values = []
+        if "parallelism" in flow_control:
+            control_values.append(f"parallelism={flow_control['parallelism']}")
+        if "rate_per_second" in flow_control:
+            control_values.append(f"rate={flow_control['rate_per_second']}")
+
+        if not control_values:
+            raise QStashError(
+                "Provide at least one of parallelism or rate_per_second for flow_control"
+            )
+
+        h["Upstash-Flow-Control-Key"] = flow_control["key"]
+        h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
     return h
 
@@ -484,6 +532,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             deduplication_id=msg.get("deduplication_id"),
             content_based_deduplication=msg.get("content_based_deduplication"),
             timeout=msg.get("timeout"),
+            flow_control=msg.get("flow_control"),
         )
 
         batch_messages.append(
@@ -581,6 +630,9 @@ def convert_to_batch_messages(
         if "timeout" in msg:
             batch_msg["timeout"] = msg["timeout"]
 
+        if "flow_control" in msg:
+            batch_msg["flow_control"] = msg["flow_control"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages
@@ -605,6 +657,9 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         failure_callback=response.get("failureCallback"),
         schedule_id=response.get("scheduleId"),
         caller_ip=response.get("callerIP"),
+        flow_control_key=response.get("flowControlKey"),
+        parallelism=response.get("parallelism"),
+        rate_per_second=response.get("rate"),
     )
 
 
@@ -630,6 +685,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -667,6 +723,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         headers = headers or {}
         destination = get_destination(
@@ -688,6 +746,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control,
         )
 
         response = self._http.request(
@@ -716,6 +775,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        flow_control: Optional[FlowControl] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -754,6 +814,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param flow_control: Settings for controlling the number of active requests and
+            number of requests per second with the same key.
         """
         return self.publish(
             url=url,
@@ -771,6 +833,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=flow_control,
         )
 
     def enqueue(
@@ -843,6 +906,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            flow_control=None,
         )
 
         response = self._http.request(
