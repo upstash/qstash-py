@@ -82,4 +82,3 @@ async def test_schedule_with_flow_control_async(
     assert schedule.flow_control_key == "flow-key"
     assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
-
