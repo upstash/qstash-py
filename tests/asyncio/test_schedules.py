@@ -82,4 +82,4 @@ async def test_schedule_with_flow_control_async(
     assert schedule.parallelism == 2
     assert schedule.rate_per_second is None
 
-    await async_client.schedule.delete(schedule_id)
+    cleanup_schedule_async(async_client, schedule_id)

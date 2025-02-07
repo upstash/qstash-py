@@ -455,7 +455,7 @@ def prepare_headers(
 
         if not control_values:
             raise QStashError(
-                "Provide at least one of parallelism or rate_per_second for rate_limit"
+                "Provide at least one of parallelism or rate_per_second for flow_control"
             )
 
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
