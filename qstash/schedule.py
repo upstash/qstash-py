@@ -123,9 +123,9 @@ def prepare_schedule_headers(
     if flow_control and flow_control["key"]:
         control_values = []
         if flow_control["parallelism"] is not None:
-            control_values.append(f"parallelism={flow_control["parallelism"]}")
+            control_values.append(f"parallelism={flow_control['parallelism']}")
         if flow_control["rate_per_second"] is not None:
-            control_values.append(f"rate={flow_control["rate_per_second"]}")
+            control_values.append(f"rate={flow_control['rate_per_second']}")
 
         if not control_values:
             raise QStashError(
