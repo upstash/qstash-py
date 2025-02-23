@@ -11,16 +11,21 @@ on:
 
 jobs:
   test:
+    strategy:
+      fail-fast: false
+      matrix:  # Run tests on the oldest and newest supported version of Python.
+        python-version: [3.8, 3.x]
+
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: ${{ matrix.python-version }}
 
       - name: Install Poetry
         run: curl -sSL https://install.python-poetry.org | python3 - --version 1.8.4
