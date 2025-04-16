@@ -75,29 +75,7 @@ receiver.verify(
 )
 ```
 
-#### Create Chat Completions
-
-```python
-from qstash import QStash
-from qstash.chat import upstash
-
-client = QStash("<QSTASH_TOKEN>")
-
-res = client.chat.create(
-    model="meta-llama/Meta-Llama-3-8B-Instruct",
-    provider=upstash(),
-    messages=[
-        {
-            "role": "user",
-            "content": "What is the capital of Turkey?",
-        }
-    ],
-)
-
-print(res.choices[0].message.content)
-```
-
-#### Create Chat Completions Using Custom Providers
+#### Publish a JSON message to LLM
 
 ```python
 from qstash import QStash
@@ -105,32 +83,10 @@ from qstash.chat import openai
 
 client = QStash("<QSTASH_TOKEN>")
 
-res = client.chat.create(
-    model="gpt-3.5-turbo",
-    provider=openai("<OPENAI_API_KEY>"),
-    messages=[
-        {
-            "role": "user",
-            "content": "What is the capital of Turkey?",
-        }
-    ],
-)
-
-print(res.choices[0].message.content)
-```
-
-#### Publish a JSON message to LLM
-
-```python
-from qstash import QStash
-from qstash.chat import upstash
-
-client = QStash("<QSTASH_TOKEN>")
-
 res = client.message.publish_json(
-    api={"name": "llm", "provider": upstash()},
+    api={"name": "llm", "provider": openai("<OPENAI_API_KEY>")},
     body={
-        "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+        "model": "gpt-3.5-turbo",
         "messages": [
             {
                 "role": "user",

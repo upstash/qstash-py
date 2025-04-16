@@ -83,13 +83,13 @@ async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
 
@@ -147,7 +147,7 @@ async def test_batch_json_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
@@ -170,19 +170,6 @@ async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
 async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.batch_json(
         [
-            {
-                "api": {"name": "llm", "provider": upstash()},
-                "body": {
-                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": "just say hello",
-                        }
-                    ],
-                },
-                "callback": "https://httpstat.us/200",
-            },
             {
                 "api": {
                     "name": "llm",
@@ -277,7 +264,7 @@ async def test_enqueue_api_llm_async(
                 }
             ],
         },
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         callback="https://httpstat.us/200",
     )
 

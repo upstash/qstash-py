@@ -76,13 +76,13 @@ def test_disallow_multiple_destinations(client: QStash) -> None:
     with pytest.raises(QStashError):
         client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
     with pytest.raises(QStashError):
         client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
 
@@ -137,7 +137,7 @@ def test_batch_json(client: QStash) -> None:
 
 def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
@@ -159,19 +159,6 @@ def test_publish_to_api_llm(client: QStash) -> None:
 def test_batch_api_llm(client: QStash) -> None:
     res = client.message.batch_json(
         [
-            {
-                "api": {"name": "llm", "provider": upstash()},
-                "body": {
-                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": "just say hello",
-                        }
-                    ],
-                },
-                "callback": "https://httpstat.us/200",
-            },
             {
                 "api": {
                     "name": "llm",
@@ -263,7 +250,7 @@ def test_enqueue_api_llm(
                 }
             ],
         },
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         callback="https://httpstat.us/200",
     )
 

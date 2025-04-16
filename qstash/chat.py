@@ -18,6 +18,7 @@ import httpx
 
 from qstash.errors import QStashError
 from qstash.http import HttpClient
+from qstash.utils import _deprecated_warning
 
 
 @dataclasses.dataclass
@@ -52,6 +53,7 @@ UPSTASH_LLM_PROVIDER = LlmProvider(
 )
 
 
+@_deprecated_warning
 def upstash() -> LlmProvider:
     return UPSTASH_LLM_PROVIDER
 
@@ -571,6 +573,7 @@ class ChatApi:
     def __init__(self, http: HttpClient) -> None:
         self._http = http
 
+    @_deprecated_warning
     def create(
         self,
         *,
