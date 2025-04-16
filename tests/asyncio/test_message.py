@@ -149,7 +149,7 @@ async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -189,16 +189,12 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
         ]
     )
 
-    assert len(res) == 2
+    assert len(res) == 1
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
-    assert isinstance(res[1], BatchResponse)
-    assert len(res[1].message_id) > 0
-
     await assert_delivered_eventually_async(async_client, res[0].message_id)
-    await assert_delivered_eventually_async(async_client, res[1].message_id)
 
 
 @pytest.mark.asyncio

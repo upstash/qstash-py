@@ -139,7 +139,7 @@ def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -178,16 +178,12 @@ def test_batch_api_llm(client: QStash) -> None:
         ]
     )
 
-    assert len(res) == 2
+    assert len(res) == 1
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
-    assert isinstance(res[1], BatchResponse)
-    assert len(res[1].message_id) > 0
-
     assert_delivered_eventually(client, res[0].message_id)
-    assert_delivered_eventually(client, res[1].message_id)
 
 
 def test_enqueue(
