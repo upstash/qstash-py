@@ -18,7 +18,7 @@ from qstash.chat import (
     LlmProvider,
     UPSTASH_LLM_PROVIDER,
 )
-from qstash.utils import _deprecated_warning
+from qstash.utils import _deprecated_llm_warning
 
 
 class AsyncChatCompletionChunkStream:
@@ -100,7 +100,7 @@ class AsyncChatApi:
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
-    @_deprecated_warning
+    @_deprecated_llm_warning
     async def create(
         self,
         *,

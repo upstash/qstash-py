@@ -2,7 +2,7 @@ import warnings
 from functools import wraps
 
 
-def _deprecated_warning(func):
+def _deprecated_llm_warning(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         warnings.warn(
