@@ -12,4 +12,5 @@ def _deprecated_warning(func):
             stacklevel=2,
         )
         return func(*args, **kwargs)
+
     return wrapper

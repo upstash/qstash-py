@@ -2,7 +2,6 @@ from qstash import QStash
 from qstash.chat import (
     ChatCompletion,
     ChatCompletionChunkStream,
-    upstash,
     openai,
 )
 from tests import OPENAI_API_KEY

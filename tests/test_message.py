@@ -3,7 +3,7 @@ from typing import Callable
 import pytest
 
 from qstash import QStash
-from qstash.chat import upstash, openai
+from qstash.chat import openai
 from qstash.errors import QStashError
 from qstash.event import EventState
 from qstash.message import (
@@ -76,13 +76,13 @@ def test_disallow_multiple_destinations(client: QStash) -> None:
     with pytest.raises(QStashError):
         client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
     with pytest.raises(QStashError):
         client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
 
@@ -137,7 +137,7 @@ def test_batch_json(client: QStash) -> None:
 
 def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
-        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         body={
             "model": "meta-llama/Meta-Llama-3-8B-Instruct",
             "messages": [
@@ -250,7 +250,7 @@ def test_enqueue_api_llm(
                 }
             ],
         },
-        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         callback="https://httpstat.us/200",
     )
 

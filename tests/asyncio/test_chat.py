@@ -2,7 +2,7 @@ import pytest
 
 from qstash import AsyncQStash
 from qstash.asyncio.chat import AsyncChatCompletionChunkStream
-from qstash.chat import ChatCompletion, upstash, openai
+from qstash.chat import ChatCompletion, openai
 from tests import OPENAI_API_KEY
 
 
