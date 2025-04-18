@@ -2,7 +2,7 @@ from os import environ
 from typing import Literal, Optional, Union
 
 from qstash.asyncio.dlq import AsyncDlqApi
-from qstash.asyncio.event import AsyncLogsApi
+from qstash.asyncio.log import AsyncLogsApi
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.asyncio.message import AsyncMessageApi
 from qstash.asyncio.queue import AsyncQueueApi

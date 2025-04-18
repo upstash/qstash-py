@@ -80,7 +80,6 @@ def parse_dlq_message_response(
         url=response["url"],
         url_group=response.get("topicName"),
         endpoint=response.get("endpointName"),
-        api=response.get("api"),
         queue=response.get("queueName"),
         body=response.get("body"),
         body_base64=response.get("bodyBase64"),

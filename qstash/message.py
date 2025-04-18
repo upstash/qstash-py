@@ -638,7 +638,6 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         url=response["url"],
         url_group=response.get("topicName"),
         endpoint=response.get("endpointName"),
-        api=response.get("api"),
         queue=response.get("queueName"),
         body=response.get("body"),
         body_base64=response.get("bodyBase64"),
