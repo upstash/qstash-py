@@ -19,7 +19,7 @@ from tests import assert_eventually, OPENAI_API_KEY
 
 def assert_delivered_eventually(client: QStash, msg_id: str) -> None:
     def assertion() -> None:
-        logs = client.logs.list(
+        logs = client.log.list(
             filter={
                 "message_id": msg_id,
                 "state": LogState.DELIVERED,

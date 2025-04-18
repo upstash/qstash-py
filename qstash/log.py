@@ -182,7 +182,7 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
     return logs
 
 
-class LogsApi:
+class LogApi:
     def __init__(self, http: HttpClient) -> None:
         self._http = http
 

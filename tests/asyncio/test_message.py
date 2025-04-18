@@ -22,7 +22,7 @@ async def assert_delivered_eventually_async(
 ) -> None:
     async def assertion() -> None:
         logs = (
-            await async_client.logs.list(
+            await async_client.log.list(
                 filter={
                     "message_id": msg_id,
                     "state": LogState.DELIVERED,

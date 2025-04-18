@@ -9,7 +9,7 @@ from qstash.log import (
 )
 
 
-class AsyncLogsApi:
+class AsyncLogApi:
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
