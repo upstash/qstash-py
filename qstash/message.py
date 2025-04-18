@@ -295,9 +295,6 @@ class Message:
     name within the url group.
     """
 
-    api: Optional[str]
-    """The api name if this message was sent to an api."""
-
     queue: Optional[str]
     """The queue name if this message was enqueued to a queue."""
 

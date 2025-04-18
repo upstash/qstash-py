@@ -5,7 +5,7 @@ import pytest
 from qstash import QStash
 from qstash.chat import openai
 from qstash.errors import QStashError
-from qstash.event import EventState
+from qstash.log import LogState
 from qstash.message import (
     BatchJsonRequest,
     BatchRequest,
@@ -19,14 +19,14 @@ from tests import assert_eventually, OPENAI_API_KEY
 
 def assert_delivered_eventually(client: QStash, msg_id: str) -> None:
     def assertion() -> None:
-        events = client.event.list(
+        logs = client.logs.list(
             filter={
                 "message_id": msg_id,
-                "state": EventState.DELIVERED,
+                "state": LogState.DELIVERED,
             }
-        ).events
+        ).logs
 
-        assert len(events) == 1
+        assert len(logs) == 1
 
     assert_eventually(
         assertion,

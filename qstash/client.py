@@ -2,7 +2,7 @@ from os import environ
 from typing import Optional, Union, Literal
 
 from qstash.dlq import DlqApi
-from qstash.event import EventApi
+from qstash.log import LogsApi
 from qstash.http import RetryConfig, HttpClient
 from qstash.message import MessageApi
 from qstash.queue import QueueApi
@@ -45,8 +45,8 @@ class QStash:
         self.signing_key = SigningKeyApi(self.http)
         """Signing key api."""
 
-        self.event = EventApi(self.http)
-        """Event api."""
+        self.logs = LogsApi(self.http)
+        """Logs api."""
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""

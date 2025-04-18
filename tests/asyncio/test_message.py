@@ -5,7 +5,7 @@ import pytest
 from qstash import AsyncQStash
 from qstash.chat import openai
 from qstash.errors import QStashError
-from qstash.event import EventState
+from qstash.log import LogState
 from qstash.message import (
     BatchJsonRequest,
     BatchRequest,
@@ -21,16 +21,16 @@ async def assert_delivered_eventually_async(
     async_client: AsyncQStash, msg_id: str
 ) -> None:
     async def assertion() -> None:
-        events = (
-            await async_client.event.list(
+        logs = (
+            await async_client.logs.list(
                 filter={
                     "message_id": msg_id,
-                    "state": EventState.DELIVERED,
+                    "state": LogState.DELIVERED,
                 }
             )
-        ).events
+        ).logs
 
-        assert len(events) == 1
+        assert len(logs) == 1
 
     await assert_eventually_async(
         assertion,
