@@ -252,7 +252,7 @@ async def test_enqueue_api_llm_async(
     res = await async_client.message.enqueue_json(
         queue=name,
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
