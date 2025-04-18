@@ -65,9 +65,6 @@ class Event:
     endpoint: Optional[str]
     """The name of the endpoint if this message was sent through a url group."""
 
-    api: Optional[str]
-    """The name of the api if this message was sent to an api."""
-
     queue: Optional[str]
     """The name of the queue if this message is enqueued on a queue."""
 
@@ -93,9 +90,6 @@ class EventFilter(TypedDict, total=False):
 
     url_group: str
     """Filter events by url group name."""
-
-    api: str
-    """Filter events by api name."""
 
     queue: str
     """Filter events by queue name."""
@@ -149,9 +143,6 @@ def prepare_list_events_request_params(
         if "url_group" in filter:
             params["topicName"] = filter["url_group"]
 
-        if "api" in filter:
-            params["api"] = filter["api"]
-
         if "queue" in filter:
             params["queueName"] = filter["queue"]
 
@@ -181,7 +172,6 @@ def parse_events_response(response: List[Dict[str, Any]]) -> List[Event]:
                 url=event["url"],
                 url_group=event.get("topicName"),
                 endpoint=event.get("endpointName"),
-                api=event.get("api"),
                 queue=event.get("queueName"),
                 schedule_id=event.get("scheduleId"),
                 headers=event.get("header"),

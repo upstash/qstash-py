@@ -6,7 +6,7 @@ to wait for the response in a serverless function.
 """
 
 from qstash import QStash
-from qstash.chat import upstash
+from qstash.chat import openai
 
 
 def main():
@@ -15,9 +15,9 @@ def main():
     )
 
     client.message.publish_json(
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai("<OPENAI_API_KEY>")},
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-4.1",
             "messages": [
                 {
                     "role": "user",

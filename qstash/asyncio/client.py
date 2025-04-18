@@ -1,7 +1,6 @@
 from os import environ
 from typing import Literal, Optional, Union
 
-from qstash.asyncio.chat import AsyncChatApi
 from qstash.asyncio.dlq import AsyncDlqApi
 from qstash.asyncio.event import AsyncEventApi
 from qstash.asyncio.http import AsyncHttpClient
@@ -50,6 +49,3 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
-
-        self.chat = AsyncChatApi(self.http)
-        """Chat api."""

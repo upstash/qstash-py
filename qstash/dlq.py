@@ -40,9 +40,6 @@ class DlqFilter(TypedDict, total=False):
     url_group: str
     """Filter DLQ entries by url group name."""
 
-    api: str
-    """Filter DLQ entries by api name."""
-
     queue: str
     """Filter DLQ entries by queue name."""
 
@@ -130,9 +127,6 @@ def prepare_list_dlq_messages_params(
 
         if "url_group" in filter:
             params["topicName"] = filter["url_group"]
-
-        if "api" in filter:
-            params["api"] = filter["api"]
 
         if "queue" in filter:
             params["queueName"] = filter["queue"]

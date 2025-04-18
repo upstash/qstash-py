@@ -1,7 +1,6 @@
 from os import environ
 from typing import Optional, Union, Literal
 
-from qstash.chat import ChatApi
 from qstash.dlq import DlqApi
 from qstash.event import EventApi
 from qstash.http import RetryConfig, HttpClient
@@ -51,6 +50,3 @@ class QStash:
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
-
-        self.chat = ChatApi(self.http)
-        """Chat api."""

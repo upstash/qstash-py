@@ -10,7 +10,7 @@ from typing import (
     TypedDict,
 )
 
-from qstash.chat import LlmProvider, UPSTASH_LLM_PROVIDER
+from qstash.chat import LlmProvider
 from qstash.errors import QStashError
 from qstash.http import HttpClient, HttpMethod
 
@@ -369,11 +369,8 @@ def get_destination(
 
     if api is not None:
         provider = api["provider"]
-        if provider.name == UPSTASH_LLM_PROVIDER.name:
-            destination = "api/llm"
-        else:
-            destination = provider.base_url + "/v1/chat/completions"
-            headers["Authorization"] = f"Bearer {provider.token}"
+        destination = provider.base_url + "/v1/chat/completions"
+        headers["Authorization"] = f"Bearer {provider.token}"
 
         count += 1
 
