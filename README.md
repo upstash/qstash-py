@@ -75,31 +75,6 @@ receiver.verify(
 )
 ```
 
-#### Publish a JSON message to LLM
-
-```python
-from qstash import QStash
-from qstash.chat import openai
-
-client = QStash("<QSTASH_TOKEN>")
-
-res = client.message.publish_json(
-    api={"name": "llm", "provider": openai("<OPENAI_API_KEY>")},
-    body={
-        "model": "gpt-3.5-turbo",
-        "messages": [
-            {
-                "role": "user",
-                "content": "What is the capital of Turkey?",
-            }
-        ],
-    },
-    callback="https://example-cb.com",
-)
-
-print(res.message_id)
-```
-
 #### Publish a JSON message to LLM Using Custom Providers
 
 ```python
