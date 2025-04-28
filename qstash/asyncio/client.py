@@ -1,9 +1,8 @@
 from os import environ
 from typing import Literal, Optional, Union
 
-from qstash.asyncio.chat import AsyncChatApi
 from qstash.asyncio.dlq import AsyncDlqApi
-from qstash.asyncio.event import AsyncEventApi
+from qstash.asyncio.log import AsyncLogApi
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.asyncio.message import AsyncMessageApi
 from qstash.asyncio.queue import AsyncQueueApi
@@ -45,11 +44,8 @@ class AsyncQStash:
         self.signing_key = AsyncSigningKeyApi(self.http)
         """Signing key api."""
 
-        self.event = AsyncEventApi(self.http)
-        """Event api."""
+        self.log = AsyncLogApi(self.http)
+        """Log api."""
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
-
-        self.chat = AsyncChatApi(self.http)
-        """Chat api."""

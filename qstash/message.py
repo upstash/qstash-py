@@ -10,7 +10,7 @@ from typing import (
     TypedDict,
 )
 
-from qstash.chat import LlmProvider, UPSTASH_LLM_PROVIDER
+from qstash.chat import LlmProvider
 from qstash.errors import QStashError
 from qstash.http import HttpClient, HttpMethod
 
@@ -295,9 +295,6 @@ class Message:
     name within the url group.
     """
 
-    api: Optional[str]
-    """The api name if this message was sent to an api."""
-
     queue: Optional[str]
     """The queue name if this message was enqueued to a queue."""
 
@@ -369,11 +366,8 @@ def get_destination(
 
     if api is not None:
         provider = api["provider"]
-        if provider.name == UPSTASH_LLM_PROVIDER.name:
-            destination = "api/llm"
-        else:
-            destination = provider.base_url + "/v1/chat/completions"
-            headers["Authorization"] = f"Bearer {provider.token}"
+        destination = provider.base_url + "/v1/chat/completions"
+        headers["Authorization"] = f"Bearer {provider.token}"
 
         count += 1
 
@@ -644,7 +638,6 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         url=response["url"],
         url_group=response.get("topicName"),
         endpoint=response.get("endpointName"),
-        api=response.get("api"),
         queue=response.get("queueName"),
         body=response.get("body"),
         body_base64=response.get("bodyBase64"),

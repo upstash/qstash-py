@@ -3,9 +3,9 @@ from typing import Callable
 import pytest
 
 from qstash import QStash
-from qstash.chat import upstash, openai
+from qstash.chat import openai
 from qstash.errors import QStashError
-from qstash.event import EventState
+from qstash.log import LogState
 from qstash.message import (
     BatchJsonRequest,
     BatchRequest,
@@ -19,14 +19,14 @@ from tests import assert_eventually, OPENAI_API_KEY
 
 def assert_delivered_eventually(client: QStash, msg_id: str) -> None:
     def assertion() -> None:
-        events = client.event.list(
+        logs = client.log.list(
             filter={
                 "message_id": msg_id,
-                "state": EventState.DELIVERED,
+                "state": LogState.DELIVERED,
             }
-        ).events
+        ).logs
 
-        assert len(events) == 1
+        assert len(logs) == 1
 
     assert_eventually(
         assertion,
@@ -76,13 +76,13 @@ def test_disallow_multiple_destinations(client: QStash) -> None:
     with pytest.raises(QStashError):
         client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
     with pytest.raises(QStashError):
         client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
 
@@ -137,9 +137,9 @@ def test_batch_json(client: QStash) -> None:
 
 def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -160,19 +160,6 @@ def test_batch_api_llm(client: QStash) -> None:
     res = client.message.batch_json(
         [
             {
-                "api": {"name": "llm", "provider": upstash()},
-                "body": {
-                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": "just say hello",
-                        }
-                    ],
-                },
-                "callback": "https://httpstat.us/200",
-            },
-            {
                 "api": {
                     "name": "llm",
                     "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -191,16 +178,12 @@ def test_batch_api_llm(client: QStash) -> None:
         ]
     )
 
-    assert len(res) == 2
+    assert len(res) == 1
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
-    assert isinstance(res[1], BatchResponse)
-    assert len(res[1].message_id) > 0
-
     assert_delivered_eventually(client, res[0].message_id)
-    assert_delivered_eventually(client, res[1].message_id)
 
 
 def test_enqueue(
@@ -255,7 +238,7 @@ def test_enqueue_api_llm(
     res = client.message.enqueue_json(
         queue=name,
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -263,7 +246,7 @@ def test_enqueue_api_llm(
                 }
             ],
         },
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         callback="https://httpstat.us/200",
     )
 

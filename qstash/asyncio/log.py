@@ -1,15 +1,15 @@
 from typing import Optional
 
 from qstash.asyncio.http import AsyncHttpClient
-from qstash.event import (
+from qstash.log import (
     EventFilter,
-    ListEventsResponse,
-    parse_events_response,
-    prepare_list_events_request_params,
+    ListLogsResponse,
+    parse_logs_response,
+    prepare_list_logs_request_params,
 )
 
 
-class AsyncEventApi:
+class AsyncLogApi:
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
@@ -19,16 +19,16 @@ class AsyncEventApi:
         cursor: Optional[str] = None,
         count: Optional[int] = None,
         filter: Optional[EventFilter] = None,
-    ) -> ListEventsResponse:
+    ) -> ListLogsResponse:
         """
-        Lists all events that happened, such as message creation or delivery.
+        Lists all logs that happened, such as message creation or delivery.
 
-        :param cursor: Optional cursor to start listing events from.
-        :param count: The maximum number of events to return.
+        :param cursor: Optional cursor to start listing logs from.
+        :param count: The maximum number of logs to return.
             Default and max is `1000`.
         :param filter: Filter to use.
         """
-        params = prepare_list_events_request_params(
+        params = prepare_list_logs_request_params(
             cursor=cursor,
             count=count,
             filter=filter,
@@ -40,9 +40,9 @@ class AsyncEventApi:
             params=params,
         )
 
-        events = parse_events_response(response["events"])
+        logs = parse_logs_response(response["events"])
 
-        return ListEventsResponse(
+        return ListLogsResponse(
             cursor=response.get("cursor"),
-            events=events,
+            logs=logs,
         )

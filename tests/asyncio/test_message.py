@@ -3,9 +3,9 @@ from typing import Callable
 import pytest
 
 from qstash import AsyncQStash
-from qstash.chat import upstash, openai
+from qstash.chat import openai
 from qstash.errors import QStashError
-from qstash.event import EventState
+from qstash.log import LogState
 from qstash.message import (
     BatchJsonRequest,
     BatchRequest,
@@ -21,16 +21,16 @@ async def assert_delivered_eventually_async(
     async_client: AsyncQStash, msg_id: str
 ) -> None:
     async def assertion() -> None:
-        events = (
-            await async_client.event.list(
+        logs = (
+            await async_client.log.list(
                 filter={
                     "message_id": msg_id,
-                    "state": EventState.DELIVERED,
+                    "state": LogState.DELIVERED,
                 }
             )
-        ).events
+        ).logs
 
-        assert len(events) == 1
+        assert len(logs) == 1
 
     await assert_eventually_async(
         assertion,
@@ -83,13 +83,13 @@ async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": upstash()},
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         )
 
 
@@ -147,9 +147,9 @@ async def test_batch_json_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -171,19 +171,6 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.batch_json(
         [
             {
-                "api": {"name": "llm", "provider": upstash()},
-                "body": {
-                    "model": "meta-llama/Meta-Llama-3-8B-Instruct",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": "just say hello",
-                        }
-                    ],
-                },
-                "callback": "https://httpstat.us/200",
-            },
-            {
                 "api": {
                     "name": "llm",
                     "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
@@ -202,16 +189,12 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
         ]
     )
 
-    assert len(res) == 2
+    assert len(res) == 1
 
     assert isinstance(res[0], BatchResponse)
     assert len(res[0].message_id) > 0
 
-    assert isinstance(res[1], BatchResponse)
-    assert len(res[1].message_id) > 0
-
     await assert_delivered_eventually_async(async_client, res[0].message_id)
-    await assert_delivered_eventually_async(async_client, res[1].message_id)
 
 
 @pytest.mark.asyncio
@@ -269,7 +252,7 @@ async def test_enqueue_api_llm_async(
     res = await async_client.message.enqueue_json(
         queue=name,
         body={
-            "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+            "model": "gpt-3.5-turbo",
             "messages": [
                 {
                     "role": "user",
@@ -277,7 +260,7 @@ async def test_enqueue_api_llm_async(
                 }
             ],
         },
-        api={"name": "llm", "provider": upstash()},
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
         callback="https://httpstat.us/200",
     )
 

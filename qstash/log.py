@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, TypedDict
 from qstash.http import HttpClient
 
 
-class EventState(enum.Enum):
+class LogState(enum.Enum):
     """The state of the message."""
 
     CREATED = "CREATED"
@@ -40,14 +40,14 @@ class EventState(enum.Enum):
 
 
 @dataclasses.dataclass
-class Event:
+class Log:
     time: int
     """Timestamp of this log entry, in milliseconds"""
 
     message_id: str
     """The associated message id."""
 
-    state: EventState
+    state: LogState
     """The current state of the message at this point in time."""
 
     error: Optional[str]
@@ -65,9 +65,6 @@ class Event:
     endpoint: Optional[str]
     """The name of the endpoint if this message was sent through a url group."""
 
-    api: Optional[str]
-    """The name of the api if this message was sent to an api."""
-
     queue: Optional[str]
     """The name of the queue if this message is enqueued on a queue."""
 
@@ -83,46 +80,43 @@ class Event:
 
 class EventFilter(TypedDict, total=False):
     message_id: str
-    """Filter events by message id."""
+    """Filter logs by message id."""
 
-    state: EventState
-    """Filter events by state."""
+    state: LogState
+    """Filter logs by state."""
 
     url: str
-    """Filter events by url."""
+    """Filter logs by url."""
 
     url_group: str
-    """Filter events by url group name."""
-
-    api: str
-    """Filter events by api name."""
+    """Filter logs by url group name."""
 
     queue: str
-    """Filter events by queue name."""
+    """Filter logs by queue name."""
 
     schedule_id: str
-    """Filter events by schedule id."""
+    """Filter logs by schedule id."""
 
     from_time: int
-    """Filter events by starting time, in milliseconds"""
+    """Filter logs by starting time, in milliseconds"""
 
     to_time: int
-    """Filter events by ending time, in milliseconds"""
+    """Filter logs by ending time, in milliseconds"""
 
 
 @dataclasses.dataclass
-class ListEventsResponse:
+class ListLogsResponse:
     cursor: Optional[str]
     """
     A cursor which can be used in subsequent requests to paginate through 
-    all events. If `None`, end of the events are reached.
+    all logs. If `None`, end of the logs are reached.
     """
 
-    events: List[Event]
-    """List of events."""
+    logs: List[Log]
+    """List of logs."""
 
 
-def prepare_list_events_request_params(
+def prepare_list_logs_request_params(
     *,
     cursor: Optional[str],
     count: Optional[int],
@@ -149,9 +143,6 @@ def prepare_list_events_request_params(
         if "url_group" in filter:
             params["topicName"] = filter["url_group"]
 
-        if "api" in filter:
-            params["api"] = filter["api"]
-
         if "queue" in filter:
             params["queueName"] = filter["queue"]
 
@@ -167,21 +158,20 @@ def prepare_list_events_request_params(
     return params
 
 
-def parse_events_response(response: List[Dict[str, Any]]) -> List[Event]:
-    events = []
+def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
+    logs = []
 
     for event in response:
-        events.append(
-            Event(
+        logs.append(
+            Log(
                 time=event["time"],
                 message_id=event["messageId"],
-                state=EventState(event["state"]),
+                state=LogState(event["state"]),
                 error=event.get("error"),
                 next_delivery_time=event.get("nextDeliveryTime"),
                 url=event["url"],
                 url_group=event.get("topicName"),
                 endpoint=event.get("endpointName"),
-                api=event.get("api"),
                 queue=event.get("queueName"),
                 schedule_id=event.get("scheduleId"),
                 headers=event.get("header"),
@@ -189,10 +179,10 @@ def parse_events_response(response: List[Dict[str, Any]]) -> List[Event]:
             )
         )
 
-    return events
+    return logs
 
 
-class EventApi:
+class LogApi:
     def __init__(self, http: HttpClient) -> None:
         self._http = http
 
@@ -202,16 +192,16 @@ class EventApi:
         cursor: Optional[str] = None,
         count: Optional[int] = None,
         filter: Optional[EventFilter] = None,
-    ) -> ListEventsResponse:
+    ) -> ListLogsResponse:
         """
-        Lists all events that happened, such as message creation or delivery.
+        Lists all logs that happened, such as message creation or delivery.
 
-        :param cursor: Optional cursor to start listing events from.
-        :param count: The maximum number of events to return.
+        :param cursor: Optional cursor to start listing logs from.
+        :param count: The maximum number of logs to return.
             Default and max is `1000`.
         :param filter: Filter to use.
         """
-        params = prepare_list_events_request_params(
+        params = prepare_list_logs_request_params(
             cursor=cursor,
             count=count,
             filter=filter,
@@ -223,9 +213,9 @@ class EventApi:
             params=params,
         )
 
-        events = parse_events_response(response["events"])
+        logs = parse_logs_response(response["events"])
 
-        return ListEventsResponse(
+        return ListLogsResponse(
             cursor=response.get("cursor"),
-            events=events,
+            logs=logs,
         )

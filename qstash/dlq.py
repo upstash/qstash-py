@@ -40,9 +40,6 @@ class DlqFilter(TypedDict, total=False):
     url_group: str
     """Filter DLQ entries by url group name."""
 
-    api: str
-    """Filter DLQ entries by api name."""
-
     queue: str
     """Filter DLQ entries by queue name."""
 
@@ -83,7 +80,6 @@ def parse_dlq_message_response(
         url=response["url"],
         url_group=response.get("topicName"),
         endpoint=response.get("endpointName"),
-        api=response.get("api"),
         queue=response.get("queueName"),
         body=response.get("body"),
         body_base64=response.get("bodyBase64"),
@@ -130,9 +126,6 @@ def prepare_list_dlq_messages_params(
 
         if "url_group" in filter:
             params["topicName"] = filter["url_group"]
-
-        if "api" in filter:
-            params["api"] = filter["api"]
 
         if "queue" in filter:
             params["queueName"] = filter["queue"]
