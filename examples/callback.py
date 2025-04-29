@@ -9,7 +9,7 @@ to wait for the response in a serverless function.
 from qstash import QStash
 
 
-def main():
+def main() -> None:
     client = QStash(
         token="<QSTASH-TOKEN>",
     )

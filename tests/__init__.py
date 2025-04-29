@@ -5,25 +5,12 @@ from typing import Callable, Coroutine
 
 import dotenv
 
-QSTASH_TOKEN = os.environ.get(
-    "QSTASH_TOKEN",
-    dotenv.dotenv_values().get("QSTASH_TOKEN"),
-)
+dotenv.load_dotenv()
 
-QSTASH_CURRENT_SIGNING_KEY = os.environ.get(
-    "QSTASH_CURRENT_SIGNING_KEY",
-    dotenv.dotenv_values().get("QSTASH_CURRENT_SIGNING_KEY"),
-)
-
-QSTASH_NEXT_SIGNING_KEY = os.environ.get(
-    "QSTASH_NEXT_SIGNING_KEY",
-    dotenv.dotenv_values().get("QSTASH_NEXT_SIGNING_KEY"),
-)
-
-OPENAI_API_KEY = os.environ.get(
-    "OPENAI_API_KEY",
-    dotenv.dotenv_values().get("OPENAI_API_KEY"),
-)
+QSTASH_TOKEN = os.environ["QSTASH_TOKEN"]
+QSTASH_CURRENT_SIGNING_KEY = os.environ["QSTASH_CURRENT_SIGNING_KEY"]
+QSTASH_NEXT_SIGNING_KEY = os.environ["QSTASH_NEXT_SIGNING_KEY"]
+OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
 
 
 def assert_eventually(

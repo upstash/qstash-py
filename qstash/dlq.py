@@ -3,30 +3,30 @@ import json
 from typing import Any, Dict, List, Optional, TypedDict
 
 from qstash.http import HttpClient
-from qstash.message import Message
+from qstash.message import Message, parse_flow_control
 
 
 @dataclasses.dataclass
 class DlqMessage(Message):
     dlq_id: str
-    """The unique id within the DLQ."""
+    """Unique id within the DLQ."""
 
     response_status: int
-    """The HTTP status code of the last failed delivery attempt."""
+    """HTTP status code of the last failed delivery attempt."""
 
     response_headers: Optional[Dict[str, List[str]]]
-    """The response headers of the last failed delivery attempt."""
+    """Response headers of the last failed delivery attempt."""
 
     response_body: Optional[str]
     """
-    The response body of the last failed delivery attempt if it is
-    composed of UTF-8 characters only, `None` otherwise.
+    Response body of the last failed delivery attempt if it is
+    composed of UTF-8 characters only.
     """
 
     response_body_base64: Optional[str]
     """
-    The base64 encoded response body of the last failed delivery attempt
-    if the response body contains non-UTF-8 characters, `None` otherwise.
+    Base64 encoded response body of the last failed delivery attempt
+    if the response body contains non-UTF-8 characters.
     """
 
 
@@ -47,10 +47,10 @@ class DlqFilter(TypedDict, total=False):
     """Filter DLQ entries by schedule id."""
 
     from_time: int
-    """Filter DLQ entries by starting time, in milliseconds"""
+    """Filter DLQ entries by starting Unix time, in milliseconds"""
 
     to_time: int
-    """Filter DLQ entries by ending time, in milliseconds"""
+    """Filter DLQ entries by ending Unix time, in milliseconds"""
 
     response_status: int
     """Filter DLQ entries by HTTP status of the response"""
@@ -75,6 +75,7 @@ def parse_dlq_message_response(
     response: Dict[str, Any],
     dlq_id: str = "",
 ) -> DlqMessage:
+    flow_control = parse_flow_control(response)
     return DlqMessage(
         message_id=response["messageId"],
         url=response["url"],
@@ -85,6 +86,8 @@ def parse_dlq_message_response(
         body_base64=response.get("bodyBase64"),
         method=response["method"],
         headers=response.get("header"),
+        callback_headers=response.get("callbackHeader"),
+        failure_callback_headers=response.get("failureCallbackHeader"),
         max_retries=response["maxRetries"],
         not_before=response["notBefore"],
         created_at=response["createdAt"],
@@ -97,9 +100,7 @@ def parse_dlq_message_response(
         response_headers=response.get("responseHeader"),
         response_body=response.get("responseBody"),
         response_body_base64=response.get("responseBodyBase64"),
-        flow_control_key=response.get("flowControlKey"),
-        parallelism=response.get("parallelism"),
-        rate_per_second=response.get("ratePerSecond"),
+        flow_control=flow_control,
     )
 
 
@@ -227,4 +228,4 @@ class DlqApi:
             body=body,
         )
 
-        return response["deleted"]
+        return response["deleted"]  # type:ignore[no-any-return]

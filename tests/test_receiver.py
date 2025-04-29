@@ -9,15 +9,7 @@ import pytest
 
 from qstash import Receiver
 from qstash.errors import SignatureError
-from tests import QSTASH_CURRENT_SIGNING_KEY, QSTASH_NEXT_SIGNING_KEY
-
-
-@pytest.fixture
-def receiver():
-    return Receiver(
-        current_signing_key=QSTASH_CURRENT_SIGNING_KEY,
-        next_signing_key=QSTASH_NEXT_SIGNING_KEY,
-    )
+from tests import QSTASH_CURRENT_SIGNING_KEY
 
 
 def get_signature(body: str, key: Optional[str]) -> str:

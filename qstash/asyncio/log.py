@@ -2,7 +2,7 @@ from typing import Optional
 
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.log import (
-    EventFilter,
+    LogFilter,
     ListLogsResponse,
     parse_logs_response,
     prepare_list_logs_request_params,
@@ -18,7 +18,7 @@ class AsyncLogApi:
         *,
         cursor: Optional[str] = None,
         count: Optional[int] = None,
-        filter: Optional[EventFilter] = None,
+        filter: Optional[LogFilter] = None,
     ) -> ListLogsResponse:
         """
         Lists all logs that happened, such as message creation or delivery.

@@ -5,7 +5,7 @@ Create a schedule that publishes a message every minute.
 from qstash import QStash
 
 
-def main():
+def main() -> None:
     client = QStash(
         token="<QSTASH-TOKEN>",
     )

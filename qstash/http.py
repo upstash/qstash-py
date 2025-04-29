@@ -7,7 +7,6 @@ import httpx
 from qstash.errors import (
     RateLimitExceededError,
     QStashError,
-    ChatRateLimitExceededError,
     DailyMessageLimitExceededError,
 )
 
@@ -40,23 +39,6 @@ BASE_URL = "https://qstash.upstash.io"
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
 
 
-def chat_rate_limit_error(headers: httpx.Headers) -> ChatRateLimitExceededError:
-    limit_requests = headers.get("x-ratelimit-limit-requests")
-    limit_tokens = headers.get("x-ratelimit-limit-tokens")
-    remaining_requests = headers.get("x-ratelimit-remaining-requests")
-    remaining_tokens = headers.get("x-ratelimit-remaining-tokens")
-    reset_requests = headers.get("x-ratelimit-reset-requests")
-    reset_tokens = headers.get("x-ratelimit-reset-tokens")
-    return ChatRateLimitExceededError(
-        limit_requests=limit_requests,
-        limit_tokens=limit_tokens,
-        remaining_requests=remaining_requests,
-        remaining_tokens=remaining_tokens,
-        reset_requests=reset_requests,
-        reset_tokens=reset_tokens,
-    )
-
-
 def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:
     limit = headers.get("RateLimit-Limit")
     remaining = headers.get("RateLimit-Remaining")
@@ -85,9 +67,7 @@ def raise_for_non_ok_status(response: httpx.Response) -> None:
 
     if response.status_code == 429:
         headers = response.headers
-        if "x-ratelimit-limit-requests" in headers:
-            raise chat_rate_limit_error(headers)
-        elif "RateLimit-Limit" in headers:
+        if "RateLimit-Limit" in headers:
             raise daily_message_limit_error(headers)
         else:
             raise burst_rate_limit_error(headers)

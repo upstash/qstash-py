@@ -75,7 +75,7 @@ async def test_dlq_filter_async(async_client: AsyncQStash) -> None:
 
     assert isinstance(res, PublishResponse)
 
-    async def assertion():
+    async def assertion() -> None:
         messages = (
             await async_client.dlq.list(
                 filter={"message_id": res.message_id},

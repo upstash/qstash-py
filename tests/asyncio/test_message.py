@@ -83,13 +83,13 @@ async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url="https://httpstat.us/200",
-            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             url_group="test-url-group",
-            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
+            api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
 
@@ -147,7 +147,7 @@ async def test_batch_json_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
-        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
             "model": "gpt-3.5-turbo",
             "messages": [
@@ -171,10 +171,7 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.batch_json(
         [
             {
-                "api": {
-                    "name": "llm",
-                    "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
-                },
+                "api": {"name": "llm", "provider": openai(OPENAI_API_KEY)},
                 "body": {
                     "model": "gpt-3.5-turbo",
                     "messages": [
@@ -260,7 +257,7 @@ async def test_enqueue_api_llm_async(
                 }
             ],
         },
-        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},  # type:ignore[arg-type]
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         callback="https://httpstat.us/200",
     )
 
@@ -357,10 +354,7 @@ async def test_publish_to_api_llm_custom_provider_async(
     async_client: AsyncQStash,
 ) -> None:
     res = await async_client.message.publish_json(
-        api={
-            "name": "llm",
-            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
-        },
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
             "model": "gpt-3.5-turbo",
             "messages": [
@@ -398,10 +392,7 @@ async def test_enqueue_api_llm_custom_provider_async(
                 }
             ],
         },
-        api={
-            "name": "llm",
-            "provider": openai(OPENAI_API_KEY),  # type:ignore[arg-type]
-        },
+        api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         callback="https://httpstat.us/200",
     )
 
@@ -417,15 +408,18 @@ async def test_publish_with_flow_control_async(
     result = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         url="https://httpstat.us/200?sleep=30000",
-        flow_control=FlowControl(key="flow-key", parallelism=3, rate_per_second=4),
+        flow_control=FlowControl(key="flow-key", parallelism=3, rate=4, period=2),
     )
 
     assert isinstance(result, PublishResponse)
     message = await async_client.message.get(result.message_id)
 
-    assert message.flow_control_key == "flow-key"
-    assert message.parallelism == 3
-    assert message.rate_per_second == 4
+    flow_control = message.flow_control
+    assert flow_control is not None
+    assert flow_control.key == "flow-key"
+    assert flow_control.parallelism == 3
+    assert flow_control.rate == 4
+    assert flow_control.period == 2
 
 
 @pytest.mark.asyncio
@@ -437,31 +431,47 @@ async def test_batch_with_flow_control_async(
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
                 url="https://httpstat.us/200?sleep=30000",
-                flow_control=FlowControl(
-                    key="flow-key-1",
-                    rate_per_second=1,
-                ),
+                flow_control=FlowControl(key="flow-key-1", rate=1),
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
                 url="https://httpstat.us/200?sleep=30000",
-                flow_control=FlowControl(
-                    key="flow-key-2",
-                    parallelism=5,
-                ),
+                flow_control=FlowControl(key="flow-key-2", rate=23, period="1h30m3s"),
+            ),
+            BatchJsonRequest(
+                body={"ex_key": "ex_value"},
+                url="https://httpstat.us/200?sleep=30000",
+                flow_control=FlowControl(key="flow-key-3", parallelism=5),
             ),
         ]
     )
 
     assert isinstance(result[0], BatchResponse)
     message1 = await async_client.message.get(result[0].message_id)
+
+    flow_control1 = message1.flow_control
+    assert flow_control1 is not None
+    assert flow_control1.key == "flow-key-1"
+    assert flow_control1.parallelism is None
+    assert flow_control1.rate == 1
+    assert flow_control1.period == 1
+
     assert isinstance(result[1], BatchResponse)
     message2 = await async_client.message.get(result[1].message_id)
 
-    assert message1.flow_control_key == "flow-key-1"
-    assert message1.parallelism is None
-    assert message1.rate_per_second == 1
+    flow_control2 = message2.flow_control
+    assert flow_control2 is not None
+    assert flow_control2.key == "flow-key-2"
+    assert flow_control2.parallelism is None
+    assert flow_control2.rate == 23
+    assert flow_control2.period == 5403
 
-    assert message2.flow_control_key == "flow-key-2"
-    assert message2.parallelism == 5
-    assert message2.rate_per_second is None
+    assert isinstance(result[2], BatchResponse)
+    message3 = await async_client.message.get(result[2].message_id)
+
+    flow_control3 = message3.flow_control
+    assert flow_control3 is not None
+    assert flow_control3.key == "flow-key-3"
+    assert flow_control3.parallelism == 5
+    assert flow_control3.rate is None
+    assert flow_control3.period == 1

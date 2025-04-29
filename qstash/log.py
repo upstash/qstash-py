@@ -2,85 +2,122 @@ import dataclasses
 import enum
 from typing import Any, Dict, List, Optional, TypedDict
 
-from qstash.http import HttpClient
+from qstash.http import HttpClient, HttpMethod
+from qstash.message import parse_flow_control, FlowControlProperties
 
 
 class LogState(enum.Enum):
-    """The state of the message."""
+    """State of the message."""
 
     CREATED = "CREATED"
-    """The message has been accepted and stored in QStash"""
+    """Message has been accepted and stored in QStash"""
 
     ACTIVE = "ACTIVE"
-    """The task is currently being processed by a worker."""
+    """Task is currently being processed by a worker."""
 
     RETRY = "RETRY"
-    """The task has been scheduled to retry."""
+    """Task has been scheduled to retry."""
 
     ERROR = "ERROR"
     """
-    The execution threw an error and the task is waiting to be retried
+    Execution threw an error and the task is waiting to be retried
     or failed.
     """
 
     DELIVERED = "DELIVERED"
-    """The message was successfully delivered."""
+    """Message was successfully delivered."""
 
     FAILED = "FAILED"
     """
-    The task has failed too many times or encountered an error that it
+    Task has failed too many times or encountered an error that it
     cannot recover from.
     """
 
     CANCEL_REQUESTED = "CANCEL_REQUESTED"
-    """The cancel request from the user is recorded."""
+    """Cancel request from the user is recorded."""
 
     CANCELED = "CANCELED"
-    """The cancel request from the user is honored."""
+    """Cancel request from the user is honored."""
 
 
 @dataclasses.dataclass
 class Log:
     time: int
-    """Timestamp of this log entry, in milliseconds"""
+    """Unix time of the log entry, in milliseconds."""
 
     message_id: str
-    """The associated message id."""
+    """Message id associated with the log."""
 
     state: LogState
-    """The current state of the message at this point in time."""
+    """Current state of the message at this point in time."""
 
     error: Optional[str]
     """An explanation what went wrong."""
 
     next_delivery_time: Optional[int]
-    """The next scheduled timestamp of the message, milliseconds."""
+    """Next scheduled Unix time of the message, milliseconds."""
 
     url: str
-    """The destination url."""
+    """Destination url."""
 
     url_group: Optional[str]
-    """The name of the url group if this message was sent through a url group."""
+    """Name of the url group if this message was sent through a url group."""
 
     endpoint: Optional[str]
-    """The name of the endpoint if this message was sent through a url group."""
+    """Name of the endpoint if this message was sent through a url group."""
 
     queue: Optional[str]
-    """The name of the queue if this message is enqueued on a queue."""
+    """Name of the queue if this message is enqueued on a queue."""
 
     schedule_id: Optional[str]
-    """The schedule id of the message if the message is triggered by a schedule."""
+    """Schedule id of the message if the message is triggered by a schedule."""
+
+    body_base64: Optional[str]
+    """Base64 encoded body of the message."""
 
     headers: Optional[Dict[str, List[str]]]
     """Headers of the message"""
 
-    body_base64: Optional[str]
-    """The base64 encoded body of the message."""
+    callback_headers: Optional[Dict[str, List[str]]]
+    """Headers of the callback message"""
+
+    failure_callback_headers: Optional[Dict[str, List[str]]]
+    """Headers of the failure callback message"""
+
+    response_status: Optional[int]
+    """HTTP status code of the last failed delivery attempt."""
+
+    response_headers: Optional[Dict[str, List[str]]]
+    """Response headers of the last failed delivery attempt."""
+
+    response_body: Optional[str]
+    """Response body of the last failed delivery attempt."""
+
+    timeout: Optional[int]
+    """HTTP timeout value used while calling the destination url."""
+
+    method: Optional[HttpMethod]
+    """HTTP method to use to deliver the message."""
+
+    callback: Optional[str]
+    """Url which is called each time the message is attempted to be delivered."""
+
+    failure_callback: Optional[str]
+    """Url which is called after the message is failed."""
+
+    max_retries: Optional[int]
+    """Number of retries that should be attempted in case of delivery failure."""
+
+    flow_control: Optional[FlowControlProperties]
+    """Flow control properties"""
 
 
-class EventFilter(TypedDict, total=False):
+class LogFilter(TypedDict, total=False):
     message_id: str
     """Filter logs by message id."""
+
+    message_ids: List[str]
+    """Filter logs by message ids."""
 
     state: LogState
     """Filter logs by state."""
@@ -98,10 +135,10 @@ class EventFilter(TypedDict, total=False):
     """Filter logs by schedule id."""
 
     from_time: int
-    """Filter logs by starting time, in milliseconds"""
+    """Filter logs by starting Unix time, in milliseconds"""
 
     to_time: int
-    """Filter logs by ending time, in milliseconds"""
+    """Filter logs by ending Unix time, in milliseconds"""
 
 
 @dataclasses.dataclass
@@ -120,9 +157,9 @@ def prepare_list_logs_request_params(
     *,
     cursor: Optional[str],
     count: Optional[int],
-    filter: Optional[EventFilter],
+    filter: Optional[LogFilter],
 ) -> Dict[str, str]:
-    params = {}
+    params: Dict[str, Any] = {}
 
     if cursor is not None:
         params["cursor"] = cursor
@@ -133,6 +170,9 @@ def prepare_list_logs_request_params(
     if filter is not None:
         if "message_id" in filter:
             params["messageId"] = filter["message_id"]
+
+        if "message_ids" in filter:
+            params["messageIds"] = filter["message_ids"]
 
         if "state" in filter:
             params["state"] = filter["state"].value
@@ -162,6 +202,7 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
     logs = []
 
     for event in response:
+        flow_control = parse_flow_control(event)
         logs.append(
             Log(
                 time=event["time"],
@@ -175,7 +216,18 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
                 queue=event.get("queueName"),
                 schedule_id=event.get("scheduleId"),
                 headers=event.get("header"),
+                callback_headers=event.get("callbackHeaders"),
+                failure_callback_headers=event.get("failureCallbackHeaders"),
                 body_base64=event.get("body"),
+                response_status=event.get("responseStatus"),
+                response_headers=event.get("responseHeader"),
+                response_body=event.get("responseBody"),
+                timeout=event.get("timeout"),
+                callback=event.get("callback"),
+                failure_callback=event.get("failureCallback"),
+                flow_control=flow_control,
+                method=event.get("method"),
+                max_retries=event.get("maxRetries"),
             )
         )
 
@@ -191,7 +243,7 @@ class LogApi:
         *,
         cursor: Optional[str] = None,
         count: Optional[int] = None,
-        filter: Optional[EventFilter] = None,
+        filter: Optional[LogFilter] = None,
     ) -> ListLogsResponse:
         """
         Lists all logs that happened, such as message creation or delivery.

@@ -1,9 +1,9 @@
 from typing import Callable
-from qstash.message import FlowControl
 
 import pytest
 
 from qstash import QStash
+from qstash.message import FlowControl
 
 
 @pytest.fixture
@@ -13,7 +13,7 @@ def cleanup_schedule(request: pytest.FixtureRequest) -> Callable[[QStash, str], 
     def register(client: QStash, schedule_id: str) -> None:
         schedule_ids.append((client, schedule_id))
 
-    def delete():
+    def delete() -> None:
         for client, schedule_id in schedule_ids:
             try:
                 client.schedule.delete(schedule_id)
@@ -95,6 +95,26 @@ def test_schedule_with_flow_control(
 
     schedule = client.schedule.get(schedule_id)
 
-    assert schedule.flow_control_key == "flow-key"
-    assert schedule.parallelism == 2
-    assert schedule.rate_per_second is None
+    flow_control = schedule.flow_control
+    assert flow_control is not None
+    assert flow_control.key == "flow-key"
+    assert flow_control.parallelism == 2
+    assert flow_control.rate is None
+    assert flow_control.period == 1
+
+
+def test_schedule_enqueue(
+    client: QStash,
+    cleanup_schedule: Callable[[QStash, str], None],
+) -> None:
+    schedule_id = client.schedule.create_json(
+        cron="1 1 1 1 1",
+        destination="https://httpstat.us/200",
+        body={"key": "value"},
+        queue="schedule-queue",
+    )
+    cleanup_schedule(client, schedule_id)
+
+    schedule = client.schedule.get(schedule_id)
+
+    assert schedule.queue == "schedule-queue"

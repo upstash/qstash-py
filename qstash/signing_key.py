@@ -7,10 +7,10 @@ from qstash.http import HttpClient
 @dataclasses.dataclass
 class SigningKey:
     current: str
-    """The current signing key."""
+    """Current signing key."""
 
     next: str
-    """The next signing key."""
+    """Next signing key."""
 
 
 def parse_signing_key_response(response: Dict[str, Any]) -> SigningKey:

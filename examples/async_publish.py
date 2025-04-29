@@ -7,7 +7,7 @@ import asyncio
 from qstash import AsyncQStash
 
 
-async def main():
+async def main() -> None:
     client = AsyncQStash(
         token="<QSTASH-TOKEN>",
     )
@@ -21,7 +21,7 @@ async def main():
         delay="3s",
     )
 
-    print(res.message_id)
+    print(res.message_id)  # type:ignore[union-attr]
 
 
 if __name__ == "__main__":

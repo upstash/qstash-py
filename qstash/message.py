@@ -17,12 +17,10 @@ from qstash.http import HttpClient, HttpMethod
 
 class LlmApi(TypedDict):
     name: Literal["llm"]
-    """The name of the API type."""
+    """Name of the API type."""
 
     provider: LlmProvider
-    """
-    The LLM provider for the API.
-    """
+    """LLM provider for the API."""
 
 
 ApiT = LlmApi  # In the future, this can be union of different API types
@@ -30,19 +28,44 @@ ApiT = LlmApi  # In the future, this can be union of different API types
 
 class FlowControl(TypedDict, total=False):
     key: str
-    """flow control key"""
+    """Flow control key"""
+
+    parallelism: int
+    """Number of requests which can be active with the same key."""
+
+    rate: int
+    """Number of requests to activate per period with the same key."""
+
+    period: Union[str, int]
+    """
+    Unit duration of the rate. 
+    When given as an integer, it is in seconds. Otherwise, it
+    can be specified as a duration string like '10s'(10 seconds), 
+    '2m'(2 minutes), '1h'(1 hour), 
+    or '3d5h12m'(3 days and 5 hours and 12 minutes). 
+    Can be at most a week and defaults to 1 second.
+    """
+
+
+@dataclasses.dataclass
+class FlowControlProperties:
+    key: str
+    """Flow control key."""
 
     parallelism: Optional[int]
-    """number of requests which can be active with the same key"""
+    """Number of requests which can be active with the same key."""
 
-    rate_per_second: Optional[int]
-    """number of requests to activate per second with the same key"""
+    rate: Optional[int]
+    """Number of requests to activate per period with the same key."""
+
+    period: Optional[int]
+    """Unit duration of the rate in seconds."""
 
 
 @dataclasses.dataclass
 class PublishResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
@@ -51,10 +74,10 @@ class PublishResponse:
 @dataclasses.dataclass
 class PublishUrlGroupResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     url: str
-    """The url where the message was sent to."""
+    """Url where the message was sent to."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
@@ -63,7 +86,7 @@ class PublishUrlGroupResponse:
 @dataclasses.dataclass
 class EnqueueResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
@@ -72,10 +95,10 @@ class EnqueueResponse:
 @dataclasses.dataclass
 class EnqueueUrlGroupResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     url: str
-    """The url where the message was sent to."""
+    """Url where the message was sent to."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
@@ -84,7 +107,7 @@ class EnqueueUrlGroupResponse:
 @dataclasses.dataclass
 class BatchResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
@@ -93,39 +116,45 @@ class BatchResponse:
 @dataclasses.dataclass
 class BatchUrlGroupResponse:
     message_id: str
-    """The unique id of the message."""
+    """Unique id of the message."""
 
     url: str
-    """The url where the message was sent to."""
+    """Url where the message was sent to."""
 
     deduplicated: bool
     """Whether the message is a duplicate and was not sent to the destination."""
 
 
 class BatchRequest(TypedDict, total=False):
-    queue: str
-    """Name of the queue that message will be enqueued on."""
-
     url: str
     """Url to send the message to."""
 
     url_group: str
     """Url group to send the message to."""
 
+    queue: str
+    """Name of the queue that message will be enqueued on."""
+
     api: ApiT
     """Api to send the message to."""
 
     body: Union[str, bytes]
-    """The raw request message body passed to the endpoints as is."""
+    """Raw request message body passed to the endpoints as is."""
 
     content_type: str
     """MIME type of the message."""
 
     method: HttpMethod
-    """The HTTP method to use when sending a webhook to your API."""
+    """HTTP method to use when sending a webhook to your API."""
 
     headers: Dict[str, str]
     """Headers to forward along with the message."""
+
+    callback_headers: Dict[str, str]
+    """Headers to forward along with the callback message."""
+
+    failure_callback_headers: Dict[str, str]
+    """Headers to forward along with the failure callback message."""
 
     retries: int
     """
@@ -179,22 +208,22 @@ class BatchRequest(TypedDict, total=False):
     an integer, which will be interpreted as timeout in seconds.
     """
 
-    flow_control: Optional[FlowControl]
+    flow_control: FlowControl
     """
-    Settings for controlling the number of active requests and number of requests
-    per second with the same key.
+    Settings for controlling the number of active requests, as well as
+    the rate of requests with the same flow control key.
     """
 
 
 class BatchJsonRequest(TypedDict, total=False):
-    queue: str
-    """Name of the queue that message will be enqueued on."""
-
     url: str
     """Url to send the message to."""
 
     url_group: str
     """Url group to send the message to."""
+
+    queue: str
+    """Name of the queue that message will be enqueued on."""
 
     api: ApiT
     """Api to send the message to."""
@@ -206,10 +235,16 @@ class BatchJsonRequest(TypedDict, total=False):
     """
 
     method: HttpMethod
-    """The HTTP method to use when sending a webhook to your API."""
+    """HTTP method to use when sending a webhook to your API."""
 
     headers: Dict[str, str]
     """Headers to forward along with the message."""
+
+    callback_headers: Dict[str, str]
+    """Headers to forward along with the callback message."""
+
+    failure_callback_headers: Dict[str, str]
+    """Headers to forward along with the failure callback message."""
 
     retries: int
     """
@@ -263,88 +298,74 @@ class BatchJsonRequest(TypedDict, total=False):
     an integer, which will be interpreted as timeout in seconds.
     """
 
-    provider: LlmProvider
+    flow_control: FlowControl
     """
-    LLM provider to use. 
-    
-    When specified, destination and headers will be
-    set according to the LLM provider.
-    """
-
-    flow_control: Optional[FlowControl]
-    """
-    Settings for controlling the number of active requests and number of requests
-    per second with the same key.
+    Settings for controlling the number of active requests, as well as
+    the rate of requests with the same flow control key.
     """
 
 
 @dataclasses.dataclass
 class Message:
     message_id: str
-    """The unique identifier of the message."""
+    """Id of the message."""
 
     url: str
-    """The url to which the message should be delivered."""
+    """Destination url of the message."""
 
     url_group: Optional[str]
-    """The url group name if this message was sent to a url group."""
+    """Url group name if this message was sent to a url group."""
 
     endpoint: Optional[str]
     """
-    The endpoint name of the message if the endpoint is given a 
+    Endpoint name of the message if the endpoint is given a 
     name within the url group.
     """
 
     queue: Optional[str]
-    """The queue name if this message was enqueued to a queue."""
+    """Queue name if this message was enqueued to a queue."""
 
     body: Optional[str]
-    """
-    The body of the message if it is composed of UTF-8 characters only, 
-    `None` otherwise.
-    """
+    """Body of the message if it is composed of UTF-8 characters only."""
 
     body_base64: Optional[str]
-    """
-    The base64 encoded body if the body contains non-UTF-8 characters, 
-    `None` otherwise.
-    """
+    """Base64 encoded body if the body contains non-UTF-8 characters."""
 
     method: HttpMethod
-    """The HTTP method to use for the message."""
+    """HTTP method used to deliver the message."""
 
     headers: Optional[Dict[str, List[str]]]
-    """The HTTP headers sent the endpoint."""
+    """Headers forwarded to the url."""
+
+    callback_headers: Optional[Dict[str, List[str]]]
+    """Headers forwarded to callback url."""
+
+    failure_callback_headers: Optional[Dict[str, List[str]]]
+    """Headers forwarded to failure callback url."""
 
     max_retries: int
-    """The number of retries that should be attempted in case of delivery failure."""
+    """Number of retries that should be attempted in case of delivery failure."""
 
     not_before: int
-    """The unix timestamp in milliseconds before which the message should not be delivered."""
+    """Unix time in milliseconds before which the message should not be delivered."""
 
     created_at: int
-    """The unix timestamp in milliseconds when the message was created."""
+    """Unix time in milliseconds when the message was created."""
 
     callback: Optional[str]
-    """The url which is called each time the message is attempted to be delivered."""
+    """Url which is called each time the message is attempted to be delivered."""
 
     failure_callback: Optional[str]
-    """The url which is called after the message is failed."""
+    """Url which is called after the message is failed."""
 
     schedule_id: Optional[str]
-    """The scheduleId of the message if the message is triggered by a schedule."""
+    """Schedule id of the message if the message is triggered by a schedule."""
 
     caller_ip: Optional[str]
     """IP address of the publisher of this message."""
 
-    flow_control_key: Optional[str]
-    """flow control key"""
-
-    parallelism: Optional[int]
-    """number of requests which can be active with the same flow control key"""
-
-    rate_per_second: Optional[int]
-    """number of requests to activate per second with the same flow control key"""
+    flow_control: Optional[FlowControlProperties]
+    """Flow control properties."""
 
 
 def get_destination(
@@ -385,6 +406,8 @@ def prepare_headers(
     content_type: Optional[str],
     method: Optional[HttpMethod],
     headers: Optional[Dict[str, str]],
+    callback_headers: Optional[Dict[str, str]],
+    failure_callback_headers: Optional[Dict[str, str]],
     retries: Optional[int],
     callback: Optional[str],
     failure_callback: Optional[str],
@@ -405,10 +428,24 @@ def prepare_headers(
 
     if headers:
         for k, v in headers.items():
-            if not k.lower().startswith("upstash-"):
+            if not k.lower().startswith("upstash-forward-"):
                 k = f"Upstash-Forward-{k}"
 
-            h[k] = v
+            h[k] = str(v)
+
+    if callback_headers:
+        for k, v in callback_headers.items():
+            if not k.lower().startswith("upstash-callback-"):
+                k = f"Upstash-Callback-{k}"
+
+            h[k] = str(v)
+
+    if failure_callback_headers:
+        for k, v in failure_callback_headers.items():
+            if not k.lower().startswith("upstash-failure-callback-"):
+                k = f"Upstash-Failure-Callback-{k}"
+
+            h[k] = str(v)
 
     if retries is not None:
         h["Upstash-Retries"] = str(retries)
@@ -442,15 +479,19 @@ def prepare_headers(
 
     if flow_control and "key" in flow_control:
         control_values = []
+
         if "parallelism" in flow_control:
             control_values.append(f"parallelism={flow_control['parallelism']}")
-        if "rate_per_second" in flow_control:
-            control_values.append(f"rate={flow_control['rate_per_second']}")
 
-        if not control_values:
-            raise QStashError(
-                "Provide at least one of parallelism or rate_per_second for flow_control"
-            )
+        if "rate" in flow_control:
+            control_values.append(f"rate={flow_control['rate']}")
+
+        if "period" in flow_control:
+            period = flow_control["period"]
+            if isinstance(period, int):
+                period = f"{period}s"
+
+            control_values.append(f"period={period}")
 
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
@@ -506,7 +547,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
     batch_messages = []
 
     for msg in messages:
-        user_headers = msg.get("headers") or {}
+        user_headers = msg.get("headers", {})
         destination = get_destination(
             url=msg.get("url"),
             url_group=msg.get("url_group"),
@@ -518,6 +559,8 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             content_type=msg.get("content_type"),
             method=msg.get("method"),
             headers=user_headers,
+            callback_headers=msg.get("callback_headers"),
+            failure_callback_headers=msg.get("failure_callback_headers"),
             retries=msg.get("retries"),
             callback=msg.get("callback"),
             failure_callback=msg.get("failure_callback"),
@@ -598,6 +641,12 @@ def convert_to_batch_messages(
         if "headers" in msg:
             batch_msg["headers"] = msg["headers"]
 
+        if "callback_headers" in msg:
+            batch_msg["callback_headers"] = msg["callback_headers"]
+
+        if "failure_callback_headers" in msg:
+            batch_msg["failure_callback_headers"] = msg["failure_callback_headers"]
+
         if "retries" in msg:
             batch_msg["retries"] = msg["retries"]
 
@@ -632,7 +681,20 @@ def convert_to_batch_messages(
     return batch_messages
 
 
+def parse_flow_control(response: Dict[str, Any]) -> Optional[FlowControlProperties]:
+    if "flowControlKey" not in response:
+        return None
+
+    return FlowControlProperties(
+        key=response["flowControlKey"],
+        parallelism=response.get("parallelism"),
+        rate=response.get("rate"),
+        period=response.get("period"),
+    )
+
+
 def parse_message_response(response: Dict[str, Any]) -> Message:
+    flow_control = parse_flow_control(response)
     return Message(
         message_id=response["messageId"],
         url=response["url"],
@@ -643,6 +705,8 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         body_base64=response.get("bodyBase64"),
         method=response["method"],
         headers=response.get("header"),
+        callback_headers=response.get("callbackHeader"),
+        failure_callback_headers=response.get("failureCallbackHeader"),
         max_retries=response["maxRetries"],
         not_before=response["notBefore"],
         created_at=response["createdAt"],
@@ -650,9 +714,7 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         failure_callback=response.get("failureCallback"),
         schedule_id=response.get("scheduleId"),
         caller_ip=response.get("callerIP"),
-        flow_control_key=response.get("flowControlKey"),
-        parallelism=response.get("parallelism"),
-        rate_per_second=response.get("rate"),
+        flow_control=flow_control,
     )
 
 
@@ -670,6 +732,8 @@ class MessageApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -697,6 +761,9 @@ class MessageApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -716,8 +783,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         headers = headers or {}
         destination = get_destination(
@@ -731,6 +798,8 @@ class MessageApi:
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -760,6 +829,8 @@ class MessageApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -788,6 +859,9 @@ class MessageApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -807,8 +881,8 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         return self.publish(
             url=url,
@@ -818,6 +892,8 @@ class MessageApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -840,6 +916,8 @@ class MessageApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -866,6 +944,9 @@ class MessageApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -891,6 +972,8 @@ class MessageApi:
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -921,6 +1004,8 @@ class MessageApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -948,6 +1033,9 @@ class MessageApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -970,6 +1058,8 @@ class MessageApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -1070,9 +1160,9 @@ class MessageApi:
             body=body,
         )
 
-        return response["cancelled"]
+        return response["cancelled"]  # type:ignore[no-any-return]
 
-    def cancel_all(self):
+    def cancel_all(self) -> int:
         """
         Cancels delivery of all the existing messages.
 
@@ -1087,4 +1177,4 @@ class MessageApi:
             method="DELETE",
         )
 
-        return response["cancelled"]
+        return response["cancelled"]  # type:ignore[no-any-return]
