@@ -39,6 +39,9 @@ class LogState(enum.Enum):
     CANCELED = "CANCELED"
     """Cancel request from the user is honored."""
 
+    IN_PROGRESS = "IN_PROGRESS"
+    """Messages which are in progress"""
+
 
 @dataclasses.dataclass
 class Log:
