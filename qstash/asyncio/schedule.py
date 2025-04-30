@@ -3,12 +3,12 @@ from typing import Any, Dict, List, Optional, Union
 
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.http import HttpMethod
+from qstash.message import FlowControl
 from qstash.schedule import (
     Schedule,
     parse_schedule_response,
     prepare_schedule_headers,
 )
-from qstash.message import FlowControl
 
 
 class AsyncScheduleApi:
@@ -24,12 +24,15 @@ class AsyncScheduleApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
@@ -43,6 +46,9 @@ class AsyncScheduleApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -57,21 +63,26 @@ class AsyncScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param schedule_id: Schedule id to use. This can be used to update the settings
+            of an existing schedule.
+        :param queue: Name of the queue which the scheduled messages will be enqueued.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            queue=queue,
             flow_control=flow_control,
         )
 
@@ -82,7 +93,7 @@ class AsyncScheduleApi:
             body=body,
         )
 
-        return response["scheduleId"]
+        return response["scheduleId"]  # type:ignore[no-any-return]
 
     async def create_json(
         self,
@@ -92,12 +103,15 @@ class AsyncScheduleApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
@@ -112,6 +126,9 @@ class AsyncScheduleApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -126,9 +143,11 @@ class AsyncScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param schedule_id: Schedule id to use. This can be used to update the settings
+            of an existing schedule.
+        :param queue: Name of the queue which the scheduled messages will be enqueued.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         return await self.create(
             destination=destination,
@@ -137,12 +156,15 @@ class AsyncScheduleApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            queue=queue,
             flow_control=flow_control,
         )
 

@@ -66,7 +66,7 @@ def test_dlq_filter(client: QStash) -> None:
 
     assert isinstance(res, PublishResponse)
 
-    def assertion():
+    def assertion() -> None:
         messages = client.dlq.list(
             filter={"message_id": res.message_id},
             count=1,

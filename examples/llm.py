@@ -9,7 +9,7 @@ from qstash import QStash
 from qstash.chat import openai
 
 
-def main():
+def main() -> None:
     client = QStash(
         token="<QSTASH-TOKEN>",
     )

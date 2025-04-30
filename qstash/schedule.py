@@ -1,53 +1,70 @@
 import dataclasses
+import enum
 import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.http import HttpClient, HttpMethod
-from qstash.message import FlowControl
-from qstash.errors import QStashError
+from qstash.message import FlowControl, parse_flow_control, FlowControlProperties
+
+
+class ScheduleState(enum.Enum):
+    IN_PROGRESS = "IN_PROGRESS"
+    SUCCESS = "SUCCESS"
+    FAIL = "FAIL"
 
 
 @dataclasses.dataclass
 class Schedule:
     schedule_id: str
-    """The id of the schedule."""
+    """Id of the schedule."""
 
     destination: str
-    """The destination url or url group."""
+    """Destination url or url group."""
 
     cron: str
-    """The cron expression used to schedule the messages."""
+    """Cron expression used to schedule the messages."""
 
     created_at: int
-    """The creation time of the schedule, in unix milliseconds."""
+    """Unix time in milliseconds when the schedule was created."""
 
     body: Optional[str]
-    """The body of the scheduled message if it is composed of UTF-8 characters only, 
-    `None` otherwise.."""
+    """Body of the scheduled message if it is composed of UTF-8 characters only."""
 
     body_base64: Optional[str]
-    """
-    The base64 encoded body if the scheduled message body contains non-UTF-8 characters, 
-    `None` otherwise.
-    """
+    """Base64 encoded body if the scheduled message body contains non-UTF-8 characters."""
 
     method: HttpMethod
-    """The HTTP method to use for the message."""
+    """HTTP method to use to deliver the message."""
 
     headers: Optional[Dict[str, List[str]]]
-    """The headers of the message."""
+    """Headers that will be forwarded to destination."""
+
+    callback_headers: Optional[Dict[str, List[str]]]
+    """Headers that will be forwarded to callback url."""
+
+    failure_callback_headers: Optional[Dict[str, List[str]]]
+    """Headers that will be forwarded to failure callback url."""
 
     retries: int
-    """The number of retries that should be attempted in case of delivery failure."""
+    """Number of retries that should be attempted in case of delivery failure."""
 
     callback: Optional[str]
-    """The url which is called each time the message is attempted to be delivered."""
+    """Url which is called each time the message is attempted to be delivered."""
 
     failure_callback: Optional[str]
-    """The url which is called after the message is failed."""
+    """Url which is called after the message is failed."""
+
+    queue: Optional[str]
+    """
+    Name of the queue which the messages will be enqueued, 
+    if the destination is a queue.
+    """
 
     delay: Optional[int]
-    """The delay in seconds before the message is delivered."""
+    """Delay in seconds before the message is delivered."""
+
+    timeout: Optional[int]
+    """HTTP timeout value to use while calling the destination url."""
 
     caller_ip: Optional[str]
     """IP address of the creator of this schedule."""
@@ -55,14 +72,23 @@ class Schedule:
     paused: bool
     """Whether the schedule is paused or not."""
 
-    flow_control_key: Optional[str]
-    """flow control key"""
+    flow_control: Optional[FlowControlProperties]
+    """Flow control properties"""
 
-    parallelism: Optional[int]
-    """number of requests which can be active with the same flow control key"""
+    last_schedule_time: Optional[int]
+    """Unix time of the last schedule, in milliseconds."""
 
-    rate_per_second: Optional[int]
-    """number of requests to activate per second with the same flow control key"""
+    next_schedule_time: Optional[int]
+    """Unix time of the next schedule, in milliseconds."""
+
+    last_schedule_states: Optional[Dict[str, ScheduleState]]
+    """
+    Map of the message ids to schedule states for the 
+    published/enqueued messages in the last schedule run.
+    """
+
+    error: Optional[str]
+    """Error message of the last schedule trigger."""
 
 
 def prepare_schedule_headers(
@@ -71,12 +97,15 @@ def prepare_schedule_headers(
     content_type: Optional[str],
     method: Optional[HttpMethod],
     headers: Optional[Dict[str, str]],
+    callback_headers: Optional[Dict[str, str]],
+    failure_callback_headers: Optional[Dict[str, str]],
     retries: Optional[int],
     callback: Optional[str],
     failure_callback: Optional[str],
     delay: Optional[Union[str, int]],
     timeout: Optional[Union[str, int]],
     schedule_id: Optional[str],
+    queue: Optional[str],
     flow_control: Optional[FlowControl],
 ) -> Dict[str, str]:
     h = {
@@ -91,10 +120,24 @@ def prepare_schedule_headers(
 
     if headers:
         for k, v in headers.items():
-            if not k.lower().startswith("upstash-"):
+            if not k.lower().startswith("upstash-forward-"):
                 k = f"Upstash-Forward-{k}"
 
-            h[k] = v
+            h[k] = str(v)
+
+    if callback_headers:
+        for k, v in callback_headers.items():
+            if not k.lower().startswith("upstash-callback-"):
+                k = f"Upstash-Callback-{k}"
+
+            h[k] = str(v)
+
+    if failure_callback_headers:
+        for k, v in failure_callback_headers.items():
+            if not k.lower().startswith("upstash-failure-callback-"):
+                k = f"Upstash-Failure-Callback-{k}"
+
+            h[k] = str(v)
 
     if retries is not None:
         h["Upstash-Retries"] = str(retries)
@@ -122,23 +165,39 @@ def prepare_schedule_headers(
 
     if flow_control and "key" in flow_control:
         control_values = []
+
         if "parallelism" in flow_control:
             control_values.append(f"parallelism={flow_control['parallelism']}")
-        if "rate_per_second" in flow_control:
-            control_values.append(f"rate={flow_control['rate_per_second']}")
 
-        if not control_values:
-            raise QStashError(
-                "Provide at least one of parallelism or rate_per_second for flow_control"
-            )
+        if "rate" in flow_control:
+            control_values.append(f"rate={flow_control['rate']}")
+
+        if "period" in flow_control:
+            period = flow_control["period"]
+            if isinstance(period, int):
+                period = f"{period}s"
+
+            control_values.append(f"period={period}")
 
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
+
+    if queue is not None:
+        h["Upstash-Queue-Name"] = queue
 
     return h
 
 
 def parse_schedule_response(response: Dict[str, Any]) -> Schedule:
+    flow_control = parse_flow_control(response)
+
+    if "lastScheduleStates" in response:
+        last_states = response["lastScheduleStates"]
+        for k, v in last_states.items():
+            last_states[k] = ScheduleState(v)
+    else:
+        last_states = None
+
     return Schedule(
         schedule_id=response["scheduleId"],
         destination=response["destination"],
@@ -148,15 +207,21 @@ def parse_schedule_response(response: Dict[str, Any]) -> Schedule:
         body_base64=response.get("bodyBase64"),
         method=response["method"],
         headers=response.get("header"),
+        callback_headers=response.get("callbackHeader"),
+        failure_callback_headers=response.get("failureCallbackHeader"),
         retries=response["retries"],
         callback=response.get("callback"),
         failure_callback=response.get("failureCallback"),
         delay=response.get("delay"),
+        timeout=response.get("timeout"),
         caller_ip=response.get("callerIP"),
         paused=response.get("isPaused", False),
-        flow_control_key=response.get("flowControlKey"),
-        parallelism=response.get("parallelism"),
-        rate_per_second=response.get("rate"),
+        queue=response.get("queueName"),
+        flow_control=flow_control,
+        last_schedule_time=response.get("lastScheduleTime"),
+        next_schedule_time=response.get("nextScheduleTime"),
+        last_schedule_states=last_states,
+        error=response.get("error"),
     )
 
 
@@ -173,12 +238,15 @@ class ScheduleApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
@@ -192,6 +260,9 @@ class ScheduleApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -206,21 +277,26 @@ class ScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param schedule_id: Schedule id to use. This can be used to update the settings
+            of an existing schedule.
+        :param queue: Name of the queue which the scheduled messages will be enqueued.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            queue=queue,
             flow_control=flow_control,
         )
 
@@ -231,7 +307,7 @@ class ScheduleApi:
             body=body,
         )
 
-        return response["scheduleId"]
+        return response["scheduleId"]  # type:ignore[no-any-return]
 
     def create_json(
         self,
@@ -241,12 +317,15 @@ class ScheduleApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
         timeout: Optional[Union[str, int]] = None,
         schedule_id: Optional[str] = None,
+        queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
     ) -> str:
         """
@@ -261,6 +340,9 @@ class ScheduleApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -275,9 +357,11 @@ class ScheduleApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. Can be used to update the settings of an existing schedule.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param schedule_id: Schedule id to use. This can be used to update the settings
+            of an existing schedule.
+        :param queue: Name of the queue which the scheduled messages will be enqueued.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         return self.create(
             destination=destination,
@@ -286,12 +370,15 @@ class ScheduleApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
             timeout=timeout,
             schedule_id=schedule_id,
+            queue=queue,
             flow_control=flow_control,
         )
 

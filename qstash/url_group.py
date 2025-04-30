@@ -8,42 +8,42 @@ from qstash.http import HttpClient
 
 class UpsertEndpointRequest(TypedDict, total=False):
     url: str
-    """The url of the endpoint"""
+    """Url of the endpoint"""
 
     name: str
-    """The optional name of the endpoint"""
+    """Optional name of the endpoint"""
 
 
 class RemoveEndpointRequest(TypedDict, total=False):
     url: str
-    """The url of the endpoint"""
+    """Url of the endpoint"""
 
     name: str
-    """The name of the endpoint"""
+    """Name of the endpoint"""
 
 
 @dataclasses.dataclass
 class Endpoint:
     url: str
-    """The url of the endpoint"""
+    """Url of the endpoint"""
 
     name: Optional[str]
-    """The name of the endpoint"""
+    """Name of the endpoint"""
 
 
 @dataclasses.dataclass
 class UrlGroup:
     name: str
-    """The name of the url group."""
+    """Name of the url group."""
 
     created_at: int
-    """The creation time of the url group, in unix milliseconds."""
+    """Creation time of the url group, in Unix milliseconds."""
 
     updated_at: int
-    """The last update time of the url group, in unix milliseconds."""
+    """Last update time of the url group, in Unix milliseconds."""
 
     endpoints: List[Endpoint]
-    """The list of endpoints."""
+    """List of endpoints."""
 
 
 def prepare_add_endpoints_body(

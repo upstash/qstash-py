@@ -90,4 +90,4 @@ class AsyncDlqApi:
             body=body,
         )
 
-        return response["deleted"]
+        return response["deleted"]  # type:ignore[no-any-return]

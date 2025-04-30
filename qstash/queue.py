@@ -8,19 +8,19 @@ from qstash.http import HttpClient
 @dataclasses.dataclass
 class Queue:
     name: str
-    """The name of the queue."""
+    """Name of the queue."""
 
     parallelism: int
-    """The number of parallel consumers consuming from the queue."""
+    """Number of parallel consumers consuming from the queue."""
 
     created_at: int
-    """The creation time of the queue, in unix milliseconds."""
+    """Creation time of the queue, in Unix milliseconds."""
 
     updated_at: int
-    """The last update time of the queue, in unix milliseconds."""
+    """Last update time of the queue, in Unix milliseconds."""
 
     lag: int
-    """The number of unprocessed messages that exist in the queue."""
+    """Number of unprocessed messages that exist in the queue."""
 
     paused: bool
     """Whether the queue is paused or not."""

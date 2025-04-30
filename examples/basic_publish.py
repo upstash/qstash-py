@@ -5,7 +5,7 @@ Publishes a JSON message with a 3s delay to a URL using QStash.
 from qstash import QStash
 
 
-def main():
+def main() -> None:
     client = QStash(
         token="<QSTASH-TOKEN>",
     )
@@ -19,7 +19,7 @@ def main():
         delay="3s",
     )
 
-    print(res.message_id)
+    print(res.message_id)  # type:ignore[union-attr]
 
 
 if __name__ == "__main__":

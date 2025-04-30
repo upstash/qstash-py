@@ -40,6 +40,8 @@ class AsyncMessageApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -67,6 +69,9 @@ class AsyncMessageApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -86,8 +91,8 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         headers = headers or {}
         destination = get_destination(
@@ -101,6 +106,8 @@ class AsyncMessageApi:
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -130,6 +137,8 @@ class AsyncMessageApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -158,6 +167,9 @@ class AsyncMessageApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -177,8 +189,8 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests and
-            number of requests per second with the same key.
+        :param flow_control: Settings for controlling the number of active requests,
+            as well as the rate of requests with the same flow control key.
         """
         return await self.publish(
             url=url,
@@ -188,6 +200,8 @@ class AsyncMessageApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -210,6 +224,8 @@ class AsyncMessageApi:
         content_type: Optional[str] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -236,6 +252,9 @@ class AsyncMessageApi:
         :param content_type: MIME type of the message.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -261,6 +280,8 @@ class AsyncMessageApi:
             content_type=content_type,
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -291,6 +312,8 @@ class AsyncMessageApi:
         body: Optional[Any] = None,
         method: Optional[HttpMethod] = None,
         headers: Optional[Dict[str, str]] = None,
+        callback_headers: Optional[Dict[str, str]] = None,
+        failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
@@ -318,6 +341,9 @@ class AsyncMessageApi:
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
+        :param callback_headers: Headers to forward along with the callback message.
+        :param failure_callback_headers: Headers to forward along with the failure
+            callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
         :param callback: A callback url that will be called after each attempt.
@@ -340,6 +366,8 @@ class AsyncMessageApi:
             content_type="application/json",
             method=method,
             headers=headers,
+            callback_headers=callback_headers,
+            failure_callback_headers=failure_callback_headers,
             retries=retries,
             callback=callback,
             failure_callback=failure_callback,
@@ -440,9 +468,9 @@ class AsyncMessageApi:
             body=body,
         )
 
-        return response["cancelled"]
+        return response["cancelled"]  # type:ignore[no-any-return]
 
-    async def cancel_all(self):
+    async def cancel_all(self) -> int:
         """
         Cancels delivery of all the existing messages.
 
@@ -457,4 +485,4 @@ class AsyncMessageApi:
             method="DELETE",
         )
 
-        return response["cancelled"]
+        return response["cancelled"]  # type:ignore[no-any-return]
