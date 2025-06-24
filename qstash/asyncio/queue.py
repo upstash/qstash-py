@@ -20,7 +20,7 @@ class AsyncQueueApi:
 
         :param queue: The name of the queue.
         :param parallelism: The number of parallel consumers consuming from the queue.
-        :param paused: Whether to pause the queue or not. A paused queue will not
+        :param paused: Whether to pause the queue or not. A paused queue will not \
             deliver new messages until it is resumed.
         """
         body = prepare_upsert_body(queue, parallelism, paused)

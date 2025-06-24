@@ -48,9 +48,9 @@ class Receiver:
 
     def __init__(self, current_signing_key: str, next_signing_key: str) -> None:
         """
-        :param current_signing_key: The current signing key.
+        :param current_signing_key: The current signing key. \
             Get it from `https://console.upstash.com/qstash
-        :param next_signing_key: The next signing key.
+        :param next_signing_key: The next signing key. \
             Get it from `https://console.upstash.com/qstash
         """
         self._current_signing_key = current_signing_key
@@ -75,10 +75,10 @@ class Receiver:
 
         :param signature: The signature from the `Upstash-Signature` header.
         :param body: The raw request body.
-        :param url: Url of the endpoint where the request was sent to.
+        :param url: Url of the endpoint where the request was sent to. \
             When set to `None`, url is not check.
-        :param clock_tolerance: Number of seconds to tolerate when checking
-            `nbf` and `exp` claims, to deal with small clock differences
+        :param clock_tolerance: Number of seconds to tolerate when checking \
+            `nbf` and `exp` claims, to deal with small clock differences \
             among different servers.
         """
         try:

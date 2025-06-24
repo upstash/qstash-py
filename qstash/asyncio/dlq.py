@@ -39,7 +39,7 @@ class AsyncDlqApi:
         Lists all messages currently inside the DLQ.
 
         :param cursor: Optional cursor to start listing DLQ messages from.
-        :param count: The maximum number of DLQ messages to return.
+        :param count: The maximum number of DLQ messages to return. \
             Default and max is `100`.
         :param filter: Filter to use.
         """

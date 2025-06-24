@@ -63,7 +63,7 @@ class QueueApi:
 
         :param queue: The name of the queue.
         :param parallelism: The number of parallel consumers consuming from the queue.
-        :param paused: Whether to pause the queue or not. A paused queue will not
+        :param paused: Whether to pause the queue or not. A paused queue will not \
             deliver new messages until it is resumed.
         """
         body = prepare_upsert_body(queue, parallelism, paused)
@@ -112,7 +112,7 @@ class QueueApi:
         """
         Pauses the queue.
 
-        A paused queue will not deliver messages until
+        A paused queue will not deliver messages until \
         it is resumed.
         """
         self._http.request(

@@ -764,26 +764,26 @@ class MessageApi:
         :param callback_headers: Headers to forward along with the callback message.
         :param failure_callback_headers: Headers to forward along with the failure
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
-            it is also possible to specify the delay as an integer, which will be
+        :param delay: Delay the message delivery. The format for the delay string is a \
+            number followed by duration abbreviation, like `10s`. Available durations \
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience, \
+            it is also possible to specify the delay as an integer, which will be \
             interpreted as delay in seconds.
-        :param not_before: Delay the message until a certain time in the future.
+        :param not_before: Delay the message until a certain time in the future. \
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
-        :param content_based_deduplication: Automatically deduplicate messages based on
+        :param content_based_deduplication: Automatically deduplicate messages based on \
             their content.
-        :param timeout: The HTTP timeout value to use while calling the destination URL.
-            When a timeout is specified, it will be used instead of the maximum timeout
-            value permitted by the QStash plan. It is useful in scenarios, where a message
+        :param timeout: The HTTP timeout value to use while calling the destination URL. \
+            When a timeout is specified, it will be used instead of the maximum timeout \
+            value permitted by the QStash plan. It is useful in scenarios, where a message \
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests,
+        :param flow_control: Settings for controlling the number of active requests, \
             as well as the rate of requests with the same flow control key.
         """
         headers = headers or {}
@@ -860,28 +860,28 @@ class MessageApi:
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
         :param callback_headers: Headers to forward along with the callback message.
-        :param failure_callback_headers: Headers to forward along with the failure
+        :param failure_callback_headers: Headers to forward along with the failure \
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
-            it is also possible to specify the delay as an integer, which will be
+        :param delay: Delay the message delivery. The format for the delay string is a \
+            number followed by duration abbreviation, like `10s`. Available durations \
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience, \
+            it is also possible to specify the delay as an integer, which will be \
             interpreted as delay in seconds.
-        :param not_before: Delay the message until a certain time in the future.
+        :param not_before: Delay the message until a certain time in the future. \
             The format is a unix timestamp in seconds, based on the UTC timezone.
         :param deduplication_id: Id to use while deduplicating messages.
-        :param content_based_deduplication: Automatically deduplicate messages based on
+        :param content_based_deduplication: Automatically deduplicate messages based on \
             their content.
-        :param timeout: The HTTP timeout value to use while calling the destination URL.
-            When a timeout is specified, it will be used instead of the maximum timeout
-            value permitted by the QStash plan. It is useful in scenarios, where a message
+        :param timeout: The HTTP timeout value to use while calling the destination URL. \
+            When a timeout is specified, it will be used instead of the maximum timeout \
+            value permitted by the QStash plan. It is useful in scenarios, where a message \
             should be delivered with a shorter timeout.
-        :param flow_control: Settings for controlling the number of active requests,
+        :param flow_control: Settings for controlling the number of active requests, \
             as well as the rate of requests with the same flow control key.
         """
         return self.publish(
@@ -945,19 +945,19 @@ class MessageApi:
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
         :param callback_headers: Headers to forward along with the callback message.
-        :param failure_callback_headers: Headers to forward along with the failure
+        :param failure_callback_headers: Headers to forward along with the failure \
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
         :param deduplication_id: Id to use while deduplicating messages.
-        :param content_based_deduplication: Automatically deduplicate messages based on
+        :param content_based_deduplication: Automatically deduplicate messages based on \
             their content.
-        :param timeout: The HTTP timeout value to use while calling the destination URL.
-            When a timeout is specified, it will be used instead of the maximum timeout
-            value permitted by the QStash plan. It is useful in scenarios, where a message
+        :param timeout: The HTTP timeout value to use while calling the destination URL. \
+            When a timeout is specified, it will be used instead of the maximum timeout \
+            value permitted by the QStash plan. It is useful in scenarios, where a message \
             should be delivered with a shorter timeout.
         """
         headers = headers or {}
@@ -1034,19 +1034,19 @@ class MessageApi:
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
         :param callback_headers: Headers to forward along with the callback message.
-        :param failure_callback_headers: Headers to forward along with the failure
+        :param failure_callback_headers: Headers to forward along with the failure \
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
         :param deduplication_id: Id to use while deduplicating messages.
-        :param content_based_deduplication: Automatically deduplicate messages based on
+        :param content_based_deduplication: Automatically deduplicate messages based on \
             their content.
-        :param timeout: The HTTP timeout value to use while calling the destination URL.
-            When a timeout is specified, it will be used instead of the maximum timeout
-            value permitted by the QStash plan. It is useful in scenarios, where a message
+        :param timeout: The HTTP timeout value to use while calling the destination URL. \
+            When a timeout is specified, it will be used instead of the maximum timeout \
+            value permitted by the QStash plan. It is useful in scenarios, where a message \
             should be delivered with a shorter timeout.
         """
         return self.enqueue(

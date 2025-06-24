@@ -261,26 +261,26 @@ class ScheduleApi:
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
         :param callback_headers: Headers to forward along with the callback message.
-        :param failure_callback_headers: Headers to forward along with the failure
+        :param failure_callback_headers: Headers to forward along with the failure \
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
-            it is also possible to specify the delay as an integer, which will be
+        :param delay: Delay the message delivery. The format for the delay string is a \
+            number followed by duration abbreviation, like `10s`. Available durations \
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience, \
+            it is also possible to specify the delay as an integer, which will be \
             interpreted as delay in seconds.
-        :param timeout: The HTTP timeout value to use while calling the destination URL.
-            When a timeout is specified, it will be used instead of the maximum timeout
-            value permitted by the QStash plan. It is useful in scenarios, where a message
+        :param timeout: The HTTP timeout value to use while calling the destination URL. \
+            When a timeout is specified, it will be used instead of the maximum timeout \
+            value permitted by the QStash plan. It is useful in scenarios, where a message \
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. This can be used to update the settings
+        :param schedule_id: Schedule id to use. This can be used to update the settings \
             of an existing schedule.
         :param queue: Name of the queue which the scheduled messages will be enqueued.
-        :param flow_control: Settings for controlling the number of active requests,
+        :param flow_control: Settings for controlling the number of active requests, \
             as well as the rate of requests with the same flow control key.
         """
         req_headers = prepare_schedule_headers(
@@ -336,31 +336,31 @@ class ScheduleApi:
 
         :param destination: The destination url or url group.
         :param cron: The cron expression to use to schedule the messages.
-        :param body: The request message body passed to the destination after being
+        :param body: The request message body passed to the destination after being \
             serialized as JSON string.
         :param method: The HTTP method to use when sending a webhook to your API.
         :param headers: Headers to forward along with the message.
         :param callback_headers: Headers to forward along with the callback message.
-        :param failure_callback_headers: Headers to forward along with the failure
+        :param failure_callback_headers: Headers to forward along with the failure \
             callback message.
-        :param retries: How often should this message be retried in case the destination
+        :param retries: How often should this message be retried in case the destination \
             API is not available.
         :param callback: A callback url that will be called after each attempt.
-        :param failure_callback: A failure callback url that will be called when a delivery
+        :param failure_callback: A failure callback url that will be called when a delivery \
             is failed, that is when all the defined retries are exhausted.
-        :param delay: Delay the message delivery. The format for the delay string is a
-            number followed by duration abbreviation, like `10s`. Available durations
-            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience,
+        :param delay: Delay the message delivery. The format for the delay string is a \
+            number followed by duration abbreviation, like `10s`. Available durations \
+            are `s` (seconds), `m` (minutes), `h` (hours), and `d` (days). As convenience, \
             it is also possible to specify the delay as an integer, which will be
             interpreted as delay in seconds.
         :param timeout: The HTTP timeout value to use while calling the destination URL.
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
-        :param schedule_id: Schedule id to use. This can be used to update the settings
+        :param schedule_id: Schedule id to use. This can be used to update the settings \
             of an existing schedule.
         :param queue: Name of the queue which the scheduled messages will be enqueued.
-        :param flow_control: Settings for controlling the number of active requests,
+        :param flow_control: Settings for controlling the number of active requests, \
             as well as the rate of requests with the same flow control key.
         """
         return self.create(
