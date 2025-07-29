@@ -29,6 +29,12 @@ class DlqMessage(Message):
     if the response body contains non-UTF-8 characters.
     """
 
+    retry_delay_expression: Optional[str]
+    """
+    The retry delay expression for this DLQ message,
+    if retry_delay was set when publishing the message.
+    """
+
 
 class DlqFilter(TypedDict, total=False):
     message_id: str
@@ -101,6 +107,7 @@ def parse_dlq_message_response(
         response_body=response.get("responseBody"),
         response_body_base64=response.get("responseBodyBase64"),
         flow_control=flow_control,
+        retry_delay_expression=response.get("retryDelayExpression"),
     )
 
 

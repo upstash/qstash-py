@@ -51,6 +51,21 @@ def test_publish_to_url(client: QStash) -> None:
     assert_delivered_eventually(client, res.message_id)
 
 
+def test_message_log_retry_delay_expression(client: QStash) -> None:
+    res = client.message.publish(
+        body="test-body",
+        url="https://httpstat.us/200",
+        headers={"test-header": "test-value"},
+        retry_delay="15",
+    )
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+    # Wait for delivery and log
+    assert_delivered_eventually(client, res.message_id)
+    logs = client.log.list(filter={"message_id": res.message_id}).logs
+    assert logs[0].retry_delay_expression == "15"
+
+
 def test_publish_to_url_json(client: QStash) -> None:
     res = client.message.publish_json(
         body={"ex_key": "ex_value"},

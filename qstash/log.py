@@ -111,6 +111,12 @@ class Log:
     max_retries: Optional[int]
     """Number of retries that should be attempted in case of delivery failure."""
 
+    retry_delay_expression: Optional[str]
+    """
+    The retry delay expression for this DLQ message,
+    if retry_delay was set when publishing the message.
+    """
+
     flow_control: Optional[FlowControlProperties]
     """Flow control properties"""
 
@@ -231,6 +237,7 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
                 flow_control=flow_control,
                 method=event.get("method"),
                 max_retries=event.get("maxRetries"),
+                retry_delay_expression=event.get("retryDelayExpression"),
             )
         )
 

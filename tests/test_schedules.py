@@ -29,19 +29,23 @@ def test_schedule_lifecycle(
     client: QStash,
     cleanup_schedule: Callable[[QStash, str], None],
 ) -> None:
+
     schedule_id = client.schedule.create_json(
         cron="1 1 1 1 1",
         destination="https://httpstat.us/200",
         body={"ex_key": "ex_value"},
+        retry_delay="5000 * retried",
     )
 
     cleanup_schedule(client, schedule_id)
 
     assert len(schedule_id) > 0
 
+
     res = client.schedule.get(schedule_id)
     assert res.schedule_id == schedule_id
     assert res.cron == "1 1 1 1 1"
+    assert res.retry_delay_expression == "5000 * retried"
 
     list_res = client.schedule.list()
     assert any(s.schedule_id == schedule_id for s in list_res)
