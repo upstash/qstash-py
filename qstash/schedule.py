@@ -146,7 +146,6 @@ def prepare_schedule_headers(
 
             h[k] = str(v)
 
-
     if retries is not None:
         h["Upstash-Retries"] = str(retries)
 
@@ -282,12 +281,12 @@ class ScheduleApi:
 
             By default, the `retryDelay` is exponential backoff.
             More details can be found in: https://upstash.com/docs/qstash/features/retry.
-            
+
             The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
-            
+
             You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
             The special variable `retried` represents the current retry attempt count (starting from 0).
-            
+
             Supported functions:
             - `pow`
             - `sqrt`
@@ -298,7 +297,7 @@ class ScheduleApi:
             - `round`
             - `min`
             - `max`
-            
+
             Examples of valid `retryDelay` values:
             ```py
             1000 # 1 second
@@ -392,12 +391,12 @@ class ScheduleApi:
 
             By default, the `retryDelay` is exponential backoff.
             More details can be found in: https://upstash.com/docs/qstash/features/retry.
-            
+
             The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
-            
+
             You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
             The special variable `retried` represents the current retry attempt count (starting from 0).
-            
+
             Supported functions:
             - `pow`
             - `sqrt`
@@ -408,7 +407,7 @@ class ScheduleApi:
             - `round`
             - `min`
             - `max`
-            
+
             Examples of valid `retryDelay` values:
             ```py
             1000 # 1 second
