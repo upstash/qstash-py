@@ -27,6 +27,7 @@ class AsyncScheduleApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
@@ -51,6 +52,34 @@ class AsyncScheduleApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -77,6 +106,7 @@ class AsyncScheduleApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
@@ -106,6 +136,7 @@ class AsyncScheduleApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
@@ -131,6 +162,34 @@ class AsyncScheduleApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -159,6 +218,7 @@ class AsyncScheduleApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,

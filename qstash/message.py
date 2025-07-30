@@ -162,6 +162,38 @@ class BatchRequest(TypedDict, total=False):
     API is not available.
     """
 
+    retry_delay: str
+    """
+    Delay between retries.
+
+    By default, the `retryDelay` is exponential backoff.
+    More details can be found in: https://upstash.com/docs/qstash/features/retry.
+    
+    The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+    
+    You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+    The special variable `retried` represents the current retry attempt count (starting from 0).
+    
+    Supported functions:
+    - `pow`
+    - `sqrt`
+    - `abs`
+    - `exp`
+    - `floor`
+    - `ceil`
+    - `round`
+    - `min`
+    - `max`
+    
+    Examples of valid `retryDelay` values:
+    ```py
+    1000 # 1 second
+    1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+    pow(2, retried) # 2 to the power of the current retry attempt
+    max(10, pow(2, retried)) # The greater of 10 or 2^retried
+    ```
+    """
+
     callback: str
     """A callback url that will be called after each attempt."""
 
@@ -250,6 +282,38 @@ class BatchJsonRequest(TypedDict, total=False):
     """
     How often should this message be retried in case the destination 
     API is not available.
+    """
+
+    retry_delay: str
+    """
+    Delay between retries.
+
+    By default, the `retryDelay` is exponential backoff.
+    More details can be found in: https://upstash.com/docs/qstash/features/retry.
+    
+    The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+    
+    You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+    The special variable `retried` represents the current retry attempt count (starting from 0).
+    
+    Supported functions:
+    - `pow`
+    - `sqrt`
+    - `abs`
+    - `exp`
+    - `floor`
+    - `ceil`
+    - `round`
+    - `min`
+    - `max`
+    
+    Examples of valid `retryDelay` values:
+    ```py
+    1000 # 1 second
+    1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+    pow(2, retried) # 2 to the power of the current retry attempt
+    max(10, pow(2, retried)) # The greater of 10 or 2^retried
+    ```
     """
 
     callback: str
@@ -346,6 +410,12 @@ class Message:
     max_retries: int
     """Number of retries that should be attempted in case of delivery failure."""
 
+    retry_delay_expression: Optional[str]
+    """
+    The retry delay expression for this DLQ message,
+    if retry_delay was set when publishing the message.
+    """
+
     not_before: int
     """Unix time in milliseconds before which the message should not be delivered."""
 
@@ -409,6 +479,7 @@ def prepare_headers(
     callback_headers: Optional[Dict[str, str]],
     failure_callback_headers: Optional[Dict[str, str]],
     retries: Optional[int],
+    retry_delay: Optional[str],
     callback: Optional[str],
     failure_callback: Optional[str],
     delay: Optional[Union[str, int]],
@@ -449,6 +520,9 @@ def prepare_headers(
 
     if retries is not None:
         h["Upstash-Retries"] = str(retries)
+
+    if retry_delay is not None:
+        h["Upstash-Retry-Delay"] = retry_delay
 
     if callback is not None:
         h["Upstash-Callback"] = callback
@@ -562,6 +636,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             callback_headers=msg.get("callback_headers"),
             failure_callback_headers=msg.get("failure_callback_headers"),
             retries=msg.get("retries"),
+            retry_delay=msg.get("retry_delay"),
             callback=msg.get("callback"),
             failure_callback=msg.get("failure_callback"),
             delay=msg.get("delay"),
@@ -715,6 +790,7 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         schedule_id=response.get("scheduleId"),
         caller_ip=response.get("callerIP"),
         flow_control=flow_control,
+        retry_delay_expression=response.get("retryDelayExpression"),
     )
 
 
@@ -735,6 +811,7 @@ class MessageApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
@@ -766,6 +843,34 @@ class MessageApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -801,6 +906,7 @@ class MessageApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
@@ -832,6 +938,7 @@ class MessageApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         delay: Optional[Union[str, int]] = None,
@@ -864,6 +971,34 @@ class MessageApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -895,6 +1030,7 @@ class MessageApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             delay=delay,
@@ -919,6 +1055,7 @@ class MessageApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         deduplication_id: Optional[str] = None,
@@ -949,6 +1086,34 @@ class MessageApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -975,6 +1140,7 @@ class MessageApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             delay=None,
@@ -1007,6 +1173,7 @@ class MessageApi:
         callback_headers: Optional[Dict[str, str]] = None,
         failure_callback_headers: Optional[Dict[str, str]] = None,
         retries: Optional[int] = None,
+        retry_delay: Optional[str] = None,
         callback: Optional[str] = None,
         failure_callback: Optional[str] = None,
         deduplication_id: Optional[str] = None,
@@ -1038,6 +1205,34 @@ class MessageApi:
             callback message.
         :param retries: How often should this message be retried in case the destination
             API is not available.
+        :param retry_delay: Delay between retries.
+
+            By default, the `retryDelay` is exponential backoff.
+            More details can be found in: https://upstash.com/docs/qstash/features/retry.
+
+            The `retryDelay` option allows you to customize the delay (in milliseconds) between retry attempts when message delivery fails.
+
+            You can use mathematical expressions and the following built-in functions to calculate the delay dynamically.
+            The special variable `retried` represents the current retry attempt count (starting from 0).
+
+            Supported functions:
+            - `pow`
+            - `sqrt`
+            - `abs`
+            - `exp`
+            - `floor`
+            - `ceil`
+            - `round`
+            - `min`
+            - `max`
+
+            Examples of valid `retryDelay` values:
+            ```py
+            1000 # 1 second
+            1000 * (1 + retried) # 1 second multiplied by the current retry attempt
+            pow(2, retried) # 2 to the power of the current retry attempt
+            max(10, pow(2, retried)) # The greater of 10 or 2^retried
+            ```
         :param callback: A callback url that will be called after each attempt.
         :param failure_callback: A failure callback url that will be called when a delivery
             is failed, that is when all the defined retries are exhausted.
@@ -1061,6 +1256,7 @@ class MessageApi:
             callback_headers=callback_headers,
             failure_callback_headers=failure_callback_headers,
             retries=retries,
+            retry_delay=retry_delay,
             callback=callback,
             failure_callback=failure_callback,
             deduplication_id=deduplication_id,
