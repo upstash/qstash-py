@@ -283,7 +283,7 @@ async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
         url_group=name,
         endpoints=[
             {"url": "https://mock.httpstatus.io/200"},
-            {"url": "https://httpstat.us/201"},
+            {"url": "https://mock.httpstatus.io/201"},
         ],
     )
 

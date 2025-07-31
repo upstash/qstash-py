@@ -18,7 +18,9 @@ def test_url_group(client: QStash) -> None:
     assert any(
         True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/200"
     )
-    assert any(True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/201")
+    assert any(
+        True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/201"
+    )
 
     url_groups = client.url_group.list()
     assert any(True for ug in url_groups if ug.name == name)
