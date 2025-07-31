@@ -44,7 +44,8 @@ async def assert_delivered_eventually_async(
 async def test_publish_to_url_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish(
         body="test-body",
-        url="https://httpstat.us/200",
+        method="GET",
+        url="https://mock.httpstatus.io/200",
         headers={
             "test-header": "test-value",
         },
@@ -60,7 +61,8 @@ async def test_publish_to_url_async(async_client: AsyncQStash) -> None:
 async def test_publish_to_url_json_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://httpstat.us/200",
+        method="GET",
+        url="https://mock.httpstatus.io/200",
         headers={
             "test-header": "test-value",
         },
@@ -76,13 +78,15 @@ async def test_publish_to_url_json_async(async_client: AsyncQStash) -> None:
 async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -> None:
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
-            url="https://httpstat.us/200",
+            method="GET",
+            url="https://mock.httpstatus.io/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
-            url="https://httpstat.us/200",
+            method="GET",
+            url="https://mock.httpstatus.io/200",
             api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
@@ -101,7 +105,8 @@ async def test_batch_async(async_client: AsyncQStash) -> None:
         messages.append(
             BatchRequest(
                 body=f"hi {i}",
-                url="https://httpstat.us/200",
+                method="GET",
+                url="https://mock.httpstatus.io/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -127,7 +132,8 @@ async def test_batch_json_async(async_client: AsyncQStash) -> None:
         messages.append(
             BatchJsonRequest(
                 body={"hi": i},
-                url="https://httpstat.us/200",
+                method="GET",
+                url="https://mock.httpstatus.io/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -157,7 +163,7 @@ async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
                 }
             ],
         },
-        callback="https://httpstat.us/200",
+        callback="https://mock.httpstatus.io/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -181,7 +187,7 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
                         }
                     ],
                 },
-                "callback": "https://httpstat.us/200",
+                "callback": "https://mock.httpstatus.io/200",
             },
         ]
     )
@@ -205,7 +211,8 @@ async def test_enqueue_async(
     res = await async_client.message.enqueue(
         queue=name,
         body="test-body",
-        url="https://httpstat.us/200",
+        method="GET",
+        url="https://mock.httpstatus.io/200",
         headers={
             "test-header": "test-value",
         },
@@ -227,7 +234,8 @@ async def test_enqueue_json_async(
     res = await async_client.message.enqueue_json(
         queue=name,
         body={"test": "body"},
-        url="https://httpstat.us/200",
+        method="GET",
+        url="https://mock.httpstatus.io/200",
         headers={
             "test-header": "test-value",
         },
@@ -258,7 +266,7 @@ async def test_enqueue_api_llm_async(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://httpstat.us/200",
+        callback="https://mock.httpstatus.io/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -274,7 +282,7 @@ async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
     await async_client.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://httpstat.us/200"},
+            {"url": "https://mock.httpstatus.io/200"},
             {"url": "https://httpstat.us/201"},
         ],
     )
@@ -295,7 +303,8 @@ async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
 async def test_timeout_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://httpstat.us/200",
+        method="GET",
+        url="https://mock.httpstatus.io/200",
         timeout=90,
     )
 
@@ -364,7 +373,7 @@ async def test_publish_to_api_llm_custom_provider_async(
                 }
             ],
         },
-        callback="https://httpstat.us/200",
+        callback="https://mock.httpstatus.io/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -393,7 +402,7 @@ async def test_enqueue_api_llm_custom_provider_async(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://httpstat.us/200",
+        callback="https://mock.httpstatus.io/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -407,7 +416,7 @@ async def test_publish_with_flow_control_async(
 ) -> None:
     result = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://httpstat.us/200?sleep=30000",
+        url="https://mock.httpstatus.io/200?sleep=30000",
         flow_control=FlowControl(key="flow-key", parallelism=3, rate=4, period=2),
     )
 
@@ -430,17 +439,17 @@ async def test_batch_with_flow_control_async(
         [
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://httpstat.us/200?sleep=30000",
+                url="https://mock.httpstatus.io/200?sleep=30000",
                 flow_control=FlowControl(key="flow-key-1", rate=1),
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://httpstat.us/200?sleep=30000",
+                url="https://mock.httpstatus.io/200?sleep=30000",
                 flow_control=FlowControl(key="flow-key-2", rate=23, period="1h30m3s"),
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://httpstat.us/200?sleep=30000",
+                url="https://mock.httpstatus.io/200?sleep=30000",
                 flow_control=FlowControl(key="flow-key-3", parallelism=5),
             ),
         ]
