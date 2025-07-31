@@ -50,5 +50,5 @@ def test_failed_verification(receiver: Receiver) -> None:
         receiver.verify(
             signature=sig,
             body=body,
-            url="https://httpstat.us/201",
+            url="https://mock.httpstatus.io/201",
         )

@@ -284,11 +284,12 @@ def test_publish_to_url_group(client: QStash) -> None:
         url_group=name,
         endpoints=[
             {"url": "https://mock.httpstatus.io/200"},
-            {"url": "https://httpstat.us/201"},
+            {"url": "https://mock.httpstatus.io/201"},
         ],
     )
 
     res = client.message.publish(
+        method="GET",
         body="test-body",
         url_group=name,
     )

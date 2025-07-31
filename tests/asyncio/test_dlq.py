@@ -42,7 +42,8 @@ async def assert_failed_eventually_async(
 @pytest.mark.asyncio
 async def test_dlq_get_and_delete_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
-        url="http://httpstat.us/404",
+        method="GET",
+        url="https://mock.httpstatus.io/404",
         retries=0,
     )
 
@@ -56,7 +57,8 @@ async def test_dlq_get_and_delete_many_async(async_client: AsyncQStash) -> None:
     msg_ids = []
     for _ in range(5):
         res = await async_client.message.publish_json(
-            url="http://httpstat.us/404",
+            method="GET",
+            url="https://mock.httpstatus.io/404",
             retries=0,
         )
 
@@ -69,7 +71,8 @@ async def test_dlq_get_and_delete_many_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_dlq_filter_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
-        url="http://httpstat.us/404",
+        method="GET",
+        url="https://mock.httpstatus.io/404",
         retries=0,
     )
 
