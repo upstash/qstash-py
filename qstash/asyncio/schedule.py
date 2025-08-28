@@ -35,6 +35,7 @@ class AsyncScheduleApi:
         schedule_id: Optional[str] = None,
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -97,6 +98,7 @@ class AsyncScheduleApi:
         :param queue: Name of the queue which the scheduled messages will be enqueued.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -114,6 +116,7 @@ class AsyncScheduleApi:
             schedule_id=schedule_id,
             queue=queue,
             flow_control=flow_control,
+            label=label,
         )
 
         response = await self._http.request(
@@ -144,6 +147,7 @@ class AsyncScheduleApi:
         schedule_id: Optional[str] = None,
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -207,6 +211,7 @@ class AsyncScheduleApi:
         :param queue: Name of the queue which the scheduled messages will be enqueued.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return await self.create(
             destination=destination,
@@ -226,6 +231,7 @@ class AsyncScheduleApi:
             schedule_id=schedule_id,
             queue=queue,
             flow_control=flow_control,
+            label=label,
         )
 
     async def get(self, schedule_id: str) -> Schedule:

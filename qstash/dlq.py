@@ -64,6 +64,9 @@ class DlqFilter(TypedDict, total=False):
     caller_ip: str
     """Filter DLQ entries by IP address of the publisher of the message"""
 
+    label: str
+    """Filter DLQ entries by label."""
+
 
 @dataclasses.dataclass
 class ListDlqMessagesResponse:
@@ -108,6 +111,7 @@ def parse_dlq_message_response(
         response_body_base64=response.get("responseBodyBase64"),
         flow_control=flow_control,
         retry_delay_expression=response.get("retryDelayExpression"),
+        label=response.get("label"),
     )
 
 
@@ -152,6 +156,9 @@ def prepare_list_dlq_messages_params(
 
         if "caller_ip" in filter:
             params["callerIp"] = filter["caller_ip"]
+
+        if "label" in filter:
+            params["label"] = filter["label"]
 
     return params
 

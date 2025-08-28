@@ -462,3 +462,165 @@ def test_batch_with_flow_control(client: QStash) -> None:
     assert flow_control3.parallelism == 5
     assert flow_control3.rate is None
     assert flow_control3.period == 1
+
+
+def test_publish_with_label(client: QStash) -> None:
+    res = client.message.publish(
+        body="test-body-with-label",
+        url="https://mock.httpstatus.io/200",
+        label="test-publish-label",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = client.message.get(res.message_id)
+    assert message.label == "test-publish-label"
+
+
+def test_publish_json_with_label(client: QStash) -> None:
+    res = client.message.publish_json(
+        body={"test": "data", "label": "json-test"},
+        url="https://mock.httpstatus.io/200",
+        label="test-json-label",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = client.message.get(res.message_id)
+    assert message.label == "test-json-label"
+
+
+def test_enqueue_with_label(
+    client: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    queue_name = "test_queue_with_label"
+    cleanup_queue(client, queue_name)
+
+    res = client.message.enqueue(
+        queue=queue_name,
+        body="test-enqueue-body",
+        url="https://mock.httpstatus.io/200",
+        label="test-enqueue-label",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = client.message.get(res.message_id)
+    assert message.label == "test-enqueue-label"
+
+
+def test_enqueue_json_with_label(
+    client: QStash,
+    cleanup_queue: Callable[[QStash, str], None],
+) -> None:
+    queue_name = "test_queue_json_label"
+    cleanup_queue(client, queue_name)
+
+    res = client.message.enqueue_json(
+        queue=queue_name,
+        body={"enqueue": "json-data"},
+        url="https://mock.httpstatus.io/200",
+        label="test-enqueue-json-label",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = client.message.get(res.message_id)
+    assert message.label == "test-enqueue-json-label"
+
+
+def test_batch_with_label(client: QStash) -> None:
+    result = client.message.batch(
+        [
+            BatchRequest(
+                body="batch-test-1",
+                url="https://mock.httpstatus.io/200",
+                label="batch-label-1",
+            ),
+            BatchRequest(
+                body="batch-test-2",
+                url="https://mock.httpstatus.io/201",
+                label="batch-label-2",
+            ),
+        ]
+    )
+
+    assert len(result) == 2
+    assert isinstance(result[0], BatchResponse)
+    assert isinstance(result[1], BatchResponse)
+
+    # Verify the messages have the correct labels
+    message1 = client.message.get(result[0].message_id)
+    message2 = client.message.get(result[1].message_id)
+    
+    assert message1.label == "batch-label-1"
+    assert message2.label == "batch-label-2"
+
+
+def test_batch_json_with_label(client: QStash) -> None:
+    result = client.message.batch_json(
+        [
+            BatchJsonRequest(
+                body={"batch": "json-1"},
+                url="https://mock.httpstatus.io/200",
+                label="batch-json-label-1",
+            ),
+            BatchJsonRequest(
+                body={"batch": "json-2"},
+                url="https://mock.httpstatus.io/201",
+                label="batch-json-label-2",
+            ),
+        ]
+    )
+
+    assert len(result) == 2
+    assert isinstance(result[0], BatchResponse)
+    assert isinstance(result[1], BatchResponse)
+
+    # Verify the messages have the correct labels
+    message1 = client.message.get(result[0].message_id)
+    message2 = client.message.get(result[1].message_id)
+    
+    assert message1.label == "batch-json-label-1"
+    assert message2.label == "batch-json-label-2"
+
+
+def test_log_filtering_by_label(client: QStash) -> None:
+    # Publish a message with a specific label
+    res = client.message.publish(
+        body="test-log-filtering",
+        url="https://mock.httpstatus.io/200",
+        label="log-filter-test",
+    )
+
+    assert isinstance(res, PublishResponse)
+    
+    # Wait for message delivery and then check logs with label filter
+    def assertion() -> None:
+        logs = client.log.list(
+            filter={
+                "label": "log-filter-test",
+            }
+        ).logs
+        
+        # Should find at least one log entry with our label
+        assert len(logs) > 0
+        # Verify that all returned logs have the expected label
+        for log in logs:
+            assert log.label == "log-filter-test"
+
+    assert_eventually(
+        assertion,
+        initial_delay=1.0,
+        retry_delay=1.0,
+        timeout=30.0,
+    )

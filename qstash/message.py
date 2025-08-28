@@ -246,6 +246,9 @@ class BatchRequest(TypedDict, total=False):
     the rate of requests with the same flow control key.
     """
 
+    label: str
+    """Assign a label to the request to filter logs with it later."""
+
 
 class BatchJsonRequest(TypedDict, total=False):
     url: str
@@ -368,6 +371,9 @@ class BatchJsonRequest(TypedDict, total=False):
     the rate of requests with the same flow control key.
     """
 
+    label: str
+    """Assign a label to the request to filter logs with it later."""
+
 
 @dataclasses.dataclass
 class Message:
@@ -437,6 +443,9 @@ class Message:
     flow_control: Optional[FlowControlProperties]
     """Flow control properties."""
 
+    label: Optional[str]
+    """Label assigned to the request for filtering logs."""
+
 
 def get_destination(
     *,
@@ -488,6 +497,7 @@ def prepare_headers(
     content_based_deduplication: Optional[bool],
     timeout: Optional[Union[str, int]],
     flow_control: Optional[FlowControl],
+    label: Optional[str],
 ) -> Dict[str, str]:
     h = {}
 
@@ -570,6 +580,9 @@ def prepare_headers(
         h["Upstash-Flow-Control-Key"] = flow_control["key"]
         h["Upstash-Flow-Control-Value"] = ", ".join(control_values)
 
+    if label is not None:
+        h["Upstash-Label"] = label
+
     return h
 
 
@@ -645,6 +658,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             content_based_deduplication=msg.get("content_based_deduplication"),
             timeout=msg.get("timeout"),
             flow_control=msg.get("flow_control"),
+            label=msg.get("label"),
         )
 
         batch_messages.append(
@@ -751,6 +765,9 @@ def convert_to_batch_messages(
         if "flow_control" in msg:
             batch_msg["flow_control"] = msg["flow_control"]
 
+        if "label" in msg:
+            batch_msg["label"] = msg["label"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages
@@ -791,6 +808,7 @@ def parse_message_response(response: Dict[str, Any]) -> Message:
         caller_ip=response.get("callerIP"),
         flow_control=flow_control,
         retry_delay_expression=response.get("retryDelayExpression"),
+        label=response.get("label"),
     )
 
 
@@ -820,6 +838,7 @@ class MessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -890,6 +909,7 @@ class MessageApi:
             should be delivered with a shorter timeout.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         headers = headers or {}
         destination = get_destination(
@@ -915,6 +935,7 @@ class MessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=flow_control,
+            label=label,
         )
 
         response = self._http.request(
@@ -947,6 +968,7 @@ class MessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -1018,6 +1040,7 @@ class MessageApi:
             should be delivered with a shorter timeout.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return self.publish(
             url=url,
@@ -1039,6 +1062,7 @@ class MessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=flow_control,
+            label=label,
         )
 
     def enqueue(
@@ -1061,6 +1085,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        label: Optional[str] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -1124,6 +1149,7 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         headers = headers or {}
         destination = get_destination(
@@ -1149,6 +1175,7 @@ class MessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=None,
+            label=label,
         )
 
         response = self._http.request(
@@ -1179,6 +1206,7 @@ class MessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        label: Optional[str] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -1243,6 +1271,7 @@ class MessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return self.enqueue(
             queue=queue,
@@ -1262,6 +1291,7 @@ class MessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            label=label,
         )
 
     def batch(

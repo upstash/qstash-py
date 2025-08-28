@@ -104,3 +104,47 @@ async def test_schedule_enqueue_async(
     schedule = await async_client.schedule.get(schedule_id)
 
     assert schedule.queue == "schedule-queue"
+
+
+@pytest.mark.asyncio
+async def test_schedule_with_label_async(
+    async_client: AsyncQStash,
+    cleanup_schedule_async: Callable[[AsyncQStash, str], None],
+) -> None:
+    schedule_id = await async_client.schedule.create(
+        cron="*/5 * * * *",
+        destination="https://mock.httpstatus.io/200",
+        body="test-async-schedule-with-label",
+        label="test-async-schedule-label",
+    )
+
+    cleanup_schedule_async(async_client, schedule_id)
+
+    assert len(schedule_id) > 0
+
+    # Verify the schedule has the label
+    res = await async_client.schedule.get(schedule_id)
+    assert res.schedule_id == schedule_id
+    assert res.label == "test-async-schedule-label"
+
+
+@pytest.mark.asyncio
+async def test_schedule_json_with_label_async(
+    async_client: AsyncQStash,
+    cleanup_schedule_async: Callable[[AsyncQStash, str], None],
+) -> None:
+    schedule_id = await async_client.schedule.create_json(
+        cron="*/10 * * * *",
+        destination="https://mock.httpstatus.io/200",
+        body={"schedule": "async-json-test", "with_label": True},
+        label="test-async-schedule-json-label",
+    )
+
+    cleanup_schedule_async(async_client, schedule_id)
+
+    assert len(schedule_id) > 0
+
+    # Verify the schedule has the label
+    res = await async_client.schedule.get(schedule_id)
+    assert res.schedule_id == schedule_id
+    assert res.label == "test-async-schedule-json-label"

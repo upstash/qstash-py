@@ -475,3 +475,172 @@ async def test_batch_with_flow_control_async(
     assert flow_control3.parallelism == 5
     assert flow_control3.rate is None
     assert flow_control3.period == 1
+
+
+@pytest.mark.asyncio
+async def test_publish_with_label_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish(
+        body="test-body-with-label-async",
+        url="https://mock.httpstatus.io/200",
+        label="test-async-publish-label",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = await async_client.message.get(res.message_id)
+    assert message.label == "test-async-publish-label"
+
+
+@pytest.mark.asyncio
+async def test_publish_json_with_label_async(async_client: AsyncQStash) -> None:
+    res = await async_client.message.publish_json(
+        body={"test": "async-data", "label": "json-async-test"},
+        url="https://mock.httpstatus.io/200",
+        label="test-async-json-label",
+    )
+
+    assert isinstance(res, PublishResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = await async_client.message.get(res.message_id)
+    assert message.label == "test-async-json-label"
+
+
+@pytest.mark.asyncio
+async def test_enqueue_with_label_async(
+    async_client: AsyncQStash,
+    cleanup_queue_async: Callable[[AsyncQStash, str], None],
+) -> None:
+    queue_name = "test_async_queue_with_label"
+    cleanup_queue_async(async_client, queue_name)
+
+    res = await async_client.message.enqueue(
+        queue=queue_name,
+        body="test-async-enqueue-body",
+        url="https://mock.httpstatus.io/200",
+        label="test-async-enqueue-label",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = await async_client.message.get(res.message_id)
+    assert message.label == "test-async-enqueue-label"
+
+
+@pytest.mark.asyncio
+async def test_enqueue_json_with_label_async(
+    async_client: AsyncQStash,
+    cleanup_queue_async: Callable[[AsyncQStash, str], None],
+) -> None:
+    queue_name = "test_async_queue_json_label"
+    cleanup_queue_async(async_client, queue_name)
+
+    res = await async_client.message.enqueue_json(
+        queue=queue_name,
+        body={"enqueue": "async-json-data"},
+        url="https://mock.httpstatus.io/200",
+        label="test-async-enqueue-json-label",
+    )
+
+    assert isinstance(res, EnqueueResponse)
+    assert len(res.message_id) > 0
+
+    # Verify the message has the label
+    message = await async_client.message.get(res.message_id)
+    assert message.label == "test-async-enqueue-json-label"
+
+
+@pytest.mark.asyncio
+async def test_batch_with_label_async(async_client: AsyncQStash) -> None:
+    result = await async_client.message.batch(
+        [
+            BatchRequest(
+                body="async-batch-test-1",
+                url="https://mock.httpstatus.io/200",
+                label="async-batch-label-1",
+            ),
+            BatchRequest(
+                body="async-batch-test-2",
+                url="https://mock.httpstatus.io/201",
+                label="async-batch-label-2",
+            ),
+        ]
+    )
+
+    assert len(result) == 2
+    assert isinstance(result[0], BatchResponse)
+    assert isinstance(result[1], BatchResponse)
+
+    # Verify the messages have the correct labels
+    message1 = await async_client.message.get(result[0].message_id)
+    message2 = await async_client.message.get(result[1].message_id)
+    
+    assert message1.label == "async-batch-label-1"
+    assert message2.label == "async-batch-label-2"
+
+
+@pytest.mark.asyncio
+async def test_batch_json_with_label_async(async_client: AsyncQStash) -> None:
+    result = await async_client.message.batch_json(
+        [
+            BatchJsonRequest(
+                body={"batch": "async-json-1"},
+                url="https://mock.httpstatus.io/200",
+                label="async-batch-json-label-1",
+            ),
+            BatchJsonRequest(
+                body={"batch": "async-json-2"},
+                url="https://mock.httpstatus.io/201",
+                label="async-batch-json-label-2",
+            ),
+        ]
+    )
+
+    assert len(result) == 2
+    assert isinstance(result[0], BatchResponse)
+    assert isinstance(result[1], BatchResponse)
+
+    # Verify the messages have the correct labels
+    message1 = await async_client.message.get(result[0].message_id)
+    message2 = await async_client.message.get(result[1].message_id)
+    
+    assert message1.label == "async-batch-json-label-1"
+    assert message2.label == "async-batch-json-label-2"
+
+
+@pytest.mark.asyncio
+async def test_log_filtering_by_label_async(async_client: AsyncQStash) -> None:
+    # Publish a message with a specific label
+    res = await async_client.message.publish(
+        body="test-async-log-filtering",
+        url="https://mock.httpstatus.io/200",
+        label="async-log-filter-test",
+    )
+
+    assert isinstance(res, PublishResponse)
+    
+    # Wait for message delivery and then check logs with label filter
+    async def assertion() -> None:
+        logs = (await async_client.log.list(
+            filter={
+                "label": "async-log-filter-test",
+            }
+        )).logs
+        
+        # Should find at least one log entry with our label
+        assert len(logs) > 0
+        # Verify that all returned logs have the expected label
+        for log in logs:
+            assert log.label == "async-log-filter-test"
+
+    await assert_eventually_async(
+        assertion,
+        initial_delay=1.0,
+        retry_delay=1.0,
+        timeout=30.0,
+    )

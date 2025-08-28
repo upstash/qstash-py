@@ -120,6 +120,9 @@ class Log:
     flow_control: Optional[FlowControlProperties]
     """Flow control properties"""
 
+    label: Optional[str]
+    """Label assigned to the request for filtering logs."""
+
 
 class LogFilter(TypedDict, total=False):
     message_id: str
@@ -148,6 +151,9 @@ class LogFilter(TypedDict, total=False):
 
     to_time: int
     """Filter logs by ending Unix time, in milliseconds"""
+
+    label: str
+    """Filter logs by label."""
 
 
 @dataclasses.dataclass
@@ -204,6 +210,9 @@ def prepare_list_logs_request_params(
         if "to_time" in filter:
             params["toDate"] = str(filter["to_time"])
 
+        if "label" in filter:
+            params["label"] = filter["label"]
+
     return params
 
 
@@ -238,6 +247,7 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
                 method=event.get("method"),
                 max_retries=event.get("maxRetries"),
                 retry_delay_expression=event.get("retryDelayExpression"),
+                label=event.get("label"),
             )
         )
 
