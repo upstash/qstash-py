@@ -561,7 +561,7 @@ def test_batch_with_label(client: QStash) -> None:
     # Verify the messages have the correct labels
     message1 = client.message.get(result[0].message_id)
     message2 = client.message.get(result[1].message_id)
-    
+
     assert message1.label == "batch-label-1"
     assert message2.label == "batch-label-2"
 
@@ -589,7 +589,7 @@ def test_batch_json_with_label(client: QStash) -> None:
     # Verify the messages have the correct labels
     message1 = client.message.get(result[0].message_id)
     message2 = client.message.get(result[1].message_id)
-    
+
     assert message1.label == "batch-json-label-1"
     assert message2.label == "batch-json-label-2"
 
@@ -603,7 +603,7 @@ def test_log_filtering_by_label(client: QStash) -> None:
     )
 
     assert isinstance(res, PublishResponse)
-    
+
     # Wait for message delivery and then check logs with label filter
     def assertion() -> None:
         logs = client.log.list(
@@ -611,7 +611,7 @@ def test_log_filtering_by_label(client: QStash) -> None:
                 "label": "log-filter-test",
             }
         ).logs
-        
+
         # Should find at least one log entry with our label
         assert len(logs) > 0
         # Verify that all returned logs have the expected label

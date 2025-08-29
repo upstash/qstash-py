@@ -579,7 +579,7 @@ async def test_batch_with_label_async(async_client: AsyncQStash) -> None:
     # Verify the messages have the correct labels
     message1 = await async_client.message.get(result[0].message_id)
     message2 = await async_client.message.get(result[1].message_id)
-    
+
     assert message1.label == "async-batch-label-1"
     assert message2.label == "async-batch-label-2"
 
@@ -608,7 +608,7 @@ async def test_batch_json_with_label_async(async_client: AsyncQStash) -> None:
     # Verify the messages have the correct labels
     message1 = await async_client.message.get(result[0].message_id)
     message2 = await async_client.message.get(result[1].message_id)
-    
+
     assert message1.label == "async-batch-json-label-1"
     assert message2.label == "async-batch-json-label-2"
 
@@ -623,15 +623,17 @@ async def test_log_filtering_by_label_async(async_client: AsyncQStash) -> None:
     )
 
     assert isinstance(res, PublishResponse)
-    
+
     # Wait for message delivery and then check logs with label filter
     async def assertion() -> None:
-        logs = (await async_client.log.list(
-            filter={
-                "label": "async-log-filter-test",
-            }
-        )).logs
-        
+        logs = (
+            await async_client.log.list(
+                filter={
+                    "label": "async-log-filter-test",
+                }
+            )
+        ).logs
+
         # Should find at least one log entry with our label
         assert len(logs) > 0
         # Verify that all returned logs have the expected label
