@@ -13,7 +13,7 @@ async def test_schedule_lifecycle_async(
 ) -> None:
     schedule_id = await async_client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://httpstat.us/200",
+        destination="https://mock.httpstatus.io/200",
         body={"ex_key": "ex_value"},
     )
 
@@ -41,7 +41,7 @@ async def test_schedule_pause_resume_async(
 ) -> None:
     schedule_id = await async_client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://httpstat.us/200",
+        destination="https://mock.httpstatus.io/200",
         body={"ex_key": "ex_value"},
     )
 
@@ -72,7 +72,7 @@ async def test_schedule_with_flow_control_async(
 ) -> None:
     schedule_id = await async_client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://httpstat.us/200",
+        destination="https://mock.httpstatus.io/200",
         body={"ex_key": "ex_value"},
         flow_control=FlowControl(key="flow-key", parallelism=2),
     )
@@ -95,7 +95,7 @@ async def test_schedule_enqueue_async(
 ) -> None:
     schedule_id = await async_client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://httpstat.us/200",
+        destination="https://mock.httpstatus.io/200",
         body={"key": "value"},
         queue="schedule-queue",
     )

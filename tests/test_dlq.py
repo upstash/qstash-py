@@ -37,7 +37,8 @@ def assert_failed_eventually(client: QStash, *msg_ids: str) -> None:
 
 def test_dlq_get_and_delete(client: QStash) -> None:
     res = client.message.publish_json(
-        url="http://httpstat.us/404",
+        method="GET",
+        url="https://mock.httpstatus.io/404",
         retries=0,
         retry_delay="7000 * retried",
     )
@@ -51,7 +52,8 @@ def test_dlq_get_and_delete_many(client: QStash) -> None:
     msg_ids = []
     for _ in range(5):
         res = client.message.publish_json(
-            url="http://httpstat.us/404",
+            method="GET",
+            url="https://mock.httpstatus.io/404",
             retries=0,
             retry_delay="7000 * retried",
         )
@@ -64,7 +66,8 @@ def test_dlq_get_and_delete_many(client: QStash) -> None:
 
 def test_dlq_filter(client: QStash) -> None:
     res = client.message.publish_json(
-        url="http://httpstat.us/404",
+        method="GET",
+        url="https://mock.httpstatus.io/404",
         retries=0,
         retry_delay="7000 * retried",
     )

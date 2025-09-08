@@ -11,6 +11,7 @@ QSTASH_TOKEN = os.environ["QSTASH_TOKEN"]
 QSTASH_CURRENT_SIGNING_KEY = os.environ["QSTASH_CURRENT_SIGNING_KEY"]
 QSTASH_NEXT_SIGNING_KEY = os.environ["QSTASH_NEXT_SIGNING_KEY"]
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY") or ""
 
 
 def assert_eventually(
