@@ -52,6 +52,7 @@ class AsyncMessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -122,6 +123,7 @@ class AsyncMessageApi:
             should be delivered with a shorter timeout.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         headers = headers or {}
         destination = get_destination(
@@ -147,6 +149,7 @@ class AsyncMessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=flow_control,
+            label=label,
         )
 
         response = await self._http.request(
@@ -179,6 +182,7 @@ class AsyncMessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -250,6 +254,7 @@ class AsyncMessageApi:
             should be delivered with a shorter timeout.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return await self.publish(
             url=url,
@@ -271,6 +276,7 @@ class AsyncMessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=flow_control,
+            label=label,
         )
 
     async def enqueue(
@@ -293,6 +299,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        label: Optional[str] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -356,6 +363,7 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         headers = headers or {}
         destination = get_destination(
@@ -381,6 +389,7 @@ class AsyncMessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             flow_control=None,
+            label=label,
         )
 
         response = await self._http.request(
@@ -411,6 +420,7 @@ class AsyncMessageApi:
         deduplication_id: Optional[str] = None,
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
+        label: Optional[str] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -475,6 +485,7 @@ class AsyncMessageApi:
             When a timeout is specified, it will be used instead of the maximum timeout
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return await self.enqueue(
             queue=queue,
@@ -494,6 +505,7 @@ class AsyncMessageApi:
             deduplication_id=deduplication_id,
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
+            label=label,
         )
 
     async def batch(

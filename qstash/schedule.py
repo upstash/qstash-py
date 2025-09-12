@@ -96,6 +96,9 @@ class Schedule:
     error: Optional[str]
     """Error message of the last schedule trigger."""
 
+    label: Optional[str]
+    """Label assigned to the schedule for filtering logs."""
+
 
 def prepare_schedule_headers(
     *,
@@ -114,6 +117,7 @@ def prepare_schedule_headers(
     schedule_id: Optional[str],
     queue: Optional[str],
     flow_control: Optional[FlowControl],
+    label: Optional[str],
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -195,6 +199,9 @@ def prepare_schedule_headers(
     if queue is not None:
         h["Upstash-Queue-Name"] = queue
 
+    if label is not None:
+        h["Upstash-Label"] = label
+
     return h
 
 
@@ -233,6 +240,7 @@ def parse_schedule_response(response: Dict[str, Any]) -> Schedule:
         last_schedule_states=last_states,
         error=response.get("error"),
         retry_delay_expression=response.get("retryDelayExpression"),
+        label=response.get("label"),
     )
 
 
@@ -260,6 +268,7 @@ class ScheduleApi:
         schedule_id: Optional[str] = None,
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -322,6 +331,7 @@ class ScheduleApi:
         :param queue: Name of the queue which the scheduled messages will be enqueued.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -339,6 +349,7 @@ class ScheduleApi:
             schedule_id=schedule_id,
             queue=queue,
             flow_control=flow_control,
+            label=label,
         )
 
         response = self._http.request(
@@ -369,6 +380,7 @@ class ScheduleApi:
         schedule_id: Optional[str] = None,
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
+        label: Optional[str] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -432,6 +444,7 @@ class ScheduleApi:
         :param queue: Name of the queue which the scheduled messages will be enqueued.
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
+        :param label: Assign a label to the request to filter logs with it later.
         """
         return self.create(
             destination=destination,
@@ -451,6 +464,7 @@ class ScheduleApi:
             schedule_id=schedule_id,
             queue=queue,
             flow_control=flow_control,
+            label=label,
         )
 
     def get(self, schedule_id: str) -> Schedule:
