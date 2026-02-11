@@ -1,3 +1,4 @@
+import dataclasses
 from os import environ
 from typing import Literal, Optional, Union
 
@@ -10,6 +11,12 @@ from qstash.asyncio.schedule import AsyncScheduleApi
 from qstash.asyncio.signing_key import AsyncSigningKeyApi
 from qstash.asyncio.url_group import AsyncUrlGroupApi
 from qstash.http import RetryConfig
+
+
+@dataclasses.dataclass
+class ReadinessResponse:
+    ready: bool
+    """Whether QStash is ready to accept requests."""
 
 
 class AsyncQStash:
@@ -49,3 +56,19 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+    async def readiness(self) -> ReadinessResponse:
+        """
+        Checks the readiness of QStash.
+
+        This endpoint can be used to check if QStash is ready to accept
+        requests. It's useful for health checks and monitoring.
+
+        :return: ReadinessResponse containing the ready status.
+        """
+        response = await self.http.request(
+            path="/v2/readiness",
+            method="GET",
+        )
+
+        return ReadinessResponse(ready=response.get("ready", False))
