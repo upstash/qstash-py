@@ -1,4 +1,4 @@
-# Upstash Python QStash SDK
+# Upstash Python QStash SDK Documentation
 
 > [!NOTE]  
 > **This project is in GA Stage.**
