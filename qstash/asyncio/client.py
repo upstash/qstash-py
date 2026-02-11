@@ -9,6 +9,7 @@ from qstash.asyncio.queue import AsyncQueueApi
 from qstash.asyncio.schedule import AsyncScheduleApi
 from qstash.asyncio.signing_key import AsyncSigningKeyApi
 from qstash.asyncio.url_group import AsyncUrlGroupApi
+from qstash.client import ReadinessResponse, parse_readiness_response
 from qstash.http import RetryConfig
 
 
@@ -49,3 +50,16 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+    async def readiness(self) -> ReadinessResponse:
+        """
+        Check the readiness of the QStash service.
+
+        :return: ReadinessResponse containing the readiness status
+        """
+        response = await self.http.request(
+            path="/v2/readiness",
+            method="GET",
+        )
+
+        return parse_readiness_response(response, 200)

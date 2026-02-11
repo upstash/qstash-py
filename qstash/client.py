@@ -1,5 +1,7 @@
+import dataclasses
+from datetime import datetime
 from os import environ
-from typing import Optional, Union, Literal
+from typing import Any, Dict, Optional, Union, Literal
 
 from qstash.dlq import DlqApi
 from qstash.log import LogApi
@@ -9,6 +11,30 @@ from qstash.queue import QueueApi
 from qstash.schedule import ScheduleApi
 from qstash.signing_key import SigningKeyApi
 from qstash.url_group import UrlGroupApi
+
+
+@dataclasses.dataclass
+class ReadinessResponse:
+    success: bool
+    """Whether the readiness check succeeded."""
+
+    message: str
+    """Message from the readiness check."""
+
+    status_code: int
+    """HTTP status code of the response."""
+
+    timestamp: datetime
+    """Timestamp of the readiness check."""
+
+
+def parse_readiness_response(response: Dict[str, Any], status_code: int) -> ReadinessResponse:
+    return ReadinessResponse(
+        success=response.get("success", False),
+        message=response.get("message", ""),
+        status_code=status_code,
+        timestamp=datetime.now(),
+    )
 
 
 class QStash:
@@ -50,3 +76,16 @@ class QStash:
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+    def readiness(self) -> ReadinessResponse:
+        """
+        Check the readiness of the QStash service.
+
+        :return: ReadinessResponse containing the readiness status
+        """
+        response = self.http.request(
+            path="/v2/readiness",
+            method="GET",
+        )
+
+        return parse_readiness_response(response, 200)
