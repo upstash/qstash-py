@@ -6,6 +6,7 @@ from qstash.log import LogApi
 from qstash.http import RetryConfig, HttpClient
 from qstash.message import MessageApi
 from qstash.queue import QueueApi
+from qstash.readiness import ReadinessApi
 from qstash.schedule import ScheduleApi
 from qstash.signing_key import SigningKeyApi
 from qstash.url_group import UrlGroupApi
@@ -50,3 +51,6 @@ class QStash:
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+        self.readiness = ReadinessApi(self.http)
+        """Readiness api."""

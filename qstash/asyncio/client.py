@@ -6,6 +6,7 @@ from qstash.asyncio.log import AsyncLogApi
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.asyncio.message import AsyncMessageApi
 from qstash.asyncio.queue import AsyncQueueApi
+from qstash.asyncio.readiness import AsyncReadinessApi
 from qstash.asyncio.schedule import AsyncScheduleApi
 from qstash.asyncio.signing_key import AsyncSigningKeyApi
 from qstash.asyncio.url_group import AsyncUrlGroupApi
@@ -49,3 +50,6 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+        self.readiness = AsyncReadinessApi(self.http)
+        """Readiness api."""
