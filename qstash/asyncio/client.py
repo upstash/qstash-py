@@ -49,3 +49,27 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+    async def liveness(self) -> str:
+        """
+        Check if the QStash API is alive.
+
+        :return: "OK" if the API is alive.
+        """
+        return await self.http.request(
+            path="/v2/liveness",
+            method="GET",
+            parse_response=False,
+        )
+
+    async def readiness(self) -> str:
+        """
+        Check if the QStash API is ready to accept requests.
+
+        :return: "OK" if the API is ready.
+        """
+        return await self.http.request(
+            path="/v2/readiness",
+            method="GET",
+            parse_response=False,
+        )
