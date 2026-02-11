@@ -50,3 +50,20 @@ class QStash:
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+    def readiness(self) -> str:
+        """
+        Checks if the QStash service is ready to accept requests.
+
+        This endpoint is commonly used in orchestration systems (like Kubernetes
+        readiness probes) to determine when a service is ready to receive traffic.
+
+        :return: "OK" if the service is ready
+        :raises QStashError: If the request fails
+        """
+        result: str = self.http.request(
+            path="/v2/readiness",
+            method="GET",
+            parse_response=False,
+        )
+        return result
