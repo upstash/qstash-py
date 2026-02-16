@@ -3,7 +3,7 @@ import asyncio
 import pytest
 
 from qstash import AsyncQStash
-from qstash.message import FlowControl
+from qstash.message import FlowControl, PublishResponse
 
 
 FLOW_CONTROL_KEY = "test-flow-control-key-async"
@@ -22,7 +22,8 @@ async def test_flow_control_lifecycle_async(async_client: AsyncQStash) -> None:
             period="1m",
         ),
     )
-    assert result["messageId"]
+    assert isinstance(result, PublishResponse)
+    assert result.message_id
 
     # Small delay to let flow control state propagate
     await asyncio.sleep(1)
@@ -50,7 +51,7 @@ async def test_flow_control_lifecycle_async(async_client: AsyncQStash) -> None:
     assert isinstance(single.wait_list_size, int)
 
     # Clean up message
-    await async_client.message.cancel(result["messageId"])
+    await async_client.message.cancel(result.message_id)
 
 
 @pytest.mark.asyncio

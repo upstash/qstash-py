@@ -1,7 +1,7 @@
 import time
 
 from qstash import QStash
-from qstash.message import FlowControl
+from qstash.message import FlowControl, PublishResponse
 
 
 FLOW_CONTROL_KEY = "test-flow-control-key"
@@ -19,7 +19,8 @@ def test_flow_control_lifecycle(client: QStash) -> None:
             period="1m",
         ),
     )
-    assert result["messageId"]
+    assert isinstance(result, PublishResponse)
+    assert result.message_id
 
     # Small delay to let flow control state propagate
     time.sleep(1)
@@ -48,7 +49,7 @@ def test_flow_control_lifecycle(client: QStash) -> None:
     assert isinstance(single.parallelism_max, int)
 
     # Clean up message
-    client.message.cancel(result["messageId"])
+    client.message.cancel(result.message_id)
 
 
 def test_flow_control_list_with_search(client: QStash) -> None:
