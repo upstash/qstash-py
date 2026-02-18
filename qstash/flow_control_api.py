@@ -61,7 +61,7 @@ class FlowControlApi:
     def __init__(self, http: HttpClient) -> None:
         self._http = http
 
-def get(self, flow_control_key: str) -> FlowControlInfo:
+    def get(self, flow_control_key: str) -> FlowControlInfo:
         """
         Gets a single flow control by key.
 
@@ -87,4 +87,3 @@ def get(self, flow_control_key: str) -> FlowControlInfo:
             parallelism_max=response.get("parallelismMax", 0),
             parallelism_count=response.get("parallelismCount", 0),
         )
-

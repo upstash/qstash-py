@@ -1,5 +1,3 @@
-from typing import Dict
-
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.flow_control_api import (
     FlowControlInfo,
@@ -12,7 +10,7 @@ class AsyncFlowControlApi:
     def __init__(self, http: AsyncHttpClient) -> None:
         self._http = http
 
-async def get(self, flow_control_key: str) -> FlowControlInfo:
+    async def get(self, flow_control_key: str) -> FlowControlInfo:
         """
         Gets a single flow control by key.
 
@@ -38,4 +36,3 @@ async def get(self, flow_control_key: str) -> FlowControlInfo:
             parallelism_max=response.get("parallelismMax", 0),
             parallelism_count=response.get("parallelismCount", 0),
         )
-
