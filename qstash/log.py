@@ -246,7 +246,7 @@ def parse_logs_response(response: List[Dict[str, Any]]) -> List[Log]:
                 flow_control=flow_control,
                 method=event.get("method"),
                 max_retries=event.get("maxRetries"),
-                retry_delay_expression=event.get("retryDelayExpression"),
+                retry_delay_expression=event.get("retryDelayExpr"),
                 label=event.get("label"),
             )
         )
@@ -284,6 +284,8 @@ class LogApi:
             method="GET",
             params=params,
         )
+
+        print(response)
 
         logs = parse_logs_response(response["events"])
 
