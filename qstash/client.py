@@ -2,6 +2,7 @@ from os import environ
 from typing import Optional, Union, Literal
 
 from qstash.dlq import DlqApi
+from qstash.flow_control_api import FlowControlApi
 from qstash.log import LogApi
 from qstash.http import RetryConfig, HttpClient
 from qstash.message import MessageApi
@@ -50,3 +51,6 @@ class QStash:
 
         self.dlq = DlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+        self.flow_control = FlowControlApi(self.http)
+        """Flow control api."""

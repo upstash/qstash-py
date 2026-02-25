@@ -288,6 +288,7 @@ async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
     )
 
     res = await async_client.message.publish(
+        method="GET",
         body="test-body",
         url_group=name,
     )
@@ -385,10 +386,10 @@ async def test_publish_to_api_llm_custom_provider_async(
 @pytest.mark.asyncio
 async def test_enqueue_api_llm_custom_provider_async(
     async_client: AsyncQStash,
-    cleanup_queue: Callable[[AsyncQStash, str], None],
+    cleanup_queue_async: Callable[[AsyncQStash, str], None],
 ) -> None:
     name = "test_queue"
-    cleanup_queue(async_client, name)
+    cleanup_queue_async(async_client, name)
 
     res = await async_client.message.enqueue_json(
         queue=name,

@@ -2,6 +2,7 @@ from os import environ
 from typing import Literal, Optional, Union
 
 from qstash.asyncio.dlq import AsyncDlqApi
+from qstash.asyncio.flow_control import AsyncFlowControlApi
 from qstash.asyncio.log import AsyncLogApi
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.asyncio.message import AsyncMessageApi
@@ -49,3 +50,6 @@ class AsyncQStash:
 
         self.dlq = AsyncDlqApi(self.http)
         """Dlq (Dead Letter Queue) api."""
+
+        self.flow_control = AsyncFlowControlApi(self.http)
+        """Flow control api."""
