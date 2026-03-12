@@ -124,6 +124,42 @@ def test_flow_control_pin_unpin(client: QStash) -> None:
     client.message.cancel(result.message_id)
 
 
+def test_flow_control_unpin_single(client: QStash) -> None:
+    flow_control_key = f"fc-unpin-single-{int(time.time() * 1000)}"
+
+    result = client.message.publish_json(
+        body={"test": "value"},
+        url="https://mock.httpstatus.io/200?sleep=30000",
+        flow_control=FlowControl(
+            key=flow_control_key,
+            parallelism=5,
+            rate=10,
+            period="1m",
+        ),
+    )
+    assert isinstance(result, PublishResponse)
+
+    # Pin both parallelism and rate
+    client.flow_control.pin(
+        flow_control_key,
+        {"parallelism": 3, "rate": 20, "period": 120},
+    )
+
+    pinned = client.flow_control.get(flow_control_key)
+    assert pinned.is_pinned_parallelism is True
+    assert pinned.is_pinned_rate is True
+
+    # Unpin only parallelism
+    client.flow_control.unpin(flow_control_key, {"parallelism": True})
+
+    partial = client.flow_control.get(flow_control_key)
+    assert partial.is_pinned_parallelism is False
+    assert partial.is_pinned_rate is True
+
+    # Clean up
+    client.message.cancel(result.message_id)
+
+
 def test_flow_control_reset_rate(client: QStash) -> None:
     flow_control_key = f"fc-reset-{int(time.time() * 1000)}"
 
