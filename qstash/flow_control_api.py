@@ -150,9 +150,7 @@ class FlowControlApi:
             parse_response=False,
         )
 
-    def pin(
-        self, flow_control_key: str, options: PinFlowControlOptions
-    ) -> None:
+    def pin(self, flow_control_key: str, options: PinFlowControlOptions) -> None:
         """
         Pin a processing configuration for a flow-control key.
 
@@ -177,9 +175,7 @@ class FlowControlApi:
             parse_response=False,
         )
 
-    def unpin(
-        self, flow_control_key: str, options: UnpinFlowControlOptions
-    ) -> None:
+    def unpin(self, flow_control_key: str, options: UnpinFlowControlOptions) -> None:
         """
         Remove the pinned configuration for a flow-control key.
 

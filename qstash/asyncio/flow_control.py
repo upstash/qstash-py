@@ -68,9 +68,7 @@ class AsyncFlowControlApi:
             parse_response=False,
         )
 
-    async def pin(
-        self, flow_control_key: str, options: PinFlowControlOptions
-    ) -> None:
+    async def pin(self, flow_control_key: str, options: PinFlowControlOptions) -> None:
         """
         Pin a processing configuration for a flow-control key.
 
