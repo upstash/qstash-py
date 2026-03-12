@@ -82,12 +82,12 @@ class AsyncFlowControlApi:
         """
         params: Dict[str, str] = {}
         if options is not None:
-            if options.parallelism is not None:
-                params["parallelism"] = str(options.parallelism)
-            if options.rate is not None:
-                params["rate"] = str(options.rate)
-            if options.period is not None:
-                params["period"] = str(options.period)
+            if "parallelism" in options:
+                params["parallelism"] = str(options["parallelism"])
+            if "rate" in options:
+                params["rate"] = str(options["rate"])
+            if "period" in options:
+                params["period"] = str(options["period"])
 
         await self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/pin",
@@ -110,10 +110,10 @@ class AsyncFlowControlApi:
         """
         params: Dict[str, str] = {}
         if options is not None:
-            if options.parallelism is not None:
-                params["parallelism"] = str(options.parallelism).lower()
-            if options.rate is not None:
-                params["rate"] = str(options.rate).lower()
+            if "parallelism" in options:
+                params["parallelism"] = str(options["parallelism"]).lower()
+            if "rate" in options:
+                params["rate"] = str(options["rate"]).lower()
 
         await self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/unpin",

@@ -1,7 +1,7 @@
 import time
 
 from qstash import QStash
-from qstash.flow_control_api import GlobalParallelismInfo, PinFlowControlOptions, UnpinFlowControlOptions
+from qstash.flow_control_api import GlobalParallelismInfo
 from qstash.message import FlowControl, PublishResponse
 
 
@@ -98,7 +98,7 @@ def test_flow_control_pin_unpin(client: QStash) -> None:
     # Pin the configuration
     client.flow_control.pin(
         flow_control_key,
-        PinFlowControlOptions(parallelism=3, rate=20, period=120),
+        {"parallelism": 3, "rate": 20, "period": 120},
     )
 
     # Verify it's pinned
@@ -112,7 +112,7 @@ def test_flow_control_pin_unpin(client: QStash) -> None:
     # Unpin the configuration
     client.flow_control.unpin(
         flow_control_key,
-        UnpinFlowControlOptions(parallelism=True, rate=True),
+        {"parallelism": True, "rate": True},
     )
 
     # Verify it's unpinned

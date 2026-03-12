@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, TypedDict
 
 from qstash.http import HttpClient
 
@@ -53,28 +53,26 @@ class GlobalParallelismInfo:
     """The current number of active requests globally."""
 
 
-@dataclasses.dataclass
-class PinFlowControlOptions:
+class PinFlowControlOptions(TypedDict, total=False):
     """Options for pinning a flow control key configuration."""
 
-    parallelism: Optional[int] = None
+    parallelism: int
     """The parallelism value to apply to the flow-control key."""
 
-    rate: Optional[int] = None
+    rate: int
     """The rate value to apply to the flow-control key."""
 
-    period: Optional[int] = None
+    period: int
     """The period value to apply to the flow-control key, in seconds."""
 
 
-@dataclasses.dataclass
-class UnpinFlowControlOptions:
+class UnpinFlowControlOptions(TypedDict, total=False):
     """Options for unpinning a flow control key configuration."""
 
-    parallelism: Optional[bool] = None
+    parallelism: bool
     """Whether to unpin the parallelism configuration."""
 
-    rate: Optional[bool] = None
+    rate: bool
     """Whether to unpin the rate configuration."""
 
 
@@ -166,12 +164,12 @@ class FlowControlApi:
         """
         params: Dict[str, str] = {}
         if options is not None:
-            if options.parallelism is not None:
-                params["parallelism"] = str(options.parallelism)
-            if options.rate is not None:
-                params["rate"] = str(options.rate)
-            if options.period is not None:
-                params["period"] = str(options.period)
+            if "parallelism" in options:
+                params["parallelism"] = str(options["parallelism"])
+            if "rate" in options:
+                params["rate"] = str(options["rate"])
+            if "period" in options:
+                params["period"] = str(options["period"])
 
         self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/pin",
@@ -194,10 +192,10 @@ class FlowControlApi:
         """
         params: Dict[str, str] = {}
         if options is not None:
-            if options.parallelism is not None:
-                params["parallelism"] = str(options.parallelism).lower()
-            if options.rate is not None:
-                params["rate"] = str(options.rate).lower()
+            if "parallelism" in options:
+                params["parallelism"] = str(options["parallelism"]).lower()
+            if "rate" in options:
+                params["rate"] = str(options["rate"]).lower()
 
         self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/unpin",

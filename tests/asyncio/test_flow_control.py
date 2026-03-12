@@ -4,7 +4,7 @@ import time
 import pytest
 
 from qstash import AsyncQStash
-from qstash.flow_control_api import GlobalParallelismInfo, PinFlowControlOptions, UnpinFlowControlOptions
+from qstash.flow_control_api import GlobalParallelismInfo
 from qstash.message import FlowControl, PublishResponse
 
 
@@ -107,7 +107,7 @@ async def test_flow_control_pin_unpin_async(async_client: AsyncQStash) -> None:
     # Pin the configuration
     await async_client.flow_control.pin(
         flow_control_key,
-        PinFlowControlOptions(parallelism=3, rate=20, period=120),
+        {"parallelism": 3, "rate": 20, "period": 120},
     )
 
     # Verify it's pinned
@@ -121,7 +121,7 @@ async def test_flow_control_pin_unpin_async(async_client: AsyncQStash) -> None:
     # Unpin the configuration
     await async_client.flow_control.unpin(
         flow_control_key,
-        UnpinFlowControlOptions(parallelism=True, rate=True),
+        {"parallelism": True, "rate": True},
     )
 
     # Verify it's unpinned
