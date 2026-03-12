@@ -1,5 +1,5 @@
 import dataclasses
-from typing import Any, Dict, Optional, TypedDict
+from typing import Any, Dict, TypedDict
 
 from qstash.http import HttpClient
 
@@ -151,7 +151,7 @@ class FlowControlApi:
         )
 
     def pin(
-        self, flow_control_key: str, options: Optional[PinFlowControlOptions] = None
+        self, flow_control_key: str, options: PinFlowControlOptions
     ) -> None:
         """
         Pin a processing configuration for a flow-control key.
@@ -163,13 +163,12 @@ class FlowControlApi:
         :param options: The configuration to pin.
         """
         params: Dict[str, str] = {}
-        if options is not None:
-            if "parallelism" in options:
-                params["parallelism"] = str(options["parallelism"])
-            if "rate" in options:
-                params["rate"] = str(options["rate"])
-            if "period" in options:
-                params["period"] = str(options["period"])
+        if "parallelism" in options:
+            params["parallelism"] = str(options["parallelism"])
+        if "rate" in options:
+            params["rate"] = str(options["rate"])
+        if "period" in options:
+            params["period"] = str(options["period"])
 
         self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/pin",
@@ -179,7 +178,7 @@ class FlowControlApi:
         )
 
     def unpin(
-        self, flow_control_key: str, options: Optional[UnpinFlowControlOptions] = None
+        self, flow_control_key: str, options: UnpinFlowControlOptions
     ) -> None:
         """
         Remove the pinned configuration for a flow-control key.
@@ -191,11 +190,10 @@ class FlowControlApi:
         :param options: Which configurations to unpin.
         """
         params: Dict[str, str] = {}
-        if options is not None:
-            if "parallelism" in options:
-                params["parallelism"] = str(options["parallelism"]).lower()
-            if "rate" in options:
-                params["rate"] = str(options["rate"]).lower()
+        if "parallelism" in options:
+            params["parallelism"] = str(options["parallelism"]).lower()
+        if "rate" in options:
+            params["rate"] = str(options["rate"]).lower()
 
         self._http.request(
             path=f"/v2/flowControl/{flow_control_key}/unpin",
