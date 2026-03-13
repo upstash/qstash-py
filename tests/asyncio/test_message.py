@@ -318,14 +318,14 @@ async def test_timeout_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_cancel_many_async(async_client: AsyncQStash) -> None:
     res0 = await async_client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = await async_client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
@@ -341,14 +341,14 @@ async def test_cancel_many_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_cancel_all_async(async_client: AsyncQStash) -> None:
     res0 = await async_client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = await async_client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
