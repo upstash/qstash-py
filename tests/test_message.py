@@ -317,14 +317,14 @@ def test_timeout(client: QStash) -> None:
 
 def test_cancel_many(client: QStash) -> None:
     res0 = client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
@@ -337,14 +337,14 @@ def test_cancel_many(client: QStash) -> None:
 
 def test_cancel_all(client: QStash) -> None:
     res0 = client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = client.message.publish(
-        url="http://httpstat.us/404",
+        url="https://mock.httpstatus.io/404",
         retries=3,
     )
 
