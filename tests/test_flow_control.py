@@ -180,6 +180,9 @@ def test_flow_control_reset_rate(client: QStash) -> None:
     # Reset the rate
     client.flow_control.reset_rate(flow_control_key)
 
+    # sleep 1 second
+    time.sleep(1)
+
     # Verify rate was reset by checking the flow control info
     info = client.flow_control.get(flow_control_key)
     assert info.rate_count == 0

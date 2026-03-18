@@ -191,6 +191,9 @@ async def test_flow_control_reset_rate_async(async_client: AsyncQStash) -> None:
     # Reset the rate
     await async_client.flow_control.reset_rate(flow_control_key)
 
+    # sleep 1 second
+    await asyncio.sleep(1)
+
     # Verify rate was reset by checking the flow control info
     info = await async_client.flow_control.get(flow_control_key)
     assert info.rate_count == 0
