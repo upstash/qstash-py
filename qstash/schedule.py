@@ -4,7 +4,12 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.http import HttpClient, HttpMethod
-from qstash.message import FlowControl, parse_flow_control, FlowControlProperties, Redact
+from qstash.message import (
+    FlowControl,
+    parse_flow_control,
+    FlowControlProperties,
+    Redact,
+)
 
 
 class ScheduleState(enum.Enum):

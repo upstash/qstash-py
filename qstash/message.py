@@ -815,6 +815,9 @@ def convert_to_batch_messages(
         if "label" in msg:
             batch_msg["label"] = msg["label"]
 
+        if "redact" in msg:
+            batch_msg["redact"] = msg["redact"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages

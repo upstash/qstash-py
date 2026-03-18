@@ -6,6 +6,7 @@ from qstash.http import HttpMethod
 from qstash.message import (
     ApiT,
     FlowControl,
+    Redact,
     BatchJsonRequest,
     BatchRequest,
     BatchResponse,
@@ -53,6 +54,7 @@ class AsyncMessageApi:
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -150,6 +152,7 @@ class AsyncMessageApi:
             timeout=timeout,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
         response = await self._http.request(
@@ -183,6 +186,7 @@ class AsyncMessageApi:
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -277,6 +281,7 @@ class AsyncMessageApi:
             timeout=timeout,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
     async def enqueue(
@@ -300,6 +305,7 @@ class AsyncMessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -390,6 +396,7 @@ class AsyncMessageApi:
             timeout=timeout,
             flow_control=None,
             label=label,
+            redact=redact,
         )
 
         response = await self._http.request(
@@ -421,6 +428,7 @@ class AsyncMessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -506,6 +514,7 @@ class AsyncMessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             label=label,
+            redact=redact,
         )
 
     async def batch(

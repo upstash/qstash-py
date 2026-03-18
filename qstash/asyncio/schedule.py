@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.http import HttpMethod
-from qstash.message import FlowControl
+from qstash.message import FlowControl, Redact
 from qstash.schedule import (
     Schedule,
     parse_schedule_response,
@@ -36,6 +36,7 @@ class AsyncScheduleApi:
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -117,6 +118,7 @@ class AsyncScheduleApi:
             queue=queue,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
         response = await self._http.request(
@@ -148,6 +150,7 @@ class AsyncScheduleApi:
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -232,6 +235,7 @@ class AsyncScheduleApi:
             queue=queue,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
     async def get(self, schedule_id: str) -> Schedule:
