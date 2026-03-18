@@ -3,6 +3,7 @@ import time
 from qstash import QStash
 from qstash.flow_control_api import GlobalParallelismInfo
 from qstash.message import FlowControl, PublishResponse
+from tests import assert_eventually
 
 
 def test_flow_control_get(client: QStash) -> None:
@@ -180,9 +181,13 @@ def test_flow_control_reset_rate(client: QStash) -> None:
     # Reset the rate
     client.flow_control.reset_rate(flow_control_key)
 
-    # Verify rate was reset by checking the flow control info
-    info = client.flow_control.get(flow_control_key)
-    assert info.rate_count == 0
+    # We use assert_eventually because reset_rate doesn't take effect immediately.
+    # Not ideal but it's what we have.
+    def check_rate_reset() -> None:
+        info = client.flow_control.get(flow_control_key)
+        assert info.rate_count == 0
+
+    assert_eventually(check_rate_reset)
 
     # Clean up
     client.message.cancel(result.message_id)

@@ -38,12 +38,24 @@ class FlowControl(TypedDict, total=False):
 
     period: Union[str, int]
     """
-    Unit duration of the rate. 
+    Unit duration of the rate.
     When given as an integer, it is in seconds. Otherwise, it
-    can be specified as a duration string like '10s'(10 seconds), 
-    '2m'(2 minutes), '1h'(1 hour), 
-    or '3d5h12m'(3 days and 5 hours and 12 minutes). 
+    can be specified as a duration string like '10s'(10 seconds),
+    '2m'(2 minutes), '1h'(1 hour),
+    or '3d5h12m'(3 days and 5 hours and 12 minutes).
     Can be at most a week and defaults to 1 second.
+    """
+
+
+class Redact(TypedDict, total=False):
+    body: Literal[True]
+    """Redact the request body in logs."""
+
+    header: Union[Literal[True], List[str]]
+    """
+    Redact headers in logs.
+    - `True` to redact all headers
+    - List of header names to redact specific headers (e.g., ["Authorization"])
     """
 
 
@@ -249,6 +261,14 @@ class BatchRequest(TypedDict, total=False):
     label: str
     """Assign a label to the request to filter logs with it later."""
 
+    redact: Redact
+    """
+    Configure which fields should be redacted in logs.
+    - `{"body": True}` to redact the request body
+    - `{"header": True}` to redact all headers
+    - `{"header": ["Authorization"]}` to redact specific headers
+    """
+
 
 class BatchJsonRequest(TypedDict, total=False):
     url: str
@@ -374,6 +394,14 @@ class BatchJsonRequest(TypedDict, total=False):
     label: str
     """Assign a label to the request to filter logs with it later."""
 
+    redact: Redact
+    """
+    Configure which fields should be redacted in logs.
+    - `{"body": True}` to redact the request body
+    - `{"header": True}` to redact all headers
+    - `{"header": ["Authorization"]}` to redact specific headers
+    """
+
 
 @dataclasses.dataclass
 class Message:
@@ -498,6 +526,7 @@ def prepare_headers(
     timeout: Optional[Union[str, int]],
     flow_control: Optional[FlowControl],
     label: Optional[str],
+    redact: Optional[Redact],
 ) -> Dict[str, str]:
     h = {}
 
@@ -583,6 +612,23 @@ def prepare_headers(
     if label is not None:
         h["Upstash-Label"] = label
 
+    if redact is not None:
+        redact_parts = []
+
+        if redact.get("body"):
+            redact_parts.append("body")
+
+        header_redact = redact.get("header")
+        if header_redact is not None:
+            if header_redact is True:
+                redact_parts.append("header")
+            elif isinstance(header_redact, list) and len(header_redact) > 0:
+                for header_name in header_redact:
+                    redact_parts.append(f"header[{header_name}]")
+
+        if redact_parts:
+            h["Upstash-Redact-Fields"] = ",".join(redact_parts)
+
     return h
 
 
@@ -659,6 +705,7 @@ def prepare_batch_message_body(messages: List[BatchRequest]) -> str:
             timeout=msg.get("timeout"),
             flow_control=msg.get("flow_control"),
             label=msg.get("label"),
+            redact=msg.get("redact"),
         )
 
         batch_messages.append(
@@ -768,6 +815,9 @@ def convert_to_batch_messages(
         if "label" in msg:
             batch_msg["label"] = msg["label"]
 
+        if "redact" in msg:
+            batch_msg["redact"] = msg["redact"]
+
         batch_messages.append(batch_msg)
 
     return batch_messages
@@ -839,6 +889,7 @@ class MessageApi:
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publishes a message to QStash.
@@ -910,6 +961,10 @@ class MessageApi:
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         headers = headers or {}
         destination = get_destination(
@@ -936,6 +991,7 @@ class MessageApi:
             timeout=timeout,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
         response = self._http.request(
@@ -969,6 +1025,7 @@ class MessageApi:
         timeout: Optional[Union[str, int]] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[PublishResponse, List[PublishUrlGroupResponse]]:
         """
         Publish a message to QStash, automatically serializing the
@@ -1041,6 +1098,10 @@ class MessageApi:
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         return self.publish(
             url=url,
@@ -1063,6 +1124,7 @@ class MessageApi:
             timeout=timeout,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
     def enqueue(
@@ -1086,6 +1148,7 @@ class MessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -1150,6 +1213,10 @@ class MessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         headers = headers or {}
         destination = get_destination(
@@ -1176,6 +1243,7 @@ class MessageApi:
             timeout=timeout,
             flow_control=None,
             label=label,
+            redact=redact,
         )
 
         response = self._http.request(
@@ -1207,6 +1275,7 @@ class MessageApi:
         content_based_deduplication: Optional[bool] = None,
         timeout: Optional[Union[str, int]] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> Union[EnqueueResponse, List[EnqueueUrlGroupResponse]]:
         """
         Enqueues a message, after creating the queue if it does
@@ -1272,6 +1341,10 @@ class MessageApi:
             value permitted by the QStash plan. It is useful in scenarios, where a message
             should be delivered with a shorter timeout.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         return self.enqueue(
             queue=queue,
@@ -1292,6 +1365,7 @@ class MessageApi:
             content_based_deduplication=content_based_deduplication,
             timeout=timeout,
             label=label,
+            redact=redact,
         )
 
     def batch(

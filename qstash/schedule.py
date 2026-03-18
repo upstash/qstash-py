@@ -4,7 +4,12 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.http import HttpClient, HttpMethod
-from qstash.message import FlowControl, parse_flow_control, FlowControlProperties
+from qstash.message import (
+    FlowControl,
+    parse_flow_control,
+    FlowControlProperties,
+    Redact,
+)
 
 
 class ScheduleState(enum.Enum):
@@ -118,6 +123,7 @@ def prepare_schedule_headers(
     queue: Optional[str],
     flow_control: Optional[FlowControl],
     label: Optional[str],
+    redact: Optional[Redact],
 ) -> Dict[str, str]:
     h = {
         "Upstash-Cron": cron,
@@ -202,6 +208,23 @@ def prepare_schedule_headers(
     if label is not None:
         h["Upstash-Label"] = label
 
+    if redact is not None:
+        redact_parts = []
+
+        if redact.get("body"):
+            redact_parts.append("body")
+
+        header_redact = redact.get("header")
+        if header_redact is not None:
+            if header_redact is True:
+                redact_parts.append("header")
+            elif isinstance(header_redact, list) and len(header_redact) > 0:
+                for header_name in header_redact:
+                    redact_parts.append(f"header[{header_name}]")
+
+        if redact_parts:
+            h["Upstash-Redact-Fields"] = ",".join(redact_parts)
+
     return h
 
 
@@ -269,6 +292,7 @@ class ScheduleApi:
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically.
@@ -332,6 +356,10 @@ class ScheduleApi:
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         req_headers = prepare_schedule_headers(
             cron=cron,
@@ -350,6 +378,7 @@ class ScheduleApi:
             queue=queue,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
         response = self._http.request(
@@ -381,6 +410,7 @@ class ScheduleApi:
         queue: Optional[str] = None,
         flow_control: Optional[FlowControl] = None,
         label: Optional[str] = None,
+        redact: Optional[Redact] = None,
     ) -> str:
         """
         Creates a schedule to send messages periodically, automatically serializing the
@@ -445,6 +475,10 @@ class ScheduleApi:
         :param flow_control: Settings for controlling the number of active requests,
             as well as the rate of requests with the same flow control key.
         :param label: Assign a label to the request to filter logs with it later.
+        :param redact: Configure which fields should be redacted in logs.
+            - `{"body": True}` to redact the request body
+            - `{"header": True}` to redact all headers
+            - `{"header": ["Authorization"]}` to redact specific headers
         """
         return self.create(
             destination=destination,
@@ -465,6 +499,7 @@ class ScheduleApi:
             queue=queue,
             flow_control=flow_control,
             label=label,
+            redact=redact,
         )
 
     def get(self, schedule_id: str) -> Schedule:
