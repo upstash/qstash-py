@@ -1,4 +1,5 @@
 import math
+import re
 import time
 from typing import TypedDict, Callable, Optional, Union, Literal, Any, Dict
 
@@ -37,6 +38,46 @@ NO_RETRY = RetryConfig(
 BASE_URL = "https://qstash.upstash.io"
 
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
+
+
+_FORBIDDEN_IN_SEGMENT = re.compile(r"[/\\?#\x00-\x1f\x7f]")
+_IGNORED_IN_DOT_SEGMENT = re.compile(r"[\s\x00-\x1f\x7f]")
+_ENCODED_DOT = re.compile(r"%2e", re.IGNORECASE)
+
+
+def _is_dot_segment(segment: str) -> bool:
+    normalized = _ENCODED_DOT.sub(".", _IGNORED_IN_DOT_SEGMENT.sub("", segment))
+    return normalized in (".", "..")
+
+
+def path_segment(value: str, name: str = "Id") -> str:
+    """Checks that an id can be used as a single segment of a request path."""
+    if not isinstance(value, str):
+        raise QStashError(f"{name} must be a string.")
+    value = str.__str__(value)
+    if not value:
+        raise QStashError(f"{name} cannot be empty.")
+    if _is_dot_segment(value):
+        raise QStashError(f'{name} cannot be "." or "..".')
+    if _FORBIDDEN_IN_SEGMENT.search(value) or value != value.strip():
+        raise QStashError(
+            f"{name} cannot contain '/', '\\', '?', '#' or control characters, "
+            "or start or end with whitespace."
+        )
+    return value
+
+
+def destination_path(destination: str) -> str:
+    """Checks that a destination does not have "." or ".." path segments."""
+    if not isinstance(destination, str):
+        raise QStashError("Destination must be a string.")
+    destination = str.__str__(destination)
+    path = re.split(r"[?#]", destination, maxsplit=1)[0]
+    if not path.strip():
+        raise QStashError("Destination cannot be empty.")
+    if any(_is_dot_segment(segment) for segment in re.split(r"[/\\]", path)):
+        raise QStashError('Destination cannot have "." or ".." path segments.')
+    return destination
 
 
 def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:

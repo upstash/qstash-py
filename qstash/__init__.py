@@ -2,5 +2,5 @@ from qstash.asyncio.client import AsyncQStash
 from qstash.client import QStash
 from qstash.receiver import Receiver
 
-__version__ = "3.4.0"
+__version__ = "3.4.1"
 __all__ = ["QStash", "AsyncQStash", "Receiver"]

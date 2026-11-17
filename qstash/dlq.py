@@ -2,7 +2,7 @@ import dataclasses
 import json
 from typing import Any, Dict, List, Optional, TypedDict
 
-from qstash.http import HttpClient
+from qstash.http import HttpClient, path_segment
 from qstash.message import Message, parse_flow_control
 
 
@@ -174,7 +174,7 @@ class DlqApi:
         :param dlq_id: The unique id within the DLQ to get.
         """
         response = self._http.request(
-            path=f"/v2/dlq/{dlq_id}",
+            path=f"/v2/dlq/{path_segment(dlq_id, 'DLQ id')}",
             method="GET",
         )
 
@@ -221,7 +221,7 @@ class DlqApi:
         :param dlq_id: The unique id within the DLQ to delete.
         """
         self._http.request(
-            path=f"/v2/dlq/{dlq_id}",
+            path=f"/v2/dlq/{path_segment(dlq_id, 'DLQ id')}",
             method="DELETE",
             parse_response=False,
         )

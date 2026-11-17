@@ -3,7 +3,7 @@ import enum
 import json
 from typing import Any, Dict, List, Optional, Union
 
-from qstash.http import HttpClient, HttpMethod
+from qstash.http import destination_path, HttpClient, HttpMethod, path_segment
 from qstash.message import (
     FlowControl,
     parse_flow_control,
@@ -382,7 +382,7 @@ class ScheduleApi:
         )
 
         response = self._http.request(
-            path=f"/v2/schedules/{destination}",
+            path=f"/v2/schedules/{destination_path(destination)}",
             method="POST",
             headers=req_headers,
             body=body,
@@ -507,7 +507,7 @@ class ScheduleApi:
         Gets the schedule by its id.
         """
         response = self._http.request(
-            path=f"/v2/schedules/{schedule_id}",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}",
             method="GET",
         )
 
@@ -529,7 +529,7 @@ class ScheduleApi:
         Deletes the schedule.
         """
         self._http.request(
-            path=f"/v2/schedules/{schedule_id}",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}",
             method="DELETE",
             parse_response=False,
         )
@@ -542,7 +542,7 @@ class ScheduleApi:
         it is resumed.
         """
         self._http.request(
-            path=f"/v2/schedules/{schedule_id}/pause",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}/pause",
             method="PATCH",
             parse_response=False,
         )
@@ -552,7 +552,7 @@ class ScheduleApi:
         Resumes the schedule.
         """
         self._http.request(
-            path=f"/v2/schedules/{schedule_id}/resume",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}/resume",
             method="PATCH",
             parse_response=False,
         )

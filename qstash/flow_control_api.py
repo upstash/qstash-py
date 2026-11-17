@@ -1,7 +1,7 @@
 import dataclasses
 from typing import Any, Dict, TypedDict
 
-from qstash.http import HttpClient
+from qstash.http import HttpClient, path_segment
 
 
 @dataclasses.dataclass
@@ -103,7 +103,7 @@ class FlowControlApi:
         :param flow_control_key: The flow control key to get.
         """
         response = self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}",
             method="GET",
         )
 
@@ -133,7 +133,7 @@ class FlowControlApi:
         :param flow_control_key: The flow control key to pause.
         """
         self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/pause",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/pause",
             method="POST",
             parse_response=False,
         )
@@ -145,7 +145,7 @@ class FlowControlApi:
         :param flow_control_key: The flow control key to resume.
         """
         self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/resume",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/resume",
             method="POST",
             parse_response=False,
         )
@@ -169,7 +169,7 @@ class FlowControlApi:
             params["period"] = str(options["period"])
 
         self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/pin",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/pin",
             method="POST",
             params=params or None,
             parse_response=False,
@@ -192,7 +192,7 @@ class FlowControlApi:
             params["rate"] = str(options["rate"]).lower()
 
         self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/unpin",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/unpin",
             method="POST",
             params=params or None,
             parse_response=False,
@@ -208,7 +208,7 @@ class FlowControlApi:
         :param flow_control_key: The flow control key to reset rate for.
         """
         self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/resetRate",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/resetRate",
             method="POST",
             parse_response=False,
         )

@@ -1,5 +1,6 @@
 from typing import List
 
+from qstash.http import path_segment
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.url_group import (
     RemoveEndpointRequest,
@@ -29,7 +30,7 @@ class AsyncUrlGroupApi:
         body = prepare_add_endpoints_body(endpoints)
 
         await self._http.request(
-            path=f"/v2/topics/{url_group}/endpoints",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}/endpoints",
             method="POST",
             headers={"Content-Type": "application/json"},
             body=body,
@@ -49,7 +50,7 @@ class AsyncUrlGroupApi:
         body = prepare_remove_endpoints_body(endpoints)
 
         await self._http.request(
-            path=f"/v2/topics/{url_group}/endpoints",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}/endpoints",
             method="DELETE",
             headers={"Content-Type": "application/json"},
             body=body,
@@ -61,7 +62,7 @@ class AsyncUrlGroupApi:
         Gets the url group by its name.
         """
         response = await self._http.request(
-            path=f"/v2/topics/{url_group}",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}",
             method="GET",
         )
 
@@ -83,7 +84,7 @@ class AsyncUrlGroupApi:
         Deletes the url group and all its endpoints.
         """
         await self._http.request(
-            path=f"/v2/topics/{url_group}",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}",
             method="DELETE",
             parse_response=False,
         )

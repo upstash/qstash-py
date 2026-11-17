@@ -1,6 +1,7 @@
 import json
 from typing import List, Optional
 
+from qstash.http import path_segment
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.dlq import (
     DlqMessage,
@@ -22,7 +23,7 @@ class AsyncDlqApi:
         :param dlq_id: The unique id within the DLQ to get.
         """
         response = await self._http.request(
-            path=f"/v2/dlq/{dlq_id}",
+            path=f"/v2/dlq/{path_segment(dlq_id, 'DLQ id')}",
             method="GET",
         )
 
@@ -69,7 +70,7 @@ class AsyncDlqApi:
         :param dlq_id: The unique id within the DLQ to delete.
         """
         await self._http.request(
-            path=f"/v2/dlq/{dlq_id}",
+            path=f"/v2/dlq/{path_segment(dlq_id, 'DLQ id')}",
             method="DELETE",
             parse_response=False,
         )

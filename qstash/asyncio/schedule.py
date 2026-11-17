@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.asyncio.http import AsyncHttpClient
-from qstash.http import HttpMethod
+from qstash.http import destination_path, HttpMethod, path_segment
 from qstash.message import FlowControl, Redact
 from qstash.schedule import (
     Schedule,
@@ -122,7 +122,7 @@ class AsyncScheduleApi:
         )
 
         response = await self._http.request(
-            path=f"/v2/schedules/{destination}",
+            path=f"/v2/schedules/{destination_path(destination)}",
             method="POST",
             headers=req_headers,
             body=body,
@@ -243,7 +243,7 @@ class AsyncScheduleApi:
         Gets the schedule by its id.
         """
         response = await self._http.request(
-            path=f"/v2/schedules/{schedule_id}",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}",
             method="GET",
         )
 
@@ -265,7 +265,7 @@ class AsyncScheduleApi:
         Deletes the schedule.
         """
         await self._http.request(
-            path=f"/v2/schedules/{schedule_id}",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}",
             method="DELETE",
             parse_response=False,
         )
@@ -278,7 +278,7 @@ class AsyncScheduleApi:
         it is resumed.
         """
         await self._http.request(
-            path=f"/v2/schedules/{schedule_id}/pause",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}/pause",
             method="PATCH",
             parse_response=False,
         )
@@ -288,7 +288,7 @@ class AsyncScheduleApi:
         Resumes the schedule.
         """
         await self._http.request(
-            path=f"/v2/schedules/{schedule_id}/resume",
+            path=f"/v2/schedules/{path_segment(schedule_id, 'Schedule id')}/resume",
             method="PATCH",
             parse_response=False,
         )
