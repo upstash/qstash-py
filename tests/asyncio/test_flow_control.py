@@ -189,6 +189,13 @@ async def test_flow_control_reset_rate_async(async_client: AsyncQStash) -> None:
     assert isinstance(result, PublishResponse)
     assert result.message_id
 
+    # Wait until the message is counted, so that it isn't counted after the reset
+    async def check_rate_counted() -> None:
+        info = await async_client.flow_control.get(flow_control_key)
+        assert info.rate_count == 1
+
+    await assert_eventually_async(check_rate_counted)
+
     # Reset the rate
     await async_client.flow_control.reset_rate(flow_control_key)
 

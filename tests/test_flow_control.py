@@ -178,6 +178,13 @@ def test_flow_control_reset_rate(client: QStash) -> None:
     assert isinstance(result, PublishResponse)
     assert result.message_id
 
+    # Wait until the message is counted, so that it isn't counted after the reset
+    def check_rate_counted() -> None:
+        info = client.flow_control.get(flow_control_key)
+        assert info.rate_count == 1
+
+    assert_eventually(check_rate_counted)
+
     # Reset the rate
     client.flow_control.reset_rate(flow_control_key)
 
