@@ -155,7 +155,7 @@ async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -179,7 +179,7 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
             {
                 "api": {"name": "llm", "provider": openai(OPENAI_API_KEY)},
                 "body": {
-                    "model": "gpt-3.5-turbo",
+                    "model": "gpt-5-mini",
                     "messages": [
                         {
                             "role": "user",
@@ -257,7 +257,7 @@ async def test_enqueue_api_llm_async(
     res = await async_client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -366,7 +366,7 @@ async def test_publish_to_api_llm_custom_provider_async(
     res = await async_client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -394,7 +394,7 @@ async def test_enqueue_api_llm_custom_provider_async(
     res = await async_client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",

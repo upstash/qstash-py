@@ -161,7 +161,7 @@ def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -184,7 +184,7 @@ def test_batch_api_llm(client: QStash) -> None:
             {
                 "api": {"name": "llm", "provider": openai(OPENAI_API_KEY)},
                 "body": {
-                    "model": "gpt-3.5-turbo",
+                    "model": "gpt-5-mini",
                     "messages": [
                         {
                             "role": "user",
@@ -259,7 +259,7 @@ def test_enqueue_api_llm(
     res = client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -359,7 +359,7 @@ def test_publish_to_api_llm_custom_provider(client: QStash) -> None:
     res = client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -386,7 +386,7 @@ def test_enqueue_api_llm_custom_provider(
     res = client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
