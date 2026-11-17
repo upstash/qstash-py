@@ -12,7 +12,7 @@ def test_flow_control_get(client: QStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -50,7 +50,7 @@ def test_flow_control_pause_resume(client: QStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -85,7 +85,7 @@ def test_flow_control_pin_unpin(client: QStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -130,7 +130,7 @@ def test_flow_control_unpin_single(client: QStash) -> None:
 
     result = client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -167,7 +167,7 @@ def test_flow_control_reset_rate(client: QStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,

@@ -45,7 +45,7 @@ async def test_publish_to_url_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish(
         body="test-body",
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -62,7 +62,7 @@ async def test_publish_to_url_json_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -79,14 +79,14 @@ async def test_disallow_multiple_destinations_async(async_client: AsyncQStash) -
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/200",
+            url="https://httpbin.org/status/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
         await async_client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/200",
+            url="https://httpbin.org/status/200",
             api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
@@ -106,7 +106,7 @@ async def test_batch_async(async_client: AsyncQStash) -> None:
             BatchRequest(
                 body=f"hi {i}",
                 method="GET",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -133,7 +133,7 @@ async def test_batch_json_async(async_client: AsyncQStash) -> None:
             BatchJsonRequest(
                 body={"hi": i},
                 method="GET",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -163,7 +163,7 @@ async def test_publish_to_api_llm_async(async_client: AsyncQStash) -> None:
                 }
             ],
         },
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -187,7 +187,7 @@ async def test_batch_api_llm_async(async_client: AsyncQStash) -> None:
                         }
                     ],
                 },
-                "callback": "https://mock.httpstatus.io/200",
+                "callback": "https://httpbin.org/status/200",
             },
         ]
     )
@@ -212,7 +212,7 @@ async def test_enqueue_async(
         queue=name,
         body="test-body",
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -235,7 +235,7 @@ async def test_enqueue_json_async(
         queue=name,
         body={"test": "body"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -266,7 +266,7 @@ async def test_enqueue_api_llm_async(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -282,8 +282,8 @@ async def test_publish_to_url_group_async(async_client: AsyncQStash) -> None:
     await async_client.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://mock.httpstatus.io/200"},
-            {"url": "https://mock.httpstatus.io/201"},
+            {"url": "https://httpbin.org/status/200"},
+            {"url": "https://httpbin.org/status/201"},
         ],
     )
 
@@ -305,7 +305,7 @@ async def test_timeout_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         timeout=90,
     )
 
@@ -318,14 +318,14 @@ async def test_timeout_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_cancel_many_async(async_client: AsyncQStash) -> None:
     res0 = await async_client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = await async_client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
@@ -341,14 +341,14 @@ async def test_cancel_many_async(async_client: AsyncQStash) -> None:
 @pytest.mark.asyncio
 async def test_cancel_all_async(async_client: AsyncQStash) -> None:
     res0 = await async_client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = await async_client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
@@ -374,7 +374,7 @@ async def test_publish_to_api_llm_custom_provider_async(
                 }
             ],
         },
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -403,7 +403,7 @@ async def test_enqueue_api_llm_custom_provider_async(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -417,7 +417,7 @@ async def test_publish_with_flow_control_async(
 ) -> None:
     result = await async_client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(key="flow-key", parallelism=3, rate=4, period=2),
     )
 
@@ -440,17 +440,17 @@ async def test_batch_with_flow_control_async(
         [
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://mock.httpstatus.io/200?sleep=30000",
+                url="https://httpbin.org/delay/10",
                 flow_control=FlowControl(key="flow-key-1", rate=1),
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://mock.httpstatus.io/200?sleep=30000",
+                url="https://httpbin.org/delay/10",
                 flow_control=FlowControl(key="flow-key-2", rate=23, period="1h30m3s"),
             ),
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://mock.httpstatus.io/200?sleep=30000",
+                url="https://httpbin.org/delay/10",
                 flow_control=FlowControl(key="flow-key-3", parallelism=5),
             ),
         ]
@@ -491,7 +491,7 @@ async def test_batch_with_flow_control_async(
 async def test_publish_with_label_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish(
         body="test-body-with-label-async",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-async-publish-label",
     )
 
@@ -507,7 +507,7 @@ async def test_publish_with_label_async(async_client: AsyncQStash) -> None:
 async def test_publish_json_with_label_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         body={"test": "async-data", "label": "json-async-test"},
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-async-json-label",
     )
 
@@ -530,7 +530,7 @@ async def test_enqueue_with_label_async(
     res = await async_client.message.enqueue(
         queue=queue_name,
         body="test-async-enqueue-body",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-async-enqueue-label",
     )
 
@@ -553,7 +553,7 @@ async def test_enqueue_json_with_label_async(
     res = await async_client.message.enqueue_json(
         queue=queue_name,
         body={"enqueue": "async-json-data"},
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-async-enqueue-json-label",
     )
 
@@ -571,12 +571,12 @@ async def test_batch_with_label_async(async_client: AsyncQStash) -> None:
         [
             BatchRequest(
                 body="async-batch-test-1",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 label="async-batch-label-1",
             ),
             BatchRequest(
                 body="async-batch-test-2",
-                url="https://mock.httpstatus.io/201",
+                url="https://httpbin.org/status/201",
                 label="async-batch-label-2",
             ),
         ]
@@ -600,12 +600,12 @@ async def test_batch_json_with_label_async(async_client: AsyncQStash) -> None:
         [
             BatchJsonRequest(
                 body={"batch": "async-json-1"},
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 label="async-batch-json-label-1",
             ),
             BatchJsonRequest(
                 body={"batch": "async-json-2"},
-                url="https://mock.httpstatus.io/201",
+                url="https://httpbin.org/status/201",
                 label="async-batch-json-label-2",
             ),
         ]
@@ -628,7 +628,7 @@ async def test_log_filtering_by_label_async(async_client: AsyncQStash) -> None:
     # Publish a message with a specific label
     res = await async_client.message.publish(
         body="test-async-log-filtering",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="async-log-filter-test",
     )
 
