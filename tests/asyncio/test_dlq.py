@@ -16,8 +16,8 @@ async def assert_failed_eventually_async(
 
         for msg in matched_messages:
             dlq_msg = await async_client.dlq.get(msg.dlq_id)
-            assert dlq_msg.response_body == "404 Not Found"
-            assert msg.response_body == "404 Not Found"
+            assert dlq_msg.response_status == 404
+            assert msg.response_status == 404
 
         if len(msg_ids) == 1:
             await async_client.dlq.delete(matched_messages[0].dlq_id)

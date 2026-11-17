@@ -12,8 +12,8 @@ def assert_failed_eventually(client: QStash, *msg_ids: str) -> None:
 
         for msg in matched_messages:
             dlq_msg = client.dlq.get(msg.dlq_id)
-            assert dlq_msg.response_body == "404 Not Found"
-            assert msg.response_body == "404 Not Found"
+            assert dlq_msg.response_status == 404
+            assert msg.response_status == 404
             assert dlq_msg.retry_delay_expression == "7000 * retried"
             assert msg.retry_delay_expression == "7000 * retried"
 
