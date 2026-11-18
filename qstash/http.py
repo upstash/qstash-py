@@ -1,7 +1,7 @@
 import math
 import re
 import time
-from typing import TypedDict, Callable, Optional, Union, Literal, Any, Dict
+from typing import TypedDict, Callable, List, Optional, Union, Literal, Any, Dict
 
 import httpx
 
@@ -42,24 +42,27 @@ HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
 
 _FORBIDDEN_IN_SEGMENT = re.compile(r"[/\\?#\x00-\x1f\x7f]")
 _IGNORED_IN_DOT_SEGMENT = re.compile(r"[\s\x00-\x1f\x7f]")
-_ENCODED_DOT = re.compile(r"%2e", re.IGNORECASE)
+_HTTP_URL = re.compile(r"(https?://[^/?#\\]*)([^?#\\]*)([?#].*)?", re.I | re.S)
 
 
-def _is_dot_segment(segment: str) -> bool:
-    normalized = _ENCODED_DOT.sub(".", _IGNORED_IN_DOT_SEGMENT.sub("", segment))
-    return normalized in (".", "..")
+def _dots(segment: str) -> str:
+    """Returns "." or ".." for a dot segment, however it is written, else ""."""
+    text = _IGNORED_IN_DOT_SEGMENT.sub("", segment).lower().replace("%2e", ".")
+    return text if text in (".", "..") else ""
+
+
+def _plain(value: Any) -> str:
+    return str.__str__(value if isinstance(value, str) else str(value))
 
 
 def path_segment(value: Union[str, int], name: str = "Id") -> str:
     """Checks that an id can be used as a single segment of a request path."""
-    if isinstance(value, int) and not isinstance(value, bool):
-        value = str(value)
-    if not isinstance(value, str):
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
         raise QStashError(f"{name} must be a string.")
-    value = str.__str__(value)
+    value = _plain(value)
     if not value:
         raise QStashError(f"{name} cannot be empty.")
-    if _is_dot_segment(value):
+    if _dots(value):
         raise QStashError(f'{name} cannot be "." or "..".')
     if _FORBIDDEN_IN_SEGMENT.search(value) or value != value.strip():
         raise QStashError(
@@ -69,35 +72,8 @@ def path_segment(value: Union[str, int], name: str = "Id") -> str:
     return value
 
 
-_HTTP_URL = re.compile(r"^(https?://[^/?#\\]*)([^?#]*)(.*)$", re.IGNORECASE | re.DOTALL)
-
-
-def _has_dot_segment(destination: str) -> bool:
-    path = re.split(r"[?#]", destination, maxsplit=1)[0]
-    return any(_is_dot_segment(segment) for segment in re.split(r"[/\\]", path))
-
-
-def _resolve_dot_segments(destination: str) -> Optional[str]:
-    """Resolves "." and ".." path segments within an http(s) url."""
-    match = _HTTP_URL.match(destination)
-    if not match or "\\" in match.group(2):
-        return None
-
-    origin, path, rest = match.groups()
-    segments = path.split("/")[1:]
-    resolved = []
-    for index, segment in enumerate(segments):
-        is_last = index == len(segments) - 1
-        normalized = _ENCODED_DOT.sub(".", _IGNORED_IN_DOT_SEGMENT.sub("", segment))
-        if normalized not in (".", ".."):
-            resolved.append(segment)
-            continue
-        if normalized == ".." and resolved:
-            resolved.pop()
-        if is_last:
-            resolved.append("")
-
-    return f"{origin}/{'/'.join(resolved)}{rest}"
+def _has_dot_segment(path: str) -> bool:
+    return any(map(_dots, re.split(r"[/\\]", path)))
 
 
 def destination_path(destination: Any) -> str:
@@ -110,18 +86,28 @@ def destination_path(destination: Any) -> str:
     """
     if destination is None or isinstance(destination, (bytes, bytearray, bool)):
         raise QStashError("Destination must be a string.")
-    text: str = str.__str__(
-        destination if isinstance(destination, str) else str(destination)
-    )
-    if not re.split(r"[?#]", text, maxsplit=1)[0].strip():
+    text = _plain(destination)
+    before_query = re.split(r"[?#]", text, maxsplit=1)[0]
+    if not before_query.strip():
         raise QStashError("Destination cannot be empty.")
-    if not _has_dot_segment(text):
+    if not _has_dot_segment(before_query):
         return text
 
-    resolved = _resolve_dot_segments(text)
-    if resolved is None or _has_dot_segment(resolved):
+    match = _HTTP_URL.fullmatch(text)
+    if not match or _has_dot_segment(match.group(1)):
         raise QStashError('Destination cannot have "." or ".." path segments.')
-    return resolved
+    origin, path, rest = match.groups()
+    segments = path.split("/")[1:]
+    resolved: List[str] = []
+    for segment in segments:
+        dots = _dots(segment)
+        if not dots:
+            resolved.append(segment)
+        elif dots == ".." and resolved:
+            resolved.pop()
+    if segments and _dots(segments[-1]):
+        resolved.append("")
+    return f"{origin}/{'/'.join(resolved)}{rest or ''}"
 
 
 def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:

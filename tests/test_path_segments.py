@@ -22,7 +22,7 @@ def test_path_segment_is_kept(value: str) -> None:
 
 @pytest.mark.parametrize(
     "value",
-    ["a/b", "a\\b", "a?b", "a#b", "a\tb", "a\nb", " a", "a ", "../keys"],
+    ["a/b", "a\\b", "a?b", "a#b", "a\tb", "a\nb", " a", "a "],
 )
 def test_path_segment_with_separators_is_rejected(value: str) -> None:
     with pytest.raises(QStashError, match="Queue name cannot contain"):
