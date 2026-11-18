@@ -110,15 +110,15 @@ def destination_path(destination: Any) -> str:
     """
     if destination is None or isinstance(destination, (bytes, bytearray, bool)):
         raise QStashError("Destination must be a string.")
-    if not isinstance(destination, str):
-        destination = str(destination)
-    destination = str.__str__(destination)
-    if not re.split(r"[?#]", destination, maxsplit=1)[0].strip():
+    text: str = str.__str__(
+        destination if isinstance(destination, str) else str(destination)
+    )
+    if not re.split(r"[?#]", text, maxsplit=1)[0].strip():
         raise QStashError("Destination cannot be empty.")
-    if not _has_dot_segment(destination):
-        return destination
+    if not _has_dot_segment(text):
+        return text
 
-    resolved = _resolve_dot_segments(destination)
+    resolved = _resolve_dot_segments(text)
     if resolved is None or _has_dot_segment(resolved):
         raise QStashError('Destination cannot have "." or ".." path segments.')
     return resolved
