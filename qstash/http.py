@@ -50,8 +50,10 @@ def _is_dot_segment(segment: str) -> bool:
     return normalized in (".", "..")
 
 
-def path_segment(value: str, name: str = "Id") -> str:
+def path_segment(value: Union[str, int], name: str = "Id") -> str:
     """Checks that an id can be used as a single segment of a request path."""
+    if isinstance(value, int) and not isinstance(value, bool):
+        value = str(value)
     if not isinstance(value, str):
         raise QStashError(f"{name} must be a string.")
     value = str.__str__(value)
@@ -67,17 +69,59 @@ def path_segment(value: str, name: str = "Id") -> str:
     return value
 
 
-def destination_path(destination: str) -> str:
-    """Checks that a destination does not have "." or ".." path segments."""
-    if not isinstance(destination, str):
-        raise QStashError("Destination must be a string.")
-    destination = str.__str__(destination)
+_HTTP_URL = re.compile(r"^(https?://[^/?#\\]*)([^?#]*)(.*)$", re.IGNORECASE | re.DOTALL)
+
+
+def _has_dot_segment(destination: str) -> bool:
     path = re.split(r"[?#]", destination, maxsplit=1)[0]
-    if not path.strip():
+    return any(_is_dot_segment(segment) for segment in re.split(r"[/\\]", path))
+
+
+def _resolve_dot_segments(destination: str) -> Optional[str]:
+    """Resolves "." and ".." path segments within an http(s) url."""
+    match = _HTTP_URL.match(destination)
+    if not match or "\\" in match.group(2):
+        return None
+
+    origin, path, rest = match.groups()
+    segments = path.split("/")[1:]
+    resolved = []
+    for index, segment in enumerate(segments):
+        is_last = index == len(segments) - 1
+        normalized = _ENCODED_DOT.sub(".", _IGNORED_IN_DOT_SEGMENT.sub("", segment))
+        if normalized not in (".", ".."):
+            resolved.append(segment)
+            continue
+        if normalized == ".." and resolved:
+            resolved.pop()
+        if is_last:
+            resolved.append("")
+
+    return f"{origin}/{'/'.join(resolved)}{rest}"
+
+
+def destination_path(destination: Any) -> str:
+    """
+    Returns a destination for use in a request path.
+
+    Url objects are converted to strings. "." and ".." path segments of a url
+    are resolved within the url, and a destination that still has such a
+    segment is not accepted.
+    """
+    if destination is None or isinstance(destination, (bytes, bytearray, bool)):
+        raise QStashError("Destination must be a string.")
+    if not isinstance(destination, str):
+        destination = str(destination)
+    destination = str.__str__(destination)
+    if not re.split(r"[?#]", destination, maxsplit=1)[0].strip():
         raise QStashError("Destination cannot be empty.")
-    if any(_is_dot_segment(segment) for segment in re.split(r"[/\\]", path)):
+    if not _has_dot_segment(destination):
+        return destination
+
+    resolved = _resolve_dot_segments(destination)
+    if resolved is None or _has_dot_segment(resolved):
         raise QStashError('Destination cannot have "." or ".." path segments.')
-    return destination
+    return resolved
 
 
 def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:
