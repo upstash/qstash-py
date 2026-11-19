@@ -31,7 +31,7 @@ def test_schedule_lifecycle(
 ) -> None:
     schedule_id = client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body={"ex_key": "ex_value"},
         retry_delay="5000 * retried",
     )
@@ -60,7 +60,7 @@ def test_schedule_pause_resume(
 ) -> None:
     schedule_id = client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body={"ex_key": "ex_value"},
     )
 
@@ -89,7 +89,7 @@ def test_schedule_with_flow_control(
 ) -> None:
     schedule_id = client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body={"ex_key": "ex_value"},
         flow_control=FlowControl(key="flow-key", parallelism=2),
     )
@@ -111,7 +111,7 @@ def test_schedule_enqueue(
 ) -> None:
     schedule_id = client.schedule.create_json(
         cron="1 1 1 1 1",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body={"key": "value"},
         queue="schedule-queue",
     )
@@ -128,7 +128,7 @@ def test_schedule_with_label(
 ) -> None:
     schedule_id = client.schedule.create(
         cron="*/5 * * * *",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body="test-schedule-with-label",
         label="test-schedule-label",
     )
@@ -149,7 +149,7 @@ def test_schedule_json_with_label(
 ) -> None:
     schedule_id = client.schedule.create_json(
         cron="*/10 * * * *",
-        destination="https://mock.httpstatus.io/200",
+        destination="https://httpbin.org/status/200",
         body={"schedule": "json-test", "with_label": True},
         label="test-schedule-json-label",
     )

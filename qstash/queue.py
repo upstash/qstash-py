@@ -2,7 +2,7 @@ import dataclasses
 import json
 from typing import Any, Dict, List
 
-from qstash.http import HttpClient
+from qstash.http import HttpClient, path_segment
 
 
 @dataclasses.dataclass
@@ -81,7 +81,7 @@ class QueueApi:
         Gets the queue by its name.
         """
         response = self._http.request(
-            path=f"/v2/queues/{queue}",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}",
             method="GET",
         )
 
@@ -103,7 +103,7 @@ class QueueApi:
         Deletes the queue.
         """
         self._http.request(
-            path=f"/v2/queues/{queue}",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}",
             method="DELETE",
             parse_response=False,
         )
@@ -116,7 +116,7 @@ class QueueApi:
         it is resumed.
         """
         self._http.request(
-            path=f"/v2/queues/{queue}/pause",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}/pause",
             method="POST",
             parse_response=False,
         )
@@ -126,7 +126,7 @@ class QueueApi:
         Resumes the queue.
         """
         self._http.request(
-            path=f"/v2/queues/{queue}/resume",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}/resume",
             method="POST",
             parse_response=False,
         )

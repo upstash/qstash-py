@@ -11,18 +11,18 @@ async def test_url_group_async(async_client: AsyncQStash) -> None:
     await async_client.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://mock.httpstatus.io/200"},
-            {"url": "https://mock.httpstatus.io/201"},
+            {"url": "https://httpbin.org/status/200"},
+            {"url": "https://httpbin.org/status/201"},
         ],
     )
 
     url_group = await async_client.url_group.get(name)
     assert url_group.name == name
     assert any(
-        True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/200"
+        True for e in url_group.endpoints if e.url == "https://httpbin.org/status/200"
     )
     assert any(
-        True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/201"
+        True for e in url_group.endpoints if e.url == "https://httpbin.org/status/201"
     )
 
     url_groups = await async_client.url_group.list()
@@ -32,7 +32,7 @@ async def test_url_group_async(async_client: AsyncQStash) -> None:
         url_group=name,
         endpoints=[
             {
-                "url": "https://mock.httpstatus.io/201",
+                "url": "https://httpbin.org/status/201",
             }
         ],
     )
@@ -40,8 +40,8 @@ async def test_url_group_async(async_client: AsyncQStash) -> None:
     url_group = await async_client.url_group.get(name)
     assert url_group.name == name
     assert any(
-        True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/200"
+        True for e in url_group.endpoints if e.url == "https://httpbin.org/status/200"
     )
     assert not any(
-        True for e in url_group.endpoints if e.url == "https://mock.httpstatus.io/201"
+        True for e in url_group.endpoints if e.url == "https://httpbin.org/status/201"
     )

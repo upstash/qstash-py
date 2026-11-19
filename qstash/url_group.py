@@ -3,7 +3,7 @@ import json
 from typing import Any, Dict, List, Optional, TypedDict
 
 from qstash.errors import QStashError
-from qstash.http import HttpClient
+from qstash.http import HttpClient, path_segment
 
 
 class UpsertEndpointRequest(TypedDict, total=False):
@@ -112,7 +112,7 @@ class UrlGroupApi:
         body = prepare_add_endpoints_body(endpoints)
 
         self._http.request(
-            path=f"/v2/topics/{url_group}/endpoints",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}/endpoints",
             method="POST",
             headers={"Content-Type": "application/json"},
             body=body,
@@ -132,7 +132,7 @@ class UrlGroupApi:
         body = prepare_remove_endpoints_body(endpoints)
 
         self._http.request(
-            path=f"/v2/topics/{url_group}/endpoints",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}/endpoints",
             method="DELETE",
             headers={"Content-Type": "application/json"},
             body=body,
@@ -144,7 +144,7 @@ class UrlGroupApi:
         Gets the url group by its name.
         """
         response = self._http.request(
-            path=f"/v2/topics/{url_group}",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}",
             method="GET",
         )
 
@@ -166,7 +166,7 @@ class UrlGroupApi:
         Deletes the url group and all its endpoints.
         """
         self._http.request(
-            path=f"/v2/topics/{url_group}",
+            path=f"/v2/topics/{path_segment(url_group, 'URL group name')}",
             method="DELETE",
             parse_response=False,
         )

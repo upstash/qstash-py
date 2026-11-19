@@ -40,7 +40,7 @@ def test_publish_to_url(client: QStash) -> None:
     res = client.message.publish(
         body="test-body",
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -56,7 +56,7 @@ def test_message_log_retry_delay_expression(client: QStash) -> None:
     res = client.message.publish(
         body="test-body",
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={"test-header": "test-value"},
         retry_delay="15000",
     )
@@ -72,7 +72,7 @@ def test_publish_to_url_json(client: QStash) -> None:
     res = client.message.publish_json(
         body={"ex_key": "ex_value"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -88,14 +88,14 @@ def test_disallow_multiple_destinations(client: QStash) -> None:
     with pytest.raises(QStashError):
         client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/200",
+            url="https://httpbin.org/status/200",
             url_group="test-url-group",
         )
 
     with pytest.raises(QStashError):
         client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/200",
+            url="https://httpbin.org/status/200",
             api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         )
 
@@ -114,7 +114,7 @@ def test_batch(client: QStash) -> None:
             BatchRequest(
                 body=f"hi {i}",
                 method="GET",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -140,7 +140,7 @@ def test_batch_json(client: QStash) -> None:
             BatchJsonRequest(
                 body={"hi": i},
                 method="GET",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 retries=0,
                 headers={
                     f"test-header-{i}": f"test-value-{i}",
@@ -161,7 +161,7 @@ def test_publish_to_api_llm(client: QStash) -> None:
     res = client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -169,7 +169,7 @@ def test_publish_to_api_llm(client: QStash) -> None:
                 }
             ],
         },
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -184,7 +184,7 @@ def test_batch_api_llm(client: QStash) -> None:
             {
                 "api": {"name": "llm", "provider": openai(OPENAI_API_KEY)},
                 "body": {
-                    "model": "gpt-3.5-turbo",
+                    "model": "gpt-5-mini",
                     "messages": [
                         {
                             "role": "user",
@@ -192,7 +192,7 @@ def test_batch_api_llm(client: QStash) -> None:
                         }
                     ],
                 },
-                "callback": "https://mock.httpstatus.io/200",
+                "callback": "https://httpbin.org/status/200",
             },
         ]
     )
@@ -216,7 +216,7 @@ def test_enqueue(
         queue=name,
         body="test-body",
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -238,7 +238,7 @@ def test_enqueue_json(
         queue=name,
         body={"test": "body"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         headers={
             "test-header": "test-value",
         },
@@ -259,7 +259,7 @@ def test_enqueue_api_llm(
     res = client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -268,7 +268,7 @@ def test_enqueue_api_llm(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -283,8 +283,8 @@ def test_publish_to_url_group(client: QStash) -> None:
     client.url_group.upsert_endpoints(
         url_group=name,
         endpoints=[
-            {"url": "https://mock.httpstatus.io/200"},
-            {"url": "https://mock.httpstatus.io/201"},
+            {"url": "https://httpbin.org/status/200"},
+            {"url": "https://httpbin.org/status/201"},
         ],
     )
 
@@ -305,7 +305,7 @@ def test_timeout(client: QStash) -> None:
     res = client.message.publish_json(
         body={"ex_key": "ex_value"},
         method="GET",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         timeout=90,
     )
 
@@ -317,14 +317,14 @@ def test_timeout(client: QStash) -> None:
 
 def test_cancel_many(client: QStash) -> None:
     res0 = client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
@@ -337,14 +337,14 @@ def test_cancel_many(client: QStash) -> None:
 
 def test_cancel_all(client: QStash) -> None:
     res0 = client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
     assert isinstance(res0, PublishResponse)
 
     res1 = client.message.publish(
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=3,
     )
 
@@ -359,7 +359,7 @@ def test_publish_to_api_llm_custom_provider(client: QStash) -> None:
     res = client.message.publish_json(
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -367,7 +367,7 @@ def test_publish_to_api_llm_custom_provider(client: QStash) -> None:
                 }
             ],
         },
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, PublishResponse)
@@ -386,7 +386,7 @@ def test_enqueue_api_llm_custom_provider(
     res = client.message.enqueue_json(
         queue=name,
         body={
-            "model": "gpt-3.5-turbo",
+            "model": "gpt-5-mini",
             "messages": [
                 {
                     "role": "user",
@@ -395,7 +395,7 @@ def test_enqueue_api_llm_custom_provider(
             ],
         },
         api={"name": "llm", "provider": openai(OPENAI_API_KEY)},
-        callback="https://mock.httpstatus.io/200",
+        callback="https://httpbin.org/status/200",
     )
 
     assert isinstance(res, EnqueueResponse)
@@ -408,7 +408,7 @@ def test_publish_with_flow_control(
 ) -> None:
     result = client.message.publish_json(
         body={"ex_key": "ex_value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(key="flow-key", parallelism=3, rate=4, period=2),
     )
 
@@ -428,17 +428,17 @@ def test_batch_with_flow_control(client: QStash) -> None:
         [
             {
                 "body": {"ex_key": "ex_value"},
-                "url": "https://mock.httpstatus.io/200?sleep=30000",
+                "url": "https://httpbin.org/delay/10",
                 "flow_control": FlowControl(key="flow-key-1", rate=1),
             },
             BatchJsonRequest(
                 body={"ex_key": "ex_value"},
-                url="https://mock.httpstatus.io/200?sleep=30000",
+                url="https://httpbin.org/delay/10",
                 flow_control=FlowControl(key="flow-key-2", rate=23, period="1h30m3s"),
             ),
             {
                 "body": {"ex_key": "ex_value"},
-                "url": "https://mock.httpstatus.io/200?sleep=30000",
+                "url": "https://httpbin.org/delay/10",
                 "flow_control": FlowControl(key="flow-key-3", parallelism=5),
             },
         ]
@@ -478,7 +478,7 @@ def test_batch_with_flow_control(client: QStash) -> None:
 def test_publish_with_label(client: QStash) -> None:
     res = client.message.publish(
         body="test-body-with-label",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-publish-label",
     )
 
@@ -493,7 +493,7 @@ def test_publish_with_label(client: QStash) -> None:
 def test_publish_json_with_label(client: QStash) -> None:
     res = client.message.publish_json(
         body={"test": "data", "label": "json-test"},
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-json-label",
     )
 
@@ -515,7 +515,7 @@ def test_enqueue_with_label(
     res = client.message.enqueue(
         queue=queue_name,
         body="test-enqueue-body",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-enqueue-label",
     )
 
@@ -537,7 +537,7 @@ def test_enqueue_json_with_label(
     res = client.message.enqueue_json(
         queue=queue_name,
         body={"enqueue": "json-data"},
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="test-enqueue-json-label",
     )
 
@@ -554,12 +554,12 @@ def test_batch_with_label(client: QStash) -> None:
         [
             BatchRequest(
                 body="batch-test-1",
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 label="batch-label-1",
             ),
             BatchRequest(
                 body="batch-test-2",
-                url="https://mock.httpstatus.io/201",
+                url="https://httpbin.org/status/201",
                 label="batch-label-2",
             ),
         ]
@@ -582,12 +582,12 @@ def test_batch_json_with_label(client: QStash) -> None:
         [
             BatchJsonRequest(
                 body={"batch": "json-1"},
-                url="https://mock.httpstatus.io/200",
+                url="https://httpbin.org/status/200",
                 label="batch-json-label-1",
             ),
             BatchJsonRequest(
                 body={"batch": "json-2"},
-                url="https://mock.httpstatus.io/201",
+                url="https://httpbin.org/status/201",
                 label="batch-json-label-2",
             ),
         ]
@@ -609,7 +609,7 @@ def test_log_filtering_by_label(client: QStash) -> None:
     # Publish a message with a specific label
     res = client.message.publish(
         body="test-log-filtering",
-        url="https://mock.httpstatus.io/200",
+        url="https://httpbin.org/status/200",
         label="log-filter-test",
     )
 

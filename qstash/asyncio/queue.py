@@ -1,5 +1,6 @@
 from typing import List
 
+from qstash.http import path_segment
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.queue import Queue, parse_queue_response, prepare_upsert_body
 
@@ -38,7 +39,7 @@ class AsyncQueueApi:
         Gets the queue by its name.
         """
         response = await self._http.request(
-            path=f"/v2/queues/{queue}",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}",
             method="GET",
         )
 
@@ -60,7 +61,7 @@ class AsyncQueueApi:
         Deletes the queue.
         """
         await self._http.request(
-            path=f"/v2/queues/{queue}",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}",
             method="DELETE",
             parse_response=False,
         )
@@ -73,7 +74,7 @@ class AsyncQueueApi:
         it is resumed.
         """
         await self._http.request(
-            path=f"/v2/queues/{queue}/pause",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}/pause",
             method="POST",
             parse_response=False,
         )
@@ -83,7 +84,7 @@ class AsyncQueueApi:
         Resumes the queue.
         """
         await self._http.request(
-            path=f"/v2/queues/{queue}/resume",
+            path=f"/v2/queues/{path_segment(queue, 'Queue name')}/resume",
             method="POST",
             parse_response=False,
         )

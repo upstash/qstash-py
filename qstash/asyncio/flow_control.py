@@ -1,5 +1,6 @@
 from typing import Dict
 
+from qstash.http import path_segment
 from qstash.asyncio.http import AsyncHttpClient
 from qstash.flow_control_api import (
     FlowControlInfo,
@@ -21,7 +22,7 @@ class AsyncFlowControlApi:
         :param flow_control_key: The flow control key to get.
         """
         response = await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}",
             method="GET",
         )
 
@@ -51,7 +52,7 @@ class AsyncFlowControlApi:
         :param flow_control_key: The flow control key to pause.
         """
         await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/pause",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/pause",
             method="POST",
             parse_response=False,
         )
@@ -63,7 +64,7 @@ class AsyncFlowControlApi:
         :param flow_control_key: The flow control key to resume.
         """
         await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/resume",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/resume",
             method="POST",
             parse_response=False,
         )
@@ -87,7 +88,7 @@ class AsyncFlowControlApi:
             params["period"] = str(options["period"])
 
         await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/pin",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/pin",
             method="POST",
             params=params or None,
             parse_response=False,
@@ -112,7 +113,7 @@ class AsyncFlowControlApi:
             params["rate"] = str(options["rate"]).lower()
 
         await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/unpin",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/unpin",
             method="POST",
             params=params or None,
             parse_response=False,
@@ -128,7 +129,7 @@ class AsyncFlowControlApi:
         :param flow_control_key: The flow control key to reset rate for.
         """
         await self._http.request(
-            path=f"/v2/flowControl/{flow_control_key}/resetRate",
+            path=f"/v2/flowControl/{path_segment(flow_control_key, 'Flow control key')}/resetRate",
             method="POST",
             parse_response=False,
         )

@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, List, Optional, Union
 
 from qstash.asyncio.http import AsyncHttpClient
-from qstash.http import HttpMethod
+from qstash.http import destination_path, HttpMethod, path_segment
 from qstash.message import (
     ApiT,
     FlowControl,
@@ -156,7 +156,7 @@ class AsyncMessageApi:
         )
 
         response = await self._http.request(
-            path=f"/v2/publish/{destination}",
+            path=f"/v2/publish/{destination_path(destination)}",
             method="POST",
             headers=req_headers,
             body=body,
@@ -400,7 +400,7 @@ class AsyncMessageApi:
         )
 
         response = await self._http.request(
-            path=f"/v2/enqueue/{queue}/{destination}",
+            path=f"/v2/enqueue/{path_segment(queue, 'Queue name')}/{destination_path(destination)}",
             method="POST",
             headers=req_headers,
             body=body,
@@ -570,7 +570,7 @@ class AsyncMessageApi:
         Gets the message by its id.
         """
         response = await self._http.request(
-            path=f"/v2/messages/{message_id}",
+            path=f"/v2/messages/{path_segment(message_id, 'Message id')}",
             method="GET",
         )
 
@@ -585,7 +585,7 @@ class AsyncMessageApi:
         it might be too late to cancel.
         """
         await self._http.request(
-            path=f"/v2/messages/{message_id}",
+            path=f"/v2/messages/{path_segment(message_id, 'Message id')}",
             method="DELETE",
             parse_response=False,
         )

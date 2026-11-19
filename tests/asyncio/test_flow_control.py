@@ -16,7 +16,7 @@ async def test_flow_control_get_async(async_client: AsyncQStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = await async_client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -58,7 +58,7 @@ async def test_flow_control_pause_resume_async(async_client: AsyncQStash) -> Non
     # Publish a message with flow control to ensure the key exists
     result = await async_client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -94,7 +94,7 @@ async def test_flow_control_pin_unpin_async(async_client: AsyncQStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = await async_client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -140,7 +140,7 @@ async def test_flow_control_unpin_single_async(async_client: AsyncQStash) -> Non
 
     result = await async_client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -178,7 +178,7 @@ async def test_flow_control_reset_rate_async(async_client: AsyncQStash) -> None:
     # Publish a message with flow control to ensure the key exists
     result = await async_client.message.publish_json(
         body={"test": "value"},
-        url="https://mock.httpstatus.io/200?sleep=30000",
+        url="https://httpbin.org/delay/10",
         flow_control=FlowControl(
             key=flow_control_key,
             parallelism=5,
@@ -188,6 +188,13 @@ async def test_flow_control_reset_rate_async(async_client: AsyncQStash) -> None:
     )
     assert isinstance(result, PublishResponse)
     assert result.message_id
+
+    # Wait until the message is counted, so that it isn't counted after the reset
+    async def check_rate_counted() -> None:
+        info = await async_client.flow_control.get(flow_control_key)
+        assert info.rate_count == 1
+
+    await assert_eventually_async(check_rate_counted)
 
     # Reset the rate
     await async_client.flow_control.reset_rate(flow_control_key)

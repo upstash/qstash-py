@@ -1,6 +1,7 @@
 import math
+import re
 import time
-from typing import TypedDict, Callable, Optional, Union, Literal, Any, Dict
+from typing import TypedDict, Callable, List, Optional, Union, Literal, Any, Dict
 
 import httpx
 
@@ -37,6 +38,76 @@ NO_RETRY = RetryConfig(
 BASE_URL = "https://qstash.upstash.io"
 
 HttpMethod = Literal["GET", "POST", "PUT", "DELETE", "PATCH"]
+
+
+_FORBIDDEN_IN_SEGMENT = re.compile(r"[/\\?#\x00-\x1f\x7f]")
+_IGNORED_IN_DOT_SEGMENT = re.compile(r"[\s\x00-\x1f\x7f]")
+_HTTP_URL = re.compile(r"(https?://[^/?#\\]*)([^?#\\]*)([?#].*)?", re.I | re.S)
+
+
+def _dots(segment: str) -> str:
+    """Returns "." or ".." for a dot segment, however it is written, else ""."""
+    text = _IGNORED_IN_DOT_SEGMENT.sub("", segment).lower().replace("%2e", ".")
+    return text if text in (".", "..") else ""
+
+
+def _plain(value: Any) -> str:
+    return str.__str__(value if isinstance(value, str) else str(value))
+
+
+def path_segment(value: Union[str, int], name: str = "Id") -> str:
+    """Checks that an id can be used as a single segment of a request path."""
+    if isinstance(value, bool) or not isinstance(value, (str, int)):
+        raise QStashError(f"{name} must be a string.")
+    value = _plain(value)
+    if not value:
+        raise QStashError(f"{name} cannot be empty.")
+    if _dots(value):
+        raise QStashError(f'{name} cannot be "." or "..".')
+    if _FORBIDDEN_IN_SEGMENT.search(value) or value != value.strip():
+        raise QStashError(
+            f"{name} cannot contain '/', '\\', '?', '#' or control characters, "
+            "or start or end with whitespace."
+        )
+    return value
+
+
+def _has_dot_segment(path: str) -> bool:
+    return any(map(_dots, re.split(r"[/\\]", path)))
+
+
+def destination_path(destination: Any) -> str:
+    """
+    Returns a destination for use in a request path.
+
+    Url objects are converted to strings. "." and ".." path segments of a url
+    are resolved within the url, and a destination that still has such a
+    segment is not accepted.
+    """
+    if destination is None or isinstance(destination, (bytes, bytearray, bool)):
+        raise QStashError("Destination must be a string.")
+    text = _plain(destination)
+    before_query = re.split(r"[?#]", text, maxsplit=1)[0]
+    if not before_query.strip():
+        raise QStashError("Destination cannot be empty.")
+    if not _has_dot_segment(before_query):
+        return text
+
+    match = _HTTP_URL.fullmatch(text)
+    if not match or _has_dot_segment(match.group(1)):
+        raise QStashError('Destination cannot have "." or ".." path segments.')
+    origin, path, rest = match.groups()
+    segments = path.split("/")[1:]
+    resolved: List[str] = []
+    for segment in segments:
+        dots = _dots(segment)
+        if not dots:
+            resolved.append(segment)
+        elif dots == ".." and resolved:
+            resolved.pop()
+    if segments and _dots(segments[-1]):
+        resolved.append("")
+    return f"{origin}/{'/'.join(resolved)}{rest or ''}"
 
 
 def daily_message_limit_error(headers: httpx.Headers) -> DailyMessageLimitExceededError:

@@ -12,8 +12,8 @@ def assert_failed_eventually(client: QStash, *msg_ids: str) -> None:
 
         for msg in matched_messages:
             dlq_msg = client.dlq.get(msg.dlq_id)
-            assert dlq_msg.response_body == "404 Not Found"
-            assert msg.response_body == "404 Not Found"
+            assert dlq_msg.response_status == 404
+            assert msg.response_status == 404
             assert dlq_msg.retry_delay_expression == "7000 * retried"
             assert msg.retry_delay_expression == "7000 * retried"
 
@@ -38,7 +38,7 @@ def assert_failed_eventually(client: QStash, *msg_ids: str) -> None:
 def test_dlq_get_and_delete(client: QStash) -> None:
     res = client.message.publish_json(
         method="GET",
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=0,
         retry_delay="7000 * retried",
     )
@@ -53,7 +53,7 @@ def test_dlq_get_and_delete_many(client: QStash) -> None:
     for _ in range(5):
         res = client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/404",
+            url="https://httpbin.org/status/404",
             retries=0,
             retry_delay="7000 * retried",
         )
@@ -67,7 +67,7 @@ def test_dlq_get_and_delete_many(client: QStash) -> None:
 def test_dlq_filter(client: QStash) -> None:
     res = client.message.publish_json(
         method="GET",
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=0,
         retry_delay="7000 * retried",
     )

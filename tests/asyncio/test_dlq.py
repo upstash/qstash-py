@@ -16,8 +16,8 @@ async def assert_failed_eventually_async(
 
         for msg in matched_messages:
             dlq_msg = await async_client.dlq.get(msg.dlq_id)
-            assert dlq_msg.response_body == "404 Not Found"
-            assert msg.response_body == "404 Not Found"
+            assert dlq_msg.response_status == 404
+            assert msg.response_status == 404
 
         if len(msg_ids) == 1:
             await async_client.dlq.delete(matched_messages[0].dlq_id)
@@ -43,7 +43,7 @@ async def assert_failed_eventually_async(
 async def test_dlq_get_and_delete_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         method="GET",
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=0,
     )
 
@@ -58,7 +58,7 @@ async def test_dlq_get_and_delete_many_async(async_client: AsyncQStash) -> None:
     for _ in range(5):
         res = await async_client.message.publish_json(
             method="GET",
-            url="https://mock.httpstatus.io/404",
+            url="https://httpbin.org/status/404",
             retries=0,
         )
 
@@ -72,7 +72,7 @@ async def test_dlq_get_and_delete_many_async(async_client: AsyncQStash) -> None:
 async def test_dlq_filter_async(async_client: AsyncQStash) -> None:
     res = await async_client.message.publish_json(
         method="GET",
-        url="https://mock.httpstatus.io/404",
+        url="https://httpbin.org/status/404",
         retries=0,
     )
 
