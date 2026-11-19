@@ -786,6 +786,9 @@ def convert_to_batch_messages(
         if "retries" in msg:
             batch_msg["retries"] = msg["retries"]
 
+        if "retry_delay" in msg:
+            batch_msg["retry_delay"] = msg["retry_delay"]
+
         if "callback" in msg:
             batch_msg["callback"] = msg["callback"]
 
