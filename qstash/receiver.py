@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import hmac
 from typing import Optional
 
 import jwt
@@ -15,6 +16,9 @@ def verify_with_key(
     url: Optional[str] = None,
     clock_tolerance: int = 0,
 ) -> None:
+    if url == "":
+        raise SignatureError("Invalid url: url cannot be empty")
+
     try:
         decoded = jwt.decode(
             signature,
@@ -34,13 +38,15 @@ def verify_with_key(
     if url is not None and decoded["sub"] != url:
         raise SignatureError(f"Invalid subject: {decoded['sub']}, want: {url}")
 
+    body_claim = decoded.get("body")
+    if not isinstance(body_claim, str):
+        raise SignatureError("Invalid body claim")
+
     body_hash = hashlib.sha256(body.encode()).digest()
     body_hash_b64 = base64.urlsafe_b64encode(body_hash).decode().rstrip("=")
 
-    if decoded["body"].rstrip("=") != body_hash_b64:
-        raise SignatureError(
-            f"Invalid body hash: {decoded['body']}, want: {body_hash_b64}"
-        )
+    if not hmac.compare_digest(body_claim.rstrip("="), body_hash_b64):
+        raise SignatureError(f"Invalid body hash: {body_claim}, want: {body_hash_b64}")
 
 
 class Receiver:
