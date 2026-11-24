@@ -1,3 +1,4 @@
+import json
 from typing import Callable
 
 import pytest
@@ -13,6 +14,8 @@ from qstash.message import (
     EnqueueResponse,
     PublishResponse,
     FlowControl,
+    convert_to_batch_messages,
+    prepare_batch_message_body,
 )
 from tests import assert_eventually, OPENAI_API_KEY
 
@@ -635,3 +638,28 @@ def test_log_filtering_by_label(client: QStash) -> None:
         retry_delay=1.0,
         timeout=30.0,
     )
+
+
+def test_batch_json_forwards_retry_delay() -> None:
+    messages = convert_to_batch_messages(
+        [
+            {
+                "url": "https://httpstat.us/200",
+                "body": {"ex_key": "ex_value"},
+                "retries": 2,
+                "retry_delay": "1000 * retried",
+            },
+            {
+                "url": "https://httpstat.us/200",
+                "body": {"ex_key": "ex_value"},
+            },
+        ]
+    )
+
+    assert messages[0]["retry_delay"] == "1000 * retried"
+    assert "retry_delay" not in messages[1]
+
+    body = json.loads(prepare_batch_message_body(messages))
+
+    assert body[0]["headers"]["Upstash-Retry-Delay"] == "1000 * retried"
+    assert "Upstash-Retry-Delay" not in body[1]["headers"]
