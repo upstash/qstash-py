@@ -203,8 +203,9 @@ class HttpClient:
                 break  # Break the loop as soon as we receive a proper response
             except Exception as e:
                 last_error = e
-                backoff = self._retry["backoff"](attempt) / 1000
-                time.sleep(backoff)
+                if attempt < max_attempts - 1:
+                    backoff = self._retry["backoff"](attempt) / 1000
+                    time.sleep(backoff)
 
         if not response:
             # Can't be None at this point
@@ -253,8 +254,9 @@ class HttpClient:
                 break  # Break the loop as soon as we receive a proper response
             except Exception as e:
                 last_error = e
-                backoff = self._retry["backoff"](attempt) / 1000
-                time.sleep(backoff)
+                if attempt < max_attempts - 1:
+                    backoff = self._retry["backoff"](attempt) / 1000
+                    time.sleep(backoff)
 
         if not response:
             # Can't be None at this point
